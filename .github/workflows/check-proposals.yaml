@@ -7,7 +7,7 @@ on:
       - main
 
   schedule:
-    - cron: '0 * * * *' # every hour we download translations and update the pr from crowdin
+    - cron: "0 * * * *" # every hour we download translations and update the pr from crowdin
 
 jobs:
   check-proposals:
@@ -20,7 +20,7 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: 16
           registry-url: https://registry.npmjs.org
 
       - name: Get yarn cache directory path
@@ -34,3 +34,11 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run checks
+        run: yarn start
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
