@@ -1,4 +1,4 @@
-name: Check Proposals
+name: Governance Checks
 
 # on any push to main, we rerun all checks for live proposals
 on:

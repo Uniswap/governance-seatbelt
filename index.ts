@@ -1,6 +1,6 @@
 import { Octokit } from "@octokit/action";
 
-const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
+const [owner, repo] = process.env.GITHUB_REPOSITORY?.split("/") ?? [];
 const octokit = new Octokit();
 
 async function main() {
