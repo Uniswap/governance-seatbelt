@@ -47,7 +47,10 @@ async function main() {
         repo: GITHUB_REPO_NAME,
         branch: "reports",
         message: `Update report for ${DAO_NAME}/${GOVERNOR_ADDRESS}/${proposal.id}`,
-        content: toProposalReport(proposal, checkResults),
+        content: Buffer.from(
+          toProposalReport(proposal, checkResults),
+          "utf-8"
+        ).toString("base64"),
         path: `${DAO_NAME}/${GOVERNOR_ADDRESS}/${proposal.id}.md`,
       });
     } catch (error) {
