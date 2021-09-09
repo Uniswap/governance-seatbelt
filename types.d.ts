@@ -12,14 +12,15 @@ export interface Proposal {
   description: string;
 }
 
-export type ErrorMessage = string;
+export type Message = string;
 
 export type CheckResult = {
-  warnings: ErrorMessage[];
-  errors: ErrorMessage[];
+  info: Message[];
+  warnings: Message[];
+  errors: Message[];
 };
 
-export interface Check {
+export interface ProposalCheck {
   name: string;
   checkProposal(proposal: Proposal): Promise<CheckResult>;
 }

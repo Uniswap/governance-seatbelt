@@ -2,6 +2,12 @@ import { AllCheckResults, Proposal } from "../types";
 import { Block } from "@ethersproject/abstract-provider";
 import { BigNumber } from "ethers";
 
+function toMessageList(header: string, errors: string[]): string {
+  return errors.length > 0
+    ? `${header}:\n` + errors.map((msg) => `- ${msg}`).join("\n")
+    : "";
+}
+
 /**
  * Summarize the results of a specific check
  * @param errors the errors returned by the check
@@ -9,7 +15,7 @@ import { BigNumber } from "ethers";
  * @param name the descriptive name of the check
  */
 function toCheckSummary({
-  result: { errors, warnings },
+  result: { errors, warnings, info },
   name,
 }: AllCheckResults[string]): string {
   const status =
@@ -20,18 +26,12 @@ function toCheckSummary({
       : "❌ Failed";
 
   return `#### ${name} ${status}
+  
+${toMessageList("Errors", errors)}
 
-${
-  errors.length > 0
-    ? "Errors:\n" + errors.map((msg) => `- ${msg}`).join("\n")
-    : ""
-}
+${toMessageList("Warnings", warnings)}
 
-${
-  warnings.length > 0
-    ? "Warnings:\n" + warnings.map((msg) => `- ${msg}`).join("\n")
-    : ""
-}
+${toMessageList("Info", info)}
 `;
 }
 

@@ -1,11 +1,11 @@
-import { Check } from "../types";
+import { ProposalCheck } from "../types";
 import { etherscan } from "../utils/clients/etherscan";
 import { provider } from "../utils/clients/ethers";
 
 /**
  * Check all targets with code are verified on Etherscan
  */
-export const checkTargetsVerifiedEtherscan: Check = {
+export const checkTargetsVerifiedEtherscan: ProposalCheck = {
   name: "Check all targets are verified on Etherscan",
   async checkProposal(proposal) {
     const errors: string[] = [];
@@ -23,6 +23,6 @@ export const checkTargetsVerifiedEtherscan: Check = {
       }
     }
 
-    return { warnings: [], errors };
+    return { info: [], warnings: [], errors };
   },
 };
