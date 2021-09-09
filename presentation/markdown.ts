@@ -44,12 +44,17 @@ export function toProposalReport(
 ): string {
   const { id, proposer, targets, endBlock, startBlock, description } = proposal;
 
-  return `## Proposal ID: ${id}
+  return `
+## Proposal ID: ${id}
 - Proposer: ${proposer}
 - Start Block: ${startBlock}
 - End Block: ${endBlock}
 - Targets: ${targets.join("; ")}
-- Description: ${description}
+
+<details>
+  <summary>Description</summary>
+  {description}
+</details>
 
 ### Checks
 ${Object.keys(checks)
