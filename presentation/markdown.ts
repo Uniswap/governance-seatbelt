@@ -100,6 +100,11 @@ export function toProposalReport(
   const { id, proposer, targets, endBlock, startBlock, description } = proposal;
 
   return `## ${getProposalTitle(description)}
+
+__Updated as of block [${blocks.current.number}](https://etherscan.io/blocks/${
+    blocks.current.number
+  }) at ${formatTime(blocks.current.timestamp)}__
+
 - ID: ${id}
 - Proposer: ${toAddressLink(proposer)}
 - Start Block: ${startBlock} (${
