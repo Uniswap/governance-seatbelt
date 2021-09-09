@@ -59,7 +59,7 @@ async function main() {
           sha = data.sha;
         }
       } catch (error) {
-        console.warn("Failed to get sha for file at path", path);
+        console.warn("Failed to get sha for file at path", path, error);
       }
 
       await github.repos.createOrUpdateFileContents({
