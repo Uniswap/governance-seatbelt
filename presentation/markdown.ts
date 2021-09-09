@@ -39,6 +39,14 @@ function getProposalTitle(description: string) {
   return match[1];
 }
 
+function toAddressLink(address: string): string {
+  return `[${address}](https://etherscan.io/address/${address})`;
+}
+
+function toCodeLink(address: string): string {
+  return `[${address}](https://etherscan.io/address/${address}#code)`;
+}
+
 /**
  * Produce a markdown report summarizing the result of all the checks for a given proposal
  * @param proposal
@@ -52,14 +60,14 @@ export function toProposalReport(
 
   return `
 ## #${id}: ${getProposalTitle(description)}
-- Proposer: ${proposer}
+- Proposer: ${toAddressLink(proposer)}
 - Start Block: ${startBlock}
 - End Block: ${endBlock}
-- Targets: ${targets.join("; ")}
+- Targets: ${targets.map(toCodeLink).join("; ")}
 
 <details>
   <summary>Proposal text</summary>
-  ${description}
+${description}
 </details>
 
 ### Checks
