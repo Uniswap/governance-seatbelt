@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 #  schedule:
 #    - cron: "0 * * * *" # every hour we download translations and update the pr from crowdin
