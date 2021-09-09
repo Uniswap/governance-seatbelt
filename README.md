@@ -7,4 +7,4 @@ for better informed voting.
 
 # Reports
 
-Find the reports [here](./tree/reports)
+Find the reports [here](https://github.com/Uniswap/governance-seatbelt/tree/reports)
