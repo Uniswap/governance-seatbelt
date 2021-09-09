@@ -16,6 +16,9 @@ async function main() {
   const { timestamp: currentTime, number: currentBlock } =
     await provider.getBlock("latest");
 
+  const currentDateTime = new Date(currentTime * 1000);
+  const formattedDateTime = currentDateTime.toISOString();
+
   const createProposalLogs = await governorBravo.queryFilter(
     governorBravo.filters.ProposalCreated(),
     0,
@@ -49,7 +52,7 @@ async function main() {
 
       let sha: string | undefined;
       try {
-        const { data } = await github.repos.getContent({
+        const { data } = await github.rest.repos.getContent({
           owner: GITHUB_REPO_OWNER,
           repo: GITHUB_REPO_NAME,
           branch: REPORTS_BRANCH,
@@ -62,11 +65,11 @@ async function main() {
         console.warn("Failed to get sha for file at path", path, error);
       }
 
-      await github.repos.createOrUpdateFileContents({
+      await github.rest.repos.createOrUpdateFileContents({
         owner: GITHUB_REPO_OWNER,
         repo: GITHUB_REPO_NAME,
         branch: REPORTS_BRANCH,
-        message: `Update report for ${DAO_NAME}/${GOVERNOR_ADDRESS}/${proposal.id}`,
+        message: `Update ${path} as of ${formattedDateTime}`,
         content: Buffer.from(
           toProposalReport(proposal, checkResults),
           "utf-8"
