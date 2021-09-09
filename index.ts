@@ -14,7 +14,8 @@ async function main() {
 
   const activeProposals: Proposal[] = createProposalLogs
     .filter(
-      (proposal) => proposal.args && proposal.args.endBlock.gte(currentBlock)
+      (proposal) =>
+        proposal.args /*&& proposal.args.endBlock.gte(currentBlock)*/
     )
     .map((proposal) => {
       return proposal.args as unknown as Proposal;
