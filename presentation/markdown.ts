@@ -47,6 +47,13 @@ function toCodeLink(address: string): string {
   return `[${address}](https://etherscan.io/address/${address}#code)`;
 }
 
+function blockQuote(str: string): string {
+  return str
+    .split("\n")
+    .map((s) => "> " + s)
+    .join("\n");
+}
+
 /**
  * Produce a markdown report summarizing the result of all the checks for a given proposal
  * @param proposal
@@ -67,7 +74,8 @@ export function toProposalReport(
 
 <details>
   <summary>Proposal text</summary>
-${description}
+
+${blockQuote(description)}
 </details>
 
 ### Checks
