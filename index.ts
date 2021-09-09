@@ -1,4 +1,8 @@
-import { GITHUB_REPO_NAME, GITHUB_REPO_OWNER } from "./utils/constants";
+import {
+  DAO_NAME,
+  GITHUB_REPO_NAME,
+  GITHUB_REPO_OWNER,
+} from "./utils/constants";
 import { github } from "./utils/clients/github";
 import { governorBravo } from "./utils/contracts/governor-bravo";
 import { provider } from "./utils/clients/ethers";
@@ -44,7 +48,7 @@ async function main() {
   await github.issues.create({
     owner: GITHUB_REPO_OWNER,
     repo: GITHUB_REPO_NAME,
-    title: "Report result",
+    title: `${DAO_NAME} report result`,
     body: `# Active proposals
 ${activeProposals
   .map((proposal, ix) => toProposalReport(proposal, resultsByProposalIndex[ix]))
