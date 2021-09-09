@@ -2,6 +2,7 @@ import {
   DAO_NAME,
   GITHUB_REPO_NAME,
   GITHUB_REPO_OWNER,
+  GOVERNOR_ADDRESS,
 } from "./utils/constants";
 import { github } from "./utils/clients/github";
 import { governorBravo } from "./utils/contracts/governor-bravo";
@@ -27,34 +28,32 @@ async function main() {
       return proposal.args as unknown as Proposal;
     });
 
-  const resultsByProposalIndex: AllCheckResults[] = [];
-
   for (let proposal of activeProposals) {
-    resultsByProposalIndex.push(
-      Object.fromEntries(
-        await Promise.all(
-          Object.keys(ALL_CHECKS).map(async (checkId) => [
-            checkId,
-            {
-              name: ALL_CHECKS[checkId].name,
-              result: await ALL_CHECKS[checkId].checkProposal(proposal),
-            },
-          ])
-        )
+    const checkResults: AllCheckResults = Object.fromEntries(
+      await Promise.all(
+        Object.keys(ALL_CHECKS).map(async (checkId) => [
+          checkId,
+          {
+            name: ALL_CHECKS[checkId].name,
+            result: await ALL_CHECKS[checkId].checkProposal(proposal),
+          },
+        ])
       )
     );
-  }
 
-  await github.issues.create({
-    owner: GITHUB_REPO_OWNER,
-    repo: GITHUB_REPO_NAME,
-    title: `${DAO_NAME} report result`,
-    body: `# Active proposals
-${activeProposals
-  .map((proposal, ix) => toProposalReport(proposal, resultsByProposalIndex[ix]))
-  .join("\n\n")}
-`,
-  });
+    try {
+      await github.repos.createOrUpdateFileContents({
+        owner: GITHUB_REPO_OWNER,
+        repo: GITHUB_REPO_NAME,
+        branch: "reports",
+        message: `Update report for ${DAO_NAME}/${GOVERNOR_ADDRESS}/${proposal.id}`,
+        content: toProposalReport(proposal, checkResults),
+        path: `${DAO_NAME}/${GOVERNOR_ADDRESS}/${proposal.id}.md`,
+      });
+    } catch (error) {
+      console.error("Failed to update file contents", error);
+    }
+  }
 }
 
 main()
