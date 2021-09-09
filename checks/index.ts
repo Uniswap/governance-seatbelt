@@ -1,5 +1,5 @@
 import { checkTargetsVerifiedEtherscan } from "./check-targets-verified-etherscan";
-import { Check } from "./types";
+import { Check } from "../types";
 
 const ALL_CHECKS: {
   [checkId: string]: Check;

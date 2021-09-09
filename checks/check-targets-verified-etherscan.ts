@@ -1,4 +1,4 @@
-import { Check } from "./types";
+import { Check } from "../types";
 import { etherscan } from "../utils/clients/etherscan";
 import { provider } from "../utils/clients/ethers";
 

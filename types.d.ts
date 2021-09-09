@@ -23,3 +23,7 @@ export interface Check {
   name: string;
   checkProposal(proposal: Proposal): Promise<CheckResult>;
 }
+
+export interface AllCheckResults {
+  [checkId: string]: { name: string; result: CheckResult };
+}

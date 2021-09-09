@@ -2,39 +2,9 @@ import { GITHUB_REPO_NAME, GITHUB_REPO_OWNER } from "./utils/constants";
 import { github } from "./utils/clients/github";
 import { governorBravo } from "./utils/contracts/governor-bravo";
 import { provider } from "./utils/clients/ethers";
-import { CheckResult, Proposal } from "./checks/types";
+import { AllCheckResults, Proposal } from "./types";
 import ALL_CHECKS from "./checks";
-
-interface AllCheckResults {
-  [checkId: string]: { name: string; result: CheckResult };
-}
-
-function toProposalBody(proposal: Proposal, checks: AllCheckResults) {
-  const { id, proposer, targets, endBlock, startBlock, description } = proposal;
-
-  return `## Proposal ID: ${id}
-- Proposer: ${proposer}
-- Start Block: ${startBlock}
-- End Block: ${endBlock}
-- Targets: ${targets.join("; ")}
-- Description: ${description}
-
-### Checks
-${Object.keys(checks)
-  .map(
-    (checkId) =>
-      `#### ${checks[checkId].name} ${
-        checks[checkId].result.errors.length === 0 ? "✅ Passed" : "❌ Failed"
-      }
-
-Errors: 
-${checks[checkId].result.errors.map((msg) => `- ${msg}`).join("\n")}
-
-Warnings: 
-${checks[checkId].result.warnings.map((msg) => `- ${msg}`).join("\n")}`
-  )
-  .join("\n")}`;
-}
+import { toProposalReport } from "./presentation/markdown";
 
 async function main() {
   const currentBlock = await provider.getBlockNumber();
@@ -77,9 +47,7 @@ async function main() {
     title: "Report result",
     body: `# Active proposals
 ${activeProposals
-  .map((proposal, ix) => {
-    return toProposalBody(proposal, resultsByProposalIndex[ix]);
-  })
+  .map((proposal, ix) => toProposalReport(proposal, resultsByProposalIndex[ix]))
   .join("\n\n")}
 `,
   });
