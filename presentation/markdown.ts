@@ -52,8 +52,8 @@ export function toProposalReport(
 - Targets: ${targets.join("; ")}
 
 <details>
-  <summary>Description</summary>
-  {description}
+  <summary>Proposal text</summary>
+  ${description}
 </details>
 
 ### Checks
