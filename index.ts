@@ -13,16 +13,15 @@ import ALL_CHECKS from "./checks";
 import { toProposalReport } from "./presentation/markdown";
 
 async function main() {
-  const { timestamp: currentTime, number: currentBlock } =
-    await provider.getBlock("latest");
+  const latestBlock = await provider.getBlock("latest");
 
-  const currentDateTime = new Date(currentTime * 1000);
+  const currentDateTime = new Date(latestBlock.timestamp * 1000);
   const formattedDateTime = currentDateTime.toISOString();
 
   const createProposalLogs = await governorBravo.queryFilter(
     governorBravo.filters.ProposalCreated(),
     0,
-    currentBlock
+    latestBlock.number
   );
 
   const activeProposals: Proposal[] = createProposalLogs
@@ -30,11 +29,9 @@ async function main() {
       (proposal) =>
         proposal.args /*&& proposal.args.endBlock.gte(cu¡rrentBlock)*/
     )
-    .map((proposal) => {
-      return proposal.args as unknown as Proposal;
-    });
+    .map((proposal) => proposal.args as unknown as Proposal);
 
-  for (let proposal of activeProposals) {
+  for (const proposal of activeProposals) {
     const checkResults: AllCheckResults = Object.fromEntries(
       await Promise.all(
         Object.keys(ALL_CHECKS).map(async (checkId) => [
@@ -50,12 +47,21 @@ async function main() {
     try {
       const path = `${DAO_NAME}/${GOVERNOR_ADDRESS}/${proposal.id}.md`;
 
+      const [startBlock, endBlock] = await Promise.all([
+        proposal.startBlock.toNumber() <= latestBlock.number
+          ? provider.getBlock(proposal.startBlock.toNumber())
+          : null,
+        proposal.endBlock.toNumber() <= latestBlock.number
+          ? provider.getBlock(proposal.endBlock.toNumber())
+          : null,
+      ]);
+
       let sha: string | undefined;
       try {
         const { data } = await github.rest.repos.getContent({
           owner: GITHUB_REPO_OWNER,
           repo: GITHUB_REPO_NAME,
-          branch: REPORTS_BRANCH,
+          ref: REPORTS_BRANCH,
           path,
         });
         if ("sha" in data) {
@@ -71,7 +77,11 @@ async function main() {
         branch: REPORTS_BRANCH,
         message: `Update ${path} as of ${formattedDateTime}`,
         content: Buffer.from(
-          toProposalReport(proposal, checkResults),
+          toProposalReport(
+            { start: startBlock, end: endBlock, current: latestBlock },
+            proposal,
+            checkResults
+          ),
           "utf-8"
         ).toString("base64"),
         path,

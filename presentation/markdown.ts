@@ -1,4 +1,6 @@
 import { AllCheckResults, Proposal } from "../types";
+import { Block } from "@ethersproject/abstract-provider";
+import { BigNumber } from "ethers";
 
 /**
  * Summarize the results of a specific check
@@ -66,11 +68,32 @@ function blockQuote(str: string): string {
 }
 
 /**
+ * Format a block timestamp which is always in epoch seconds to a human readable string
+ * @param blockTimestamp the block timestamp to format
+ */
+function formatTime(blockTimestamp: number): string {
+  return new Date(blockTimestamp * 1000).toISOString();
+}
+
+/**
+ * Estimate the timestamp of a future block number
+ * @param current the current block
+ * @param block the future block number
+ */
+function estimateTime(current: Block, block: BigNumber): number {
+  if (block.lt(current.number))
+    throw new Error("end block is less than current");
+  return block.sub(current.number).mul(13).add(current.timestamp).toNumber();
+}
+
+/**
  * Produce a markdown report summarizing the result of all the checks for a given proposal
+ * @param blocks the relevant blocks for the proposal
  * @param proposal
  * @param checks
  */
 export function toProposalReport(
+  blocks: { current: Block; start: Block | null; end: Block | null },
   proposal: Proposal,
   checks: AllCheckResults
 ): string {
@@ -79,8 +102,16 @@ export function toProposalReport(
   return `## ${getProposalTitle(description)}
 - ID: ${id}
 - Proposer: ${toAddressLink(proposer)}
-- Start Block: ${startBlock}
-- End Block: ${endBlock}
+- Start Block: ${startBlock} (${
+    blocks.start
+      ? formatTime(blocks.start.timestamp)
+      : formatTime(estimateTime(blocks.current, startBlock))
+  })
+- End Block: ${endBlock} (${
+    blocks.end
+      ? formatTime(blocks.end.timestamp)
+      : formatTime(estimateTime(blocks.current, endBlock))
+  })
 - Targets: ${targets.map((target) => toAddressLink(target, true)).join("; ")}
 
 <details>
