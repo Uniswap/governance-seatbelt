@@ -3,6 +3,7 @@ import {
   GITHUB_REPO_NAME,
   GITHUB_REPO_OWNER,
   GOVERNOR_ADDRESS,
+  REPORTS_BRANCH,
 } from "./utils/constants";
 import { github } from "./utils/clients/github";
 import { governorBravo } from "./utils/contracts/governor-bravo";
@@ -12,11 +13,13 @@ import ALL_CHECKS from "./checks";
 import { toProposalReport } from "./presentation/markdown";
 
 async function main() {
-  const currentBlock = await provider.getBlockNumber();
+  const { timestamp: currentTime, number: currentBlock } =
+    await provider.getBlock("latest");
+
   const createProposalLogs = await governorBravo.queryFilter(
     governorBravo.filters.ProposalCreated(),
     0,
-    "latest"
+    currentBlock
   );
 
   const activeProposals: Proposal[] = createProposalLogs
@@ -42,16 +45,34 @@ async function main() {
     );
 
     try {
+      const path = `${DAO_NAME}/${GOVERNOR_ADDRESS}/${proposal.id}.md`;
+
+      let sha: string | undefined;
+      try {
+        const { data } = await github.repos.getContent({
+          owner: GITHUB_REPO_OWNER,
+          repo: GITHUB_REPO_NAME,
+          branch: REPORTS_BRANCH,
+          path,
+        });
+        if ("sha" in data) {
+          sha = data.sha;
+        }
+      } catch (error) {
+        console.warn("Failed to get sha for file at path", path);
+      }
+
       await github.repos.createOrUpdateFileContents({
         owner: GITHUB_REPO_OWNER,
         repo: GITHUB_REPO_NAME,
-        branch: "reports",
+        branch: REPORTS_BRANCH,
         message: `Update report for ${DAO_NAME}/${GOVERNOR_ADDRESS}/${proposal.id}`,
         content: Buffer.from(
           toProposalReport(proposal, checkResults),
           "utf-8"
         ).toString("base64"),
-        path: `${DAO_NAME}/${GOVERNOR_ADDRESS}/${proposal.id}.md`,
+        path,
+        sha,
       });
     } catch (error) {
       console.error("Failed to update file contents", error);
