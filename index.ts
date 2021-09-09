@@ -5,6 +5,37 @@ import { provider } from "./utils/clients/ethers";
 import { CheckResult, Proposal } from "./checks/types";
 import ALL_CHECKS from "./checks";
 
+interface AllCheckResults {
+  [checkId: string]: { name: string; result: CheckResult };
+}
+
+function toProposalBody(proposal: Proposal, checks: AllCheckResults) {
+  const { id, proposer, targets, endBlock, startBlock, description } = proposal;
+
+  return `## Proposal ID: ${id}
+- Proposer: ${proposer}
+- Start Block: ${startBlock}
+- End Block: ${endBlock}
+- Targets: ${targets.join("; ")}
+- Description: ${description}
+
+### Checks
+${Object.keys(checks)
+  .map(
+    (checkId) =>
+      `#### ${checks[checkId].name} ${
+        checks[checkId].result.errors.length === 0 ? "✅ Passed" : "❌ Failed"
+      }
+
+Errors: 
+${checks[checkId].result.errors.map((msg) => `- ${msg}`).join("\n")}
+
+Warnings: 
+${checks[checkId].result.warnings.map((msg) => `- ${msg}`).join("\n")}`
+  )
+  .join("\n")}`;
+}
+
 async function main() {
   const currentBlock = await provider.getBlockNumber();
   const createProposalLogs = await governorBravo.queryFilter(
@@ -16,18 +47,26 @@ async function main() {
   const activeProposals: Proposal[] = createProposalLogs
     .filter(
       (proposal) =>
-        proposal.args /*&& proposal.args.endBlock.gte(currentBlock)*/
+        proposal.args /*&& proposal.args.endBlock.gte(cu¡rrentBlock)*/
     )
     .map((proposal) => {
       return proposal.args as unknown as Proposal;
     });
 
-  const results: CheckResult[][] = [];
+  const resultsByProposalIndex: AllCheckResults[] = [];
 
   for (let proposal of activeProposals) {
-    results.push(
-      await Promise.all(
-        ALL_CHECKS.map((check) => check.checkProposal(proposal))
+    resultsByProposalIndex.push(
+      Object.fromEntries(
+        await Promise.all(
+          Object.keys(ALL_CHECKS).map(async (checkId) => [
+            checkId,
+            {
+              name: ALL_CHECKS[checkId].name,
+              result: await ALL_CHECKS[checkId].checkProposal(proposal),
+            },
+          ])
+        )
       )
     );
   }
@@ -39,32 +78,7 @@ async function main() {
     body: `# Active proposals
 ${activeProposals
   .map((proposal, ix) => {
-    const { id, proposer, targets, endBlock, startBlock, description } =
-      proposal;
-    results[ix];
-    return `
-## Proposal ID: ${id}
-- Proposer: ${proposer}
-- Start Block: ${startBlock}
-- End Block: ${endBlock}
-- Targets: ${targets.join("; ")}
-- Description: ${description}
-
-### Checks
-${ALL_CHECKS.map(
-  (check, checkIx) =>
-    `#### ${check.name} ${
-      results[ix][checkIx].length === 0 ? "✅ Passed" : "❌ Failed"
-    }
-
-Check errors: 
-
-${results[ix][checkIx].map((err) => `- ${err}`).join("\n")}
-`
-).join("\n")}
--
-
-`;
+    return toProposalBody(proposal, resultsByProposalIndex[ix]);
   })
   .join("\n\n")}
 `,

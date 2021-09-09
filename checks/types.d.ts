@@ -14,7 +14,10 @@ export interface Proposal {
 
 export type ErrorMessage = string;
 
-export type CheckResult = ErrorMessage[];
+export type CheckResult = {
+  warnings: ErrorMessage[];
+  errors: ErrorMessage[];
+};
 
 export interface Check {
   name: string;
