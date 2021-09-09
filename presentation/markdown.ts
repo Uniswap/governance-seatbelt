@@ -33,6 +33,12 @@ ${
 `;
 }
 
+function getProposalTitle(description: string) {
+  const match = description.match(/^#\s*(.*)\s*\n/);
+  if (!match || match.length < 2) return "Title not found";
+  return match[1];
+}
+
 /**
  * Produce a markdown report summarizing the result of all the checks for a given proposal
  * @param proposal
@@ -45,7 +51,7 @@ export function toProposalReport(
   const { id, proposer, targets, endBlock, startBlock, description } = proposal;
 
   return `
-## Proposal ID: ${id}
+## #${id}: ${getProposalTitle(description)}
 - Proposer: ${proposer}
 - Start Block: ${startBlock}
 - End Block: ${endBlock}
