@@ -11,3 +11,12 @@ export interface Proposal {
   endBlock: BigNumber;
   description: string;
 }
+
+export type ErrorMessage = string;
+
+export type CheckResult = ErrorMessage[];
+
+export interface Check {
+  name: string;
+  checkProposal(proposal: Proposal): Promise<CheckResult>;
+}
