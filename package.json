@@ -24,8 +24,10 @@
   },
   "homepage": "https://github.com/Uniswap/governance-seatbelt#readme",
   "dependencies": {
+    "@ethercast/etherscan-client": "^1.0.1",
     "@octokit/action": "^3.15.2",
     "@types/node": "^16.7.13",
+    "ethers": "^5.4.6",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.2"
   },

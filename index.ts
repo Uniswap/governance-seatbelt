@@ -1,13 +1,38 @@
-import { Octokit } from "@octokit/action";
-
-const [owner, repo] = process.env.GITHUB_REPOSITORY?.split("/") ?? [];
-const octokit = new Octokit();
+import { GITHUB_REPO_NAME, GITHUB_REPO_OWNER } from "./utils/constants";
+import { github } from "./utils/clients/github";
+import { governorBravo } from "./utils/contracts/governor-bravo";
 
 async function main() {
-  const { data } = await octokit.request("POST /repos/{owner}/{repo}/issues", {
-    owner,
-    repo,
-    title: "My test issue",
+  const proposals = await governorBravo.queryFilter(
+    governorBravo.filters.ProposalCreated(),
+    0,
+    "latest"
+  );
+
+  const { data } = await github.issues.create({
+    owner: GITHUB_REPO_OWNER,
+    repo: GITHUB_REPO_NAME,
+    title: "Report result",
+    body: `# Proposals
+${proposals.reduce((memo, { args }) => {
+  if (!args) return memo;
+  const {
+    id,
+    proposer,
+    targets,
+    values,
+    signatures,
+    calldatas,
+    startBlock,
+    endBlock,
+    description,
+  } = args;
+
+  return `${memo}\n\nproposal id: ${id}; proposer: ${proposer}; targets: ${targets.join(
+    ", "
+  )};`;
+}, "")}
+`,
   });
 }
 
