@@ -72,7 +72,9 @@ function blockQuote(str: string): string {
  * @param blockTimestamp the block timestamp to format
  */
 function formatTime(blockTimestamp: number): string {
-  return new Date(blockTimestamp * 1000).toISOString();
+  return `${new Date(blockTimestamp * 1000).toLocaleString("en-US", {
+    timeZone: "EST",
+  })} ET`;
 }
 
 /**
@@ -101,9 +103,9 @@ export function toProposalReport(
 
   return `## ${getProposalTitle(description)}
 
-__Updated as of block [${blocks.current.number}](https://etherscan.io/blocks/${
+_Updated as of block [${blocks.current.number}](https://etherscan.io/block/${
     blocks.current.number
-  }) at ${formatTime(blocks.current.timestamp)}__
+  }) at ${formatTime(blocks.current.timestamp)}_
 
 - ID: ${id}
 - Proposer: ${toAddressLink(proposer)}
