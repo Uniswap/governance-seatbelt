@@ -73,7 +73,7 @@ function blockQuote(str: string): string {
  */
 function formatTime(blockTimestamp: number): string {
   return `${new Date(blockTimestamp * 1000).toLocaleString("en-US", {
-    timeZone: "EST",
+    timeZone: "America/New_York",
   })} ET`;
 }
 
