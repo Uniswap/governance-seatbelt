@@ -1,3 +1,3 @@
-import { Octokit } from "@octokit/action";
+import { Octokit } from '@octokit/action'
 
-export const github = new Octokit();
+export const github = new Octokit()

@@ -1,28 +1,27 @@
-import { ProposalCheck } from "../types";
-import { etherscan } from "../utils/clients/etherscan";
-import { provider } from "../utils/clients/ethers";
+import { ProposalCheck } from '../types'
+import { etherscan } from '../utils/clients/etherscan'
+import { provider } from '../utils/clients/ethers'
 
 /**
  * Check all targets with code are verified on Etherscan
  */
 export const checkTargetsVerifiedEtherscan: ProposalCheck = {
-  name: "Check all targets are verified on Etherscan",
+  name: 'Check all targets are verified on Etherscan',
   async checkProposal(proposal) {
-    const errors: string[] = [];
+    const errors: string[] = []
     for (let target of proposal.targets) {
-      if ((await provider.getCode(target)) !== "0x") {
+      if ((await provider.getCode(target)) !== '0x') {
         try {
-          const abi = await etherscan.getAbi(target);
+          const abi = await etherscan.getAbi(target)
         } catch (error) {
-          if (error instanceof Error)
-            errors.push(`Target ${target} is not verified: ${error.message}`);
-          else errors.push(`Target ${target} is not verified`);
+          if (error instanceof Error) errors.push(`Target ${target} is not verified: ${error.message}`)
+          else errors.push(`Target ${target} is not verified`)
         }
       } else {
-        errors.push(`Target ${target} has no code`);
+        errors.push(`Target ${target} has no code`)
       }
     }
 
-    return { info: [], warnings: [], errors };
+    return { info: [], warnings: [], errors }
   },
-};
+}
