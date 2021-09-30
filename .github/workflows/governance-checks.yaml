@@ -52,6 +52,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
-          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
+          RPC_URL: ${{ secrets.RPC_URL }}
           DAO_NAME: ${{ matrix.DAO_NAME }}
           GOVERNOR_ADDRESS: ${{ matrix.GOVERNOR_ADDRESS }}

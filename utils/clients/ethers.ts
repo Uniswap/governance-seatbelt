@@ -1,4 +1,4 @@
 import { providers } from "ethers";
-import { INFURA_API_KEY } from "../constants";
+import { RPC_URL } from "../constants";
 
-export const provider = new providers.InfuraProvider(1, INFURA_API_KEY);
+export const provider = new providers.JsonRpcProvider(RPC_URL);
