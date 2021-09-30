@@ -55,3 +55,4 @@ jobs:
           RPC_URL: ${{ secrets.RPC_URL }}
           DAO_NAME: ${{ matrix.DAO_NAME }}
           GOVERNOR_ADDRESS: ${{ matrix.GOVERNOR_ADDRESS }}
+          RUNNING_LOCALLY: 0
