@@ -3,54 +3,99 @@
  */
 
 require('dotenv').config()
-import { ethers, network } from 'hardhat'
+import fs from 'fs'
+import hre, { artifacts, ethers } from 'hardhat'
 import { BigNumber, Contract } from 'ethers'
 import { governorBravo } from './utils/contracts/governor-bravo'
-import { getAbi } from './utils/clients/etherscan'
+import { getCode } from './utils/clients/etherscan'
 import { Proposal } from './types'
 
 // TODO modularize to avoid hardcoding fork block + proposal ID
 // TODO enable running in CI, this only runs locally
+// TODO modify Bravo's code and impersonate Bravo to get more accurate gas estimates? Or just hardcode
+// some margin based on the opcode costs of what's going on in Bravo.execute?
 
 const PROPOSAL_ID = 43 // arbitrary proposal
 const provider = ethers.provider
+const { hexStripZeros, hexZeroPad } = ethers.utils
 
 async function simulate(proposal: Proposal, governor: Contract) {
-  // Get timelock address from the governor
+  // --- Modify code at timelock to allow batch execution of queued transactions ---
+  // Get source code of timelock
   const timelockAddress: string = await governor.admin()
-  const timelockAbi = await getAbi(timelockAddress)
-  let timelock = new Contract(timelockAddress, timelockAbi, ethers.provider)
-  const timelockAdmin: string = await timelock.admin()
+  const { SourceCode: code } = await getCode(timelockAddress)
 
-  // Get a signer for the timelock admin and give them an ETH balance
-  await network.provider.request({ method: 'hardhat_impersonateAccount', params: [timelockAdmin] })
-  const timelockAdminSigner = await ethers.getSigner(timelockAdmin)
-  timelock = timelock.connect(timelockAdminSigner)
-  await provider.send('hardhat_setBalance', [timelockAdmin, '0x56bc75e2d63100000']) // 100 ETH
+  // Replace the contract's closing brace with our new method and enable ABIEncoderV2. Using `memory` for
+  // input parameters to ensure compatibility with older solidity versions that don't support `calldata`
+  const batchExecuteMethod = `
+    function execute(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, uint eta) public payable returns (bytes memory) {
+      for (uint i = 0; i < targets.length; i++) {
+        executeTransaction(targets[i], values[i], signatures[i], calldatas[i], eta);
+      }
+    }
+  `
+  const lastBracketIndex = code.lastIndexOf('}')
+  const newCode = `pragma experimental ABIEncoderV2;\n${code.substring(0, lastBracketIndex)}${batchExecuteMethod}}\n`
+
+  // Dump source code to a temporary file, compile it, get the ABI and bytecode, then delete the temporary file
+  const tempTimelockContract = 'contracts/tmp.sol'
+  fs.writeFileSync(tempTimelockContract, newCode)
+  await hre.run('compile') // TODO can we specify compiler settings here based on the data returned from `getCode`?
+  const { abi, deployedBytecode } = artifacts.readArtifactSync('Timelock')
+  fs.unlinkSync(tempTimelockContract)
+
+  // Place the bytecode at the timelock address
+  await provider.send('hardhat_setCode', [timelockAddress, deployedBytecode])
+
+  //  --- Change timelock admin to a regular signer ---
+  // Get the original admin address
+  let timelock = new Contract(timelockAddress, abi, provider)
+  const originalTimelockAdmin: string = await timelock.admin()
+
+  // Find the storage slot containing the admin by testing each slot for the expected admin value
+  let slot: string = '0x'
+  for (let i = 0; i < 500; i += 1) {
+    slot = i === 0 ? '0x0' : hexStripZeros(BigNumber.from(i).toHexString())
+    const data = await provider.send('eth_getStorageAt', [timelockAddress, slot])
+    const address = `0x${data.slice(26, 66)}`
+    if (address.toLowerCase() === originalTimelockAdmin.toLowerCase()) break
+  }
+  if (slot === '0x') throw new Error('Admin slot was not found')
+
+  // Overwrite the admin with one of the default hardhat signers
+  const [admin] = await ethers.getSigners()
+  await provider.send('hardhat_setStorageAt', [timelockAddress, slot, hexZeroPad(admin.address, 32)])
+  if ((await timelock.admin()) !== admin.address) throw new Error('Admin was not updated')
+
+  // --- Execution setup ---
+  // Attach admin signer to timelock contract and make sure they have an ETH balance
+  timelock = timelock.connect(admin)
+  await provider.send('hardhat_setBalance', [admin.address, '0x21e19e0c9bab2400000']) // 10000 ETH
 
   // Compute proposal ETA
   const now = (await provider.getBlock('latest')).timestamp
   const delay: BigNumber = await timelock.delay()
   const eta = delay.add(now).add(10) // some margin to ensure we satisfy: eta >= block.timestamp.add(delay)
 
-  // Turn off Hardhat's automine so we can mine all transactions in the same block, to mimic all proposal calls
-  // being executed atomically in the transaction. This is simpler than making the required state modifications
-  // to call the governor's `execute` method
-  await provider.send('evm_setAutomine', [false])
-
-  // Queue all calls in the proposal
-  const { targets, values, signatures, calldatas } = proposal
-  await Promise.all(
-    targets.map((_, i) => timelock.queueTransaction(targets[i], values[i] || 0, signatures[i], calldatas[i], eta))
+  // --- Queue calls ---
+  // Send the transactions
+  const { targets, values, signatures: sigs, calldatas } = proposal
+  const vals = typeof values === 'function' ? sigs.map((_) => 0) : values // TODO sometimes values is a function when it should be zero?
+  const queueTxs = await Promise.all(
+    sigs.map((_, i) => timelock.queueTransaction(targets[i], vals, sigs[i], calldatas[i], eta))
   )
-  await provider.send('evm_mine', [])
 
+  // Verify all queue transactions were successful
+  const queueReceipts = await Promise.all(queueTxs.map((tx) => provider.getTransactionReceipt(tx.hash)))
+  const queueStatus = queueReceipts.map((receipt) => receipt.status)
+  if (!queueStatus.every((status) => status === 1)) throw new Error('Transactions were not successfully queued')
+
+  // --- Execute ---
   // Fast-forward to the ETA and execute transactions
   await provider.send('evm_setNextBlockTimestamp', [eta.toHexString()])
-  for (let i = 0; i < targets.length; i += 1) {
-    await timelock.executeTransaction(targets[i], values[i] || 0, signatures[i], calldatas[i], eta)
-  }
-  await provider.send('evm_mine', [])
+  const tx = await timelock.execute(targets, vals, sigs, calldatas, eta)
+  const receipt = await provider.getTransactionReceipt(tx.hash)
+  return { tx, receipt }
 }
 
 async function main() {
@@ -69,7 +114,9 @@ async function main() {
   const proposal = proposalEvent.args as unknown as Proposal
 
   // --- Simulate proposal execution ---
-  await simulate(proposal, governorBravo)
+  const { tx, receipt } = await simulate(proposal, governorBravo)
+  console.log('tx: ', tx)
+  console.log('receipt: ', receipt)
 }
 
 main()
