@@ -3,21 +3,17 @@
  */
 
 require('dotenv').config()
-import fs from 'fs'
-import hre, { artifacts, ethers } from 'hardhat'
+import { artifacts, ethers } from 'hardhat'
 import { BigNumber, Contract } from 'ethers'
 import { governorBravo } from './utils/contracts/governor-bravo'
-import { getCode } from './utils/clients/etherscan'
 import { Proposal } from './types'
 
-// TODO modularize to avoid hardcoding fork block + proposal ID
 // TODO enable running in CI, this only runs locally
 // TODO modify Bravo's code and impersonate Bravo to get more accurate gas estimates? Or just hardcode
 // some margin based on the opcode costs of what's going on in Bravo.execute?
 
-const PROPOSAL_ID = 43 // arbitrary proposal
+const PROPOSAL_ID = Number(process.env.PROPOSAL_ID)
 const provider = ethers.provider
-const { hexStripZeros, hexZeroPad } = ethers.utils
 
 async function simulate(proposal: Proposal, governor: Contract) {
   // --- Modify code at timelock ---

@@ -8,7 +8,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "start": "ts-node index.ts",
-    "start:sim": "yarn compile && hardhat run index.fork.ts",
+    "start:sim": "yarn compile && PROPOSAL_ID=43 FORK_BLOCK=12266839 hardhat run index.fork.ts",
     "lint:fix": "prettier --write ."
   },
   "repository": {

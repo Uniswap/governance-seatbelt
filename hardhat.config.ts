@@ -7,7 +7,7 @@ export default {
     hardhat: {
       forking: {
         url: RPC_URL,
-        blockNumber: 12266839, // TODO this is tailored for Compound proposal 43, but lets generalize it
+        blockNumber: Number(process.env.FORK_BLOCK),
       },
     },
   },
