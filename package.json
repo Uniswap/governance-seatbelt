@@ -6,8 +6,9 @@
   },
   "description": "Make governance safer",
   "scripts": {
+    "compile": "hardhat compile",
     "start": "ts-node index.ts",
-    "start:sim": "yarn hardhat run index.fork.ts",
+    "start:sim": "yarn compile && hardhat run index.fork.ts",
     "lint:fix": "prettier --write ."
   },
   "repository": {

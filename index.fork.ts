@@ -20,56 +20,24 @@ const provider = ethers.provider
 const { hexStripZeros, hexZeroPad } = ethers.utils
 
 async function simulate(proposal: Proposal, governor: Contract) {
-  // --- Modify code at timelock to allow batch execution of queued transactions ---
-  // Get source code of timelock
+  // --- Modify code at timelock ---
+  // See ModifiedTimelock.sol for details on what's changed over the standard Timelock
+
+  // Place the modified bytecode at the timelock address
   const timelockAddress: string = await governor.admin()
-  const { SourceCode: code } = await getCode(timelockAddress)
-
-  // Replace the contract's closing brace with our new method and enable ABIEncoderV2. Using `memory` for
-  // input parameters to ensure compatibility with older solidity versions that don't support `calldata`
-  const batchExecuteMethod = `
-    function execute(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, uint eta) public payable returns (bytes memory) {
-      for (uint i = 0; i < targets.length; i++) {
-        executeTransaction(targets[i], values[i], signatures[i], calldatas[i], eta);
-      }
-    }
-  `
-  const lastBracketIndex = code.lastIndexOf('}')
-  const newCode = `pragma experimental ABIEncoderV2;\n${code.substring(0, lastBracketIndex)}${batchExecuteMethod}}\n`
-
-  // Dump source code to a temporary file, compile it, get the ABI and bytecode, then delete the temporary file
-  const tempTimelockContract = 'contracts/tmp.sol'
-  fs.writeFileSync(tempTimelockContract, newCode)
-  await hre.run('compile') // TODO can we specify compiler settings here based on the data returned from `getCode`?
-  const { abi, deployedBytecode } = artifacts.readArtifactSync('Timelock')
-  fs.unlinkSync(tempTimelockContract)
-
-  // Place the bytecode at the timelock address
+  const { abi, deployedBytecode } = artifacts.readArtifactSync('ModifiedTimelock')
   await provider.send('hardhat_setCode', [timelockAddress, deployedBytecode])
 
-  //  --- Change timelock admin to a regular signer ---
-  // Get the original admin address
-  let timelock = new Contract(timelockAddress, abi, provider)
-  const originalTimelockAdmin: string = await timelock.admin()
-
-  // Find the storage slot containing the admin by testing each slot for the expected admin value
-  let slot: string = '0x'
-  for (let i = 0; i < 500; i += 1) {
-    slot = i === 0 ? '0x0' : hexStripZeros(BigNumber.from(i).toHexString())
-    const data = await provider.send('eth_getStorageAt', [timelockAddress, slot])
-    const address = `0x${data.slice(26, 66)}`
-    if (address.toLowerCase() === originalTimelockAdmin.toLowerCase()) break
-  }
-  if (slot === '0x') throw new Error('Admin slot was not found')
-
-  // Overwrite the admin with one of the default hardhat signers
+  // Verify the admin matches the first Hardhat signer
   const [admin] = await ethers.getSigners()
-  await provider.send('hardhat_setStorageAt', [timelockAddress, slot, hexZeroPad(admin.address, 32)])
-  if ((await timelock.admin()) !== admin.address) throw new Error('Admin was not updated')
+  const timelock = new Contract(timelockAddress, abi, admin)
+  const timelockAdmin = await timelock.admin()
+  if (timelockAdmin !== admin.address) {
+    throw new Error(`Expected timelock to have admin of ${admin.address}, but found ${timelockAdmin}`)
+  }
 
   // --- Execution setup ---
-  // Attach admin signer to timelock contract and make sure they have an ETH balance
-  timelock = timelock.connect(admin)
+  // Make sure admin has an ETH balance
   await provider.send('hardhat_setBalance', [admin.address, '0x21e19e0c9bab2400000']) // 10000 ETH
 
   // Compute proposal ETA

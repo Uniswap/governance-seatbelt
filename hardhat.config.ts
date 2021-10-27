@@ -12,12 +12,7 @@ export default {
     },
   },
   solidity: {
-    // TODO dynamically update compiler config at runtime based on compiler info returned from Etherscan
-    compilers: [
-      {
-        version: '0.5.17',
-        settings: { optimizer: { enabled: true, runs: 999999 } }, // no bytecodeHash setting in this version
-      },
-    ],
+    version: '0.5.17',
+    settings: { optimizer: { enabled: false } }, // optimizer off for conservative gas usage estimates
   },
 }
