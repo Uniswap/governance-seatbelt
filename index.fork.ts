@@ -3,10 +3,15 @@
  */
 
 require('dotenv').config()
+import fs from 'fs'
+import { DAO_NAME, RUNNING_LOCALLY } from './utils/constants'
 import { artifacts, ethers } from 'hardhat'
 import { BigNumber, Contract } from 'ethers'
+import { ContractTransaction } from '@ethersproject/contracts'
 import { governorBravo } from './utils/contracts/governor-bravo'
-import { Proposal } from './types'
+import { AllCheckResults, Proposal } from './types'
+import ALL_CHECKS from './checks'
+import { toProposalReport } from './presentation/markdown'
 
 // TODO enable running in CI, this only runs locally
 // TODO modify Bravo's code and impersonate Bravo to get more accurate gas estimates? Or just hardcode
@@ -15,6 +20,12 @@ import { Proposal } from './types'
 const PROPOSAL_ID = Number(process.env.PROPOSAL_ID)
 const provider = ethers.provider
 
+/**
+ * @notice Simulates execution of a governance proposal
+ * @param proposal Proposal to simulate
+ * @param governor Contract instance of the governor contract for that proposal
+ * @returns Transaction data and receipt
+ */
 async function simulate(proposal: Proposal, governor: Contract) {
   // --- Modify code at timelock ---
   // See ModifiedTimelock.sol for details on what's changed over the standard Timelock
@@ -57,11 +68,15 @@ async function simulate(proposal: Proposal, governor: Contract) {
   // --- Execute ---
   // Fast-forward to the ETA and execute transactions
   await provider.send('evm_setNextBlockTimestamp', [eta.toHexString()])
-  const tx = await timelock.execute(targets, vals, sigs, calldatas, eta)
-  const receipt = await provider.getTransactionReceipt(tx.hash)
-  return { tx, receipt }
+  const tx = (await timelock.execute(targets, vals, sigs, calldatas, eta)) as ContractTransaction
+  return { tx }
 }
 
+/**
+ * @notice Executes proposal checks and generates a report for the proposal ID specified
+ * by the PROPOSAL_ID environment variable, based on simulating execution of that proposal
+ * at the block specified by the FORK_BLOCK environment variable.
+ */
 async function main() {
   // --- Save off current block/datetime (where "current" means the block we forked at) ---
   const latestBlock = await provider.getBlock('latest')
@@ -78,9 +93,38 @@ async function main() {
   const proposal = proposalEvent.args as unknown as Proposal
 
   // --- Simulate proposal execution ---
-  const { tx, receipt } = await simulate(proposal, governorBravo)
-  console.log('tx: ', tx)
-  console.log('receipt: ', receipt)
+  const { tx } = await simulate(proposal, governorBravo)
+
+  // --- Run proposal checks ---
+  const checkResults: AllCheckResults = Object.fromEntries(
+    await Promise.all(
+      Object.keys(ALL_CHECKS).map(async (checkId) => [
+        checkId,
+        {
+          name: ALL_CHECKS[checkId].name,
+          result: await ALL_CHECKS[checkId].checkProposal(proposal, tx),
+        },
+      ])
+    )
+  )
+
+  // --- Save report ---
+  const [startBlock, endBlock] = await Promise.all([
+    proposal.startBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.startBlock.toNumber()) : null,
+    proposal.endBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.endBlock.toNumber()) : null,
+  ])
+
+  const report = toProposalReport({ start: startBlock, end: endBlock, current: latestBlock }, proposal, checkResults)
+
+  if (RUNNING_LOCALLY) {
+    // Running locally, dump to file
+    const dir = `./reports/${DAO_NAME}/${governorBravo.address}/`
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(`${dir}/${proposal.id}.md`, report)
+  } else {
+    // Running in CI, save to file on REPORTS_BRANCH
+    // TODO
+  }
 }
 
 main()
