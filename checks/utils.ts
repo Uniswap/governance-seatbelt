@@ -29,7 +29,7 @@ export async function getTouchedAddresses(tx: ContractTransaction | string) {
 
   // Get all addresses from the steps that executed an opcode from `opcodeMap`
   const { structLogs } = await getTransactionTrace(tx)
-  const items = structLogs.filter((log) => Object.keys(opcodeMap).includes(log.op))
+  const items = structLogs.filter((log) => typeof opcodeMap[<Opcodes>log.op] !== 'undefined')
   const rawAddresses = items.map((item) => item.stack[item.stack.length - opcodeMap[<Opcodes>item.op]])
   // Take the raw 32 byte hex strings (64 characters) from the stack and parse them into checksummed addresses
   const checksumAddresses = rawAddresses.map((addr) => ethers.utils.getAddress(`0x${addr.slice(24)}`))
