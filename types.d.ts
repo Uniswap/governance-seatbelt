@@ -49,3 +49,29 @@ interface TransactionTrace {
   returnValue: string
   structLogs: OpcodeExecution[]
 }
+
+// ABI returned from Etherscan (we could add stronger typing here if required, but this is sufficient for now)
+export type ABI = {
+  inputs: {
+    internalType: string
+    name: string
+    type: string
+  }[]
+  payable: boolean
+  stateMutability: string
+  type: string
+}[]
+
+// Shape of data returned when querying 4byte.directory
+export type FourByteResponse = {
+  count: number
+  next: unknown
+  previous: unknown
+  results: {
+    id: number
+    created_at: string // ISO 8601 timestamp
+    text_signature: string
+    hex_signature: string
+    bytes_signature: string
+  }[]
+}
