@@ -64,20 +64,21 @@ async function getFunctionSignature(target: string, selector: string, sig: strin
   const checkAbi = (abi: ABI, selector: string): string | null => {
     const iface = new utils.Interface(abi)
     for (const fragment of iface.fragments) {
-      if (fragment.type !== 'function') continue
       if (fragment.type === 'function' && iface.getSighash(fragment) === selector) return fragment.format('full')
     }
     return null
   }
 
   // First try the ABI of the target address
+  // TODO how to only run checkABI once here and in the below for loop? Probably won't matter since
+  // these almost certainly won't be the performance bottleneck
   const abi = (await getAbi(target)) as ABI
   if (checkAbi(abi, selector)) return checkAbi(abi, selector)
 
-  // Next check try any implementation contracts that exist if this is a proxy
+  // Next look for an implementation contracts which will exist if this is a proxy
   const proxyAbis = [
-    'function implementation() external view returns (address)',
-    'function comptrollerImplementation() external view returns (address)',
+    'function implementation() external view returns (address)', // standard interface
+    'function comptrollerImplementation() external view returns (address)', // Compound's comptroller interface
   ]
   for (const abi of proxyAbis) {
     try {
@@ -92,11 +93,13 @@ async function getFunctionSignature(target: string, selector: string, sig: strin
 
   // If a sig is provided, we fall back to that and return it in the standard ethers form for consistency.
   // Based on how this method is used, any `sig` provided is already normalized so it can be hashed into
-  // a function signature on chain
+  // a function signature on chain, so we prepend "function " to it so it's compatible with ethers
   if (sig) return formatSignature(`function ${sig}`)
 
   // Lastly, we check 4byte.directory. If results are found, we arbitrarily choose to return the last one in
   // the array, which corresponds to the first one added to 4byte
+  // WARNING: If the one arbitrarily chosen is wrong (i.e same function signature but different length of
+  // arguments) decoding will fail
   const url = `https://www.4byte.directory/api/v1/signatures/?hex_signature=${selector}`
   const response = (await fetchJson(url)) as FourByteResponse
   if (response.count === 0) return null // no signature found
