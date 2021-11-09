@@ -11,6 +11,7 @@ export const checkDecodeCalldata: ProposalCheck = {
   name: 'Decode calldata of each executed call',
   async checkProposal(proposal, tx) {
     const info: string[] = []
+    const warnings: string[] = []
     for (let i = 0; i < proposal.calldatas.length; i += 1) {
       const target = proposal.targets[i]
       const calldata = proposal.calldatas[i]
@@ -30,12 +31,14 @@ export const checkDecodeCalldata: ProposalCheck = {
       if (matchingSig) {
         info.push(await prettifyCalldata(target, matchingSig, fullCalldata))
       } else {
-        const msg = `On contract ${target}, call ${fullCalldata} (could not decode calldata because no function signature could be found for this call)`
+        const msg = `On contract ${target}, call ${fullCalldata}`
+        const warning = `Could not decode calldata for call ${i} because no function signature could be found for this call`
         info.push(msg)
+        warnings.push(warning)
       }
     }
 
-    return { info, warnings: [], errors: [] }
+    return { info, warnings, errors: [] }
   },
 }
 
