@@ -1,23 +1,7 @@
 import EtherscanClient from '@ethercast/etherscan-client'
 import { fetchJson } from '@ethersproject/web'
 import { ETHERSCAN_API_KEY } from '../constants'
-import { ABI } from '../../types'
-
-interface ContractSource {
-  SourceCode: string
-  ABI: string
-  ContractName: string
-  CompilerVersion: string
-  OptimizationUsed: string
-  Runs: string
-  ConstructorArguments: string
-  EVMVersion: string
-  Library: string
-  LicenseType: string
-  Proxy: string
-  Implementation: string
-  SwarmSource: string
-}
+import { ABI, ContractSource } from '../../types'
 
 export const etherscan = new EtherscanClient({
   apiKey: ETHERSCAN_API_KEY,

@@ -1,6 +1,7 @@
 import { BigNumber } from 'ethers'
 import { ContractTransaction } from '@ethersproject/contracts'
 
+// --- Proposals ---
 export interface Proposal {
   id: BigNumber
   proposer: string
@@ -30,6 +31,7 @@ export interface AllCheckResults {
   [checkId: string]: { name: string; result: CheckResult }
 }
 
+// --- Transaction tracing ---
 // Describes a single step of execution in a transaction
 interface OpcodeExecution {
   pc: number
@@ -50,6 +52,7 @@ interface TransactionTrace {
   structLogs: OpcodeExecution[]
 }
 
+// --- Etherscan ---
 // ABI returned from Etherscan (we could add stronger typing here if required, but this is sufficient for now)
 export type ABI = {
   inputs: {
@@ -62,6 +65,23 @@ export type ABI = {
   type: string
 }[]
 
+export interface ContractSource {
+  SourceCode: string
+  ABI: string
+  ContractName: string
+  CompilerVersion: string
+  OptimizationUsed: string
+  Runs: string
+  ConstructorArguments: string
+  EVMVersion: string
+  Library: string
+  LicenseType: string
+  Proxy: string
+  Implementation: string
+  SwarmSource: string
+}
+
+// --- 4byte.directory ---
 // Shape of data returned when querying 4byte.directory
 export type FourByteResponse = {
   count: number
