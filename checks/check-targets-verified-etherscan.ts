@@ -1,7 +1,7 @@
 import { ProposalCheck } from '../types'
 import { etherscan } from '../utils/clients/etherscan'
 import { provider } from '../utils/clients/ethers'
-import { getTouchedAddresses } from './utils'
+import { getTransactionTrace } from './utils'
 
 /**
  * Check all targets with code are verified on Etherscan
@@ -21,7 +21,7 @@ export const checkTargetsVerifiedEtherscan: ProposalCheck = {
 export const checkTouchedContractsVerifiedEtherscan: ProposalCheck = {
   name: 'Check all touched contracts are verified on Etherscan',
   async checkProposal(proposal, tx) {
-    const addresses = await getTouchedAddresses(tx)
+    const { addresses } = await getTransactionTrace(tx)
     const { info, errors } = await checkVerifiedAddresses(addresses, false)
     return { info: [`Touched Addresses:${info}`], warnings: [], errors }
   },

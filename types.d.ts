@@ -36,6 +36,22 @@ export interface AllCheckResults {
 // RpcDebugTraceOutput: Full output of debug_traceTransaction
 export { RpcStructLog, RpcDebugTraceOutput } from 'hardhat/internal/hardhat-network/provider/output'
 
+export interface StorageWrite {
+  address: string // address where the state change occurred
+  index: number // index in the structLogs of the transaction trace where this SSTORE is
+  slot: string // slot written to
+  value: string // new value written to the slot
+}
+
+export interface StorageDiff extends Omit<StorageWrite, 'address'> {
+  oldValue: string
+}
+
+export interface StateDiff {
+  balance: string;
+  storage: StorageDiff[]
+}
+
 // --- Etherscan ---
 // ABI returned from Etherscan (we could add stronger typing here if required, but this is sufficient for now)
 export type ABI = {
