@@ -32,25 +32,9 @@ export interface AllCheckResults {
 }
 
 // --- Transaction tracing ---
-// Describes a single step of execution in a transaction
-interface OpcodeExecution {
-  pc: number
-  op: string
-  gas: number
-  gasCost: number
-  depth: number
-  stack: string[]
-  memory: string[]
-  storage: Record<string, string>
-}
-
-// Shape of data returned from debug_traceTransaction
-interface TransactionTrace {
-  gas: number
-  failed: boolean
-  returnValue: string
-  structLogs: OpcodeExecution[]
-}
+// RpcStructLog: Describes a single step of execution in a transaction
+// RpcDebugTraceOutput: Full output of debug_traceTransaction
+export { RpcStructLog, RpcDebugTraceOutput } from 'hardhat/internal/hardhat-network/provider/output'
 
 // --- Etherscan ---
 // ABI returned from Etherscan (we could add stronger typing here if required, but this is sufficient for now)

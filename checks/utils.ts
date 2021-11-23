@@ -1,10 +1,11 @@
 import { ethers } from 'hardhat'
 import { ContractTransaction } from '@ethersproject/contracts'
-import { TransactionTrace } from '../types'
+import { RpcDebugTraceOutput } from '../types'
+const { getAddress } = ethers.utils
 
 export async function getTransactionTrace(tx: ContractTransaction | string) {
   const txHash = typeof tx === 'string' ? tx : tx.hash
-  return ethers.provider.send('debug_traceTransaction', [txHash]) as Promise<TransactionTrace>
+  return ethers.provider.send('debug_traceTransaction', [txHash]) as Promise<RpcDebugTraceOutput>
 }
 
 export async function getTouchedAddresses(tx: ContractTransaction | string) {
@@ -30,9 +31,9 @@ export async function getTouchedAddresses(tx: ContractTransaction | string) {
   // Get all addresses from the steps that executed an opcode from `opcodeMap`
   const { structLogs } = await getTransactionTrace(tx)
   const items = structLogs.filter((log) => typeof opcodeMap[<Opcodes>log.op] !== 'undefined')
-  const rawAddresses = items.map((item) => item.stack[item.stack.length - opcodeMap[<Opcodes>item.op]])
-  // Take the raw 32 byte hex strings (64 characters) from the stack and parse them into checksummed addresses
-  const checksumAddresses = rawAddresses.map((addr) => ethers.utils.getAddress(`0x${addr.slice(24)}`))
-  // Remove duplicate addresses
-  return checksumAddresses.filter((addr, i, checksumAddresses) => checksumAddresses.indexOf(addr) === i)
+  return items
+    .map((item) => item.stack?.[item.stack.length - opcodeMap[<Opcodes>item.op]]) // get list of addresses from trace
+    .map((addr) => (!addr ? null : getAddress(`0x${addr.slice(24)}`))) // convert the 32 byte hex strings from the stack into checksummed addresses
+    .filter((addr) => typeof addr === 'string') // remove null values
+    .filter((addr, i, checksumAddresses) => checksumAddresses.indexOf(addr) === i) as string[] // remove duplicate addresses
 }
