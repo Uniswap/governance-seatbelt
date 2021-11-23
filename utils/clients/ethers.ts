@@ -1,4 +1,3 @@
-import { providers } from 'ethers'
-import { RPC_URL } from '../constants'
+import { ethers } from 'hardhat'
 
-export const provider = new providers.JsonRpcProvider(RPC_URL)
+export const provider = ethers.provider
