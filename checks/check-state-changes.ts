@@ -1,6 +1,4 @@
-import { artifacts, run } from 'hardhat'
-import fs from 'fs'
-import { ContractSource, ProposalCheck, RpcDebugTraceOutput, StorageWrite } from '../types'
+import { AddressStateDiff, ProposalCheck, RpcDebugTraceOutput, StorageDiff, StorageWrite, TxStateDiff } from '../types'
 import { getCode } from '../utils/clients/etherscan'
 import { provider } from '../utils/clients/ethers'
 import { getTransactionTrace } from './utils'
@@ -30,8 +28,9 @@ function getStorageWrites(to: string, trace: RpcDebugTraceOutput): StorageWrite[
       }
 
       // Return details of the storage write
+      // The first element on the stack (last in the stack array) is the key, and the second element is the value
       const stack = log.stack as string[]
-      return { address, index, slot: stack[stack.length - 1], value: stack[stack.length - 2] }
+      return { address, index, slot: stack[stack.length - 1], newValue: stack[stack.length - 2] }
     })
     .filter((item) => item !== null) as StorageWrite[]
 }
@@ -43,7 +42,7 @@ export const checkStateChanges: ProposalCheck = {
   name: 'Gets state changes of all touched addresses',
   async checkProposal(proposal, tx) {
     if (!tx.blockNumber) throw new Error('Block number must be provided to get ETH balance changes')
-    
+
     // Get transaction trace and list of touched addresses
     const { trace, addresses } = await getTransactionTrace(tx)
 
@@ -62,100 +61,74 @@ export const checkStateChanges: ProposalCheck = {
     // Only keep the last SSTORE for a given address-slot pairing. Therefore the filter logic below
     // should return false if any items later in the array have the same address and slot value
     const netWrites = storageWrites.filter((write, index, writes) => {
-      if (index === writes.length - 1) return true; // this is the last SSTORE in the transaction so we keep it
+      if (index === writes.length - 1) return true // this is the last SSTORE in the transaction so we keep it
       const subsequentWrites = writes.slice(index + 1)
-      const {address, slot} = write
-      return !subsequentWrites.some(w => w.address === address && w.slot === slot)
+      const { address, slot } = write
+      return !subsequentWrites.some((w) => w.address === address && w.slot === slot)
     })
 
-    // Get the ETH balance change for each touched address.
-    // We store this as an object that maps from address to balance change to simplify merging of the
-    // storage writes with ETH balance changes
-    const balanceDiffs: Record<string, string> = {}
+    // Convert the net storage writes into array of state changes. To do this, we must (1) remove
+    // storage writes where the new slot value is the same as the previous slot value, and (2) check
+    // for ETH balance changes at each address
+    const stateDiff: TxStateDiff = {}
     const block = tx.blockNumber as number
-    await Promise.all(addresses.map(async (addr) => balanceDiffs[addr] = await getEthBalanceChange(block, addr)))
+    await Promise.all(
+      addresses.map(async (addr) => {
+        // We don't actually care about the map return array, we just use it to fire off the async calls
+        // required to get the state diff at each address (instead of having to await each address'
+        // promises synchronously in e.g. a `for...of` loop)
 
-    // Organize state diffs by address
-    addresses.map((addr) => {
-      const balanceDiff = `${formatEther(balanceDiffs[addr])} ETH`
-      // TODO get StateDiff using StorageDiff type
-    })
+        // Initialize state change object to set
+        const diff = {} as AddressStateDiff
 
-    // OLD STUFF BELOW
+        // Get balance before and after
+        const [oldBalance, newBalance] = await Promise.all([
+          provider.getBalance(addr, block - 1),
+          provider.getBalance(addr, block),
+        ])
+        if (!oldBalance.eq(newBalance)) {
+          diff.balance = { old: oldBalance, new: newBalance }
+        }
 
-    // Get state at prior block and current block to compute state diff
-    if (!tx.blockNumber) throw new Error('Transaction is missing block number')
-    let info = ''
-    for (const code of codes) {
-      const { address, code: sourceCode } = code
-      const stateChange =
-        sourceCode === '0x'
-          ? await getEthBalanceChange(tx.blockNumber, address)
-          : await getContractStateChange(tx.blockNumber, address, sourceCode as ContractSource) // code === '0x' is not sufficient for type inference apparently
+        // Get state change before and after
+        const applicableWrites = netWrites.filter((write) => write.address === addr) // remove storage writes not to this address
+        const addrWritesAll = await Promise.all(
+          applicableWrites.map(async (write) => {
+            // Remove storage writes where the new slot value matches the old slot value
+            const [oldVal, newVal] = await Promise.all([
+              provider.getStorageAt(write.address, `0x${write.slot}`, block - 1),
+              provider.getStorageAt(write.address, `0x${write.slot}`, block),
+            ])
+            if (oldVal === newVal) return null
+            return { index: write.index, slot: write.slot, value: { old: oldVal, new: newVal } } as StorageDiff
+          })
+        )
 
-      // TODO return state change data in `info`
-      if (stateChange) info += `State changes for ${address}:\n${stateChange}`
+        // Save off any state changes left after removing no-ops
+        const addrWrites = addrWritesAll.filter((val) => val !== null) as StorageDiff[]
+        if (addrWrites.length) {
+          diff.storage = addrWrites
+        }
+
+        // Set combined state + balance diff
+        if (Object.keys(diff).length) {
+          stateDiff[addr] = diff
+        }
+      })
+    )
+
+    // At this point, the full state and balance diff of the transaction is contained in the `stateDiff` variable.
+    // We now format the data for the report
+    if (!Object.keys(stateDiff)) return { info: ['No state changes'], warnings: [], errors: [] }
+    let info = 'State changes:'
+    for (const [addr, diff] of Object.entries(stateDiff)) {
+      const { balance, storage } = diff
+      if (balance) info += `\n    - ${addr}: Balance change of ${formatEther(balance.new.sub(balance.old))} ETH`
+      if (storage) {
+        storage.forEach(({ slot, value }) => (info += `\n    - Slot ${slot} changed from ${value.old} to ${value.new}`))
+      }
     }
 
-    return { info: [], warnings: [], errors: [] }
+    return { info: [info], warnings: [], errors: [] }
   },
-}
-
-// Returns change in ETH balance at `address` between `block-1` and `block`
-async function getEthBalanceChange(block: number, address: string) {
-  const [prevBalance, newBalance] = await Promise.all([
-    provider.getBalance(address, block - 1),
-    provider.getBalance(address, block),
-  ])
-  if (prevBalance.eq(newBalance)) return '0'
-  return newBalance.sub(prevBalance).toString()
-}
-
-// Returns state changes in contract at `address` between `block-1` and `block`
-async function getContractStateChange(block: number, address: string, code: ContractSource) {
-  // --- Dump source code to a file ---
-  //  For some reason the source code object starts and ends with two braces
-  code.SourceCode = code.SourceCode.replace('{{', '{').replace('}}', '}')
-
-  // From the SourceCode field, convert the string to JSON and pull out the source code of each file
-  const sourceCodes = Object.values(JSON.parse(code.SourceCode).sources).map(
-    (src) => (src as { content: string; keccak256: string }).content
-  )
-
-  // Combine source code into one string and dump it to a temporary file.
-  const sourceCode = sourceCodes
-    .reverse() // reverse before joining to ensure contract definitions are in the correct order based on inheritance
-    .join('\n')
-    .replace(/import.*/g, '') // remove all import statements since we have everything in one file
-    .replace(/(?<=(pragma experimental ABIEncoderV2;)[\s\S]+)\1/g, '') // only keep the first instance of pragmas: https://newbedev.com/how-to-replace-all-occurrences-of-a-string-except-the-first-one-in-javascript
-    .replace(/(?<=(pragma abicoder v2;)[\s\S]+)\1/g, '')
-
-  const tempContractFile = 'contracts/tmp.sol'
-  fs.writeFileSync(tempContractFile, sourceCode)
-
-  // --- Compile source code ---
-  // TODO this does not compile as expected -- not passing in settings correctly
-  await run('compile', {
-    solidity: {
-      settings: {
-        outputSelection: {
-          '*': {
-            '*': ['storageLayout'],
-          },
-        },
-      },
-    },
-  })
-
-  const { abi, deployedBytecode } = artifacts.readArtifactSync('ModifiedTimelock')
-  fs.unlinkSync(tempContractFile)
-
-  // 1. Get list of changed slots by (address, slot) tuples
-  // 2. Compile each `address` with storageLayout flag enabled
-
-  // 2. For each slot in the storage layout output, get decoded slot value before and after tx execution
-  // 3. TODO how to handle mapping keys? Presumably debug_traceTransaction has all the slots, but TBD
-  //    how to extract only mapping slots to reduce execution time/effort
-  // 4. Call getEthBalanceChange()
-  return 'TODO'
 }

@@ -36,21 +36,36 @@ export interface AllCheckResults {
 // RpcDebugTraceOutput: Full output of debug_traceTransaction
 export { RpcStructLog, RpcDebugTraceOutput } from 'hardhat/internal/hardhat-network/provider/output'
 
+// Each SSTORE from a transaction is saved off with this data
 export interface StorageWrite {
   address: string // address where the state change occurred
   index: number // index in the structLogs of the transaction trace where this SSTORE is
   slot: string // slot written to
-  value: string // new value written to the slot
+  newValue: string // new value written to the slot
 }
 
-export interface StorageDiff extends Omit<StorageWrite, 'address'> {
-  oldValue: string
+// Extension of StorageWrite that includes the prior storage value
+export interface StorageDiff extends Omit<StorageWrite, 'address' | 'newValue'> {
+  value: {
+    old: string
+    new: string
+  }
 }
 
-export interface StateDiff {
-  balance: string;
-  storage: StorageDiff[]
+interface BalanceDiff {
+  old: BigNumber
+  new: BigNumber
 }
+
+// State diff that occurs at a given address after a transaction. At least one of the two object
+// keys is required
+export type AddressStateDiff = {
+  storage?: StorageDiff[]
+  balance?: BalanceDiff
+} & ({ storage: StorageDiff[] } | { balance: BalanceDiff })
+
+// All state diffs in a given transaction, keyed by address of the state changes
+export type TxStateDiff = Record<string, AddressStateDiff>
 
 // --- Etherscan ---
 // ABI returned from Etherscan (we could add stronger typing here if required, but this is sufficient for now)
