@@ -41,20 +41,20 @@ export interface StorageWrite {
   address: string // address where the state change occurred
   index: number // index in the structLogs of the transaction trace where this SSTORE is
   slot: string // slot written to
-  newValue: string // new value written to the slot
+  curValue: string // new value written to the slot
 }
 
 // Extension of StorageWrite that includes the prior storage value
 export interface StorageDiff extends Omit<StorageWrite, 'address' | 'newValue'> {
   value: {
-    old: string
-    new: string
+    prev: string
+    cur: string
   }
 }
 
 interface BalanceDiff {
-  old: BigNumber
-  new: BigNumber
+  prev: BigNumber
+  cur: BigNumber
 }
 
 // State diff that occurs at a given address after a transaction. At least one of the two object

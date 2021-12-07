@@ -17,7 +17,7 @@ export async function getAbi(contract: string): Promise<ABI> {
   return JSON.parse(response.result)
 }
 
-export async function getCode(contract: string) {
+export async function getSourceCode(contract: string) {
   // TODO only supports when a single file is returned
   const url = `https://api.etherscan.io/api?module=contract&action=getsourcecode&address=${contract}&apikey=${ETHERSCAN_API_KEY}`
   const response = (await fetchJson(url)) as { status: string; message: string; result: ContractSource[] }
@@ -27,7 +27,7 @@ export async function getCode(contract: string) {
 
 export async function compileCode(contract: string) {
   // TODO work in progress
-  const code = await getCode(contract)
+  const code = await getSourceCode(contract)
 
   //  For some reason the source code object returned from Etherscan starts and ends with two braces
   code.SourceCode = code.SourceCode.replace('{{', '{').replace('}}', '}')

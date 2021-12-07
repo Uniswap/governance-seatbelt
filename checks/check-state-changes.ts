@@ -1,5 +1,5 @@
 import { AddressStateDiff, ProposalCheck, RpcDebugTraceOutput, StorageDiff, StorageWrite, TxStateDiff } from '../types'
-import { getCode } from '../utils/clients/etherscan'
+import { getSourceCode } from '../utils/clients/etherscan'
 import { provider } from '../utils/clients/ethers'
 import { getTransactionTrace } from './utils'
 import { OPCODE_MAP } from '../utils/constants'
@@ -30,7 +30,7 @@ function getStorageWrites(to: string, trace: RpcDebugTraceOutput): StorageWrite[
       // Return details of the storage write
       // The first element on the stack (last in the stack array) is the key, and the second element is the value
       const stack = log.stack as string[]
-      return { address, index, slot: stack[stack.length - 1], newValue: stack[stack.length - 2] }
+      return { address, index, slot: stack[stack.length - 1], curValue: stack[stack.length - 2] }
     })
     .filter((item) => item !== null) as StorageWrite[]
 }
@@ -51,20 +51,18 @@ export const checkStateChanges: ProposalCheck = {
       addresses.map(async (address) => {
         const code = await provider.getCode(address)
         if (code === '0x') return { address, code }
-        return { address, code: await getCode(address) }
+        return { address, code: await getSourceCode(address) }
       })
     )
 
     // Get all storage writes from the transaction
     const storageWrites = getStorageWrites(tx.to as string, trace)
 
-    // Only keep the last SSTORE for a given address-slot pairing. Therefore the filter logic below
-    // should return false if any items later in the array have the same address and slot value
-    const netWrites = storageWrites.filter((write, index, writes) => {
-      if (index === writes.length - 1) return true // this is the last SSTORE in the transaction so we keep it
-      const subsequentWrites = writes.slice(index + 1)
-      const { address, slot } = write
-      return !subsequentWrites.some((w) => w.address === address && w.slot === slot)
+    // Only keep the last SSTORE for a given address-slot pairing
+    const netWrites: Record<string, Record<string, StorageWrite>> = {}
+    storageWrites.forEach((write) => {
+      if (!netWrites[write.address]) netWrites[write.address] = {}
+      if (!netWrites[write.address][write.slot]) netWrites[write.address][write.slot] = write
     })
 
     // Convert the net storage writes into array of state changes. To do this, we must (1) remove
@@ -87,27 +85,28 @@ export const checkStateChanges: ProposalCheck = {
           provider.getBalance(addr, block),
         ])
         if (!oldBalance.eq(newBalance)) {
-          diff.balance = { old: oldBalance, new: newBalance }
+          diff.balance = { prev: oldBalance, cur: newBalance }
         }
 
         // Get state change before and after
-        const applicableWrites = netWrites.filter((write) => write.address === addr) // remove storage writes not to this address
-        const addrWritesAll = await Promise.all(
-          applicableWrites.map(async (write) => {
-            // Remove storage writes where the new slot value matches the old slot value
-            const [oldVal, newVal] = await Promise.all([
-              provider.getStorageAt(write.address, `0x${write.slot}`, block - 1),
-              provider.getStorageAt(write.address, `0x${write.slot}`, block),
-            ])
-            if (oldVal === newVal) return null
-            return { index: write.index, slot: write.slot, value: { old: oldVal, new: newVal } } as StorageDiff
-          })
-        )
+        if (netWrites[addr]) {
+          const addrWritesAll = await Promise.all(
+            Object.values(netWrites[addr]).map(async (write) => {
+              // Remove storage writes where the new slot value matches the old slot value
+              const [oldVal, newVal] = await Promise.all([
+                provider.getStorageAt(write.address, `0x${write.slot}`, block - 1),
+                provider.getStorageAt(write.address, `0x${write.slot}`, block),
+              ])
+              if (oldVal === newVal) return null
+              return { index: write.index, slot: write.slot, value: { prev: oldVal, cur: newVal } } as StorageDiff
+            })
+          )
 
-        // Save off any state changes left after removing no-ops
-        const addrWrites = addrWritesAll.filter((val) => val !== null) as StorageDiff[]
-        if (addrWrites.length) {
-          diff.storage = addrWrites
+          // Save off any state changes left after removing no-ops
+          const addrWrites = addrWritesAll.filter((val) => val !== null) as StorageDiff[]
+          if (addrWrites.length) {
+            diff.storage = addrWrites
+          }
         }
 
         // Set combined state + balance diff
@@ -123,9 +122,11 @@ export const checkStateChanges: ProposalCheck = {
     let info = 'State changes:'
     for (const [addr, diff] of Object.entries(stateDiff)) {
       const { balance, storage } = diff
-      if (balance) info += `\n    - ${addr}: Balance change of ${formatEther(balance.new.sub(balance.old))} ETH`
+      if (balance) info += `\n    - ${addr}: Balance change of ${formatEther(balance.cur.sub(balance.prev))} ETH`
       if (storage) {
-        storage.forEach(({ slot, value }) => (info += `\n    - Slot ${slot} changed from ${value.old} to ${value.new}`))
+        storage.forEach(
+          ({ slot, value }) => (info += `\n    - Slot ${slot} changed from ${value.prev} to ${value.cur}`)
+        )
       }
     }
 
