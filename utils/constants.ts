@@ -6,3 +6,5 @@ export const ETHERSCAN_API_KEY: string = process.env.ETHERSCAN_API_KEY!
 export const DAO_NAME: string = process.env.DAO_NAME!
 export const REPORTS_BRANCH = 'reports'
 export const RUNNING_LOCALLY = Boolean(process.env.RUNNING_LOCALLY) // use 1 or 0 because Boolean('false') = true
+export const TENDERLY_URL = `https://api.tenderly.co/api/v1/account/me/project/${process.env.TENDERLY_PROJECT_SLUG}/simulate`
+export const TENDERLY_ACCESS_TOKEN: string = process.env.TENDERLY_ACCESS_TOKEN!

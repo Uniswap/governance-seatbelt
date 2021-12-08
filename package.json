@@ -9,6 +9,7 @@
     "compile": "hardhat compile",
     "start": "ts-node index.ts",
     "start:sim": "yarn compile && PROPOSAL_ID=43 FORK_BLOCK=12266839 hardhat run index.fork.ts",
+    "start:tenderly": "PROPOSAL_ID=43 FORK_BLOCK=12266839 yarn ts-node index.tenderly.ts",
     "lint:fix": "prettier --write ."
   },
   "repository": {
@@ -37,6 +38,7 @@
     "typescript": "^4.4.2"
   },
   "devDependencies": {
+    "micro-ftch": "^0.3.1",
     "prettier": "^2.3.2"
   }
 }
