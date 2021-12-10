@@ -8,7 +8,7 @@ import { FORK_BLOCK, PROPOSAL_ID, RPC_URL, TENDERLY_ACCESS_TOKEN, TENDERLY_URL }
 import { Contract } from 'ethers'
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { governorBravo } from './utils/contracts/governor-bravo'
-import { Proposal, TenderlyPayload, TenderlySimulationResponse } from './types'
+import { Proposal, TenderlyPayload, TenderlySimulation } from './types'
 
 const provider = new JsonRpcProvider(RPC_URL)
 
@@ -43,8 +43,7 @@ async function simulate(proposal: Proposal, governor: Contract) {
     headers: { 'X-Access-Key': TENDERLY_ACCESS_TOKEN },
     data: simulationPayload,
   }
-  const response = <TenderlySimulationResponse>await fetchUrl(TENDERLY_URL, <Partial<FETCH_OPT>>fetchOptions)
-  return { tx: response }
+  return <TenderlySimulation>await fetchUrl(TENDERLY_URL, <Partial<FETCH_OPT>>fetchOptions)
 }
 
 /**
@@ -68,7 +67,7 @@ async function main() {
   const proposal = proposalEvent.args as unknown as Proposal
 
   // --- Simulate proposal execution ---
-  const { tx } = await simulate(proposal, governorBravo)
+  const sim = await simulate(proposal, governorBravo)
 }
 
 main()
