@@ -4,29 +4,34 @@
 
 require('dotenv').config()
 import fetchUrl, { FETCH_OPT } from 'micro-ftch'
-import { RPC_URL, TENDERLY_ACCESS_TOKEN, TENDERLY_URL } from './utils/constants'
+import { FORK_BLOCK, PROPOSAL_ID, RPC_URL, TENDERLY_ACCESS_TOKEN, TENDERLY_URL } from './utils/constants'
 import { Contract } from 'ethers'
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { governorBravo } from './utils/contracts/governor-bravo'
-import { Proposal, TenderlyPayload } from './types'
+import { Proposal, TenderlyPayload, TenderlySimulationResponse } from './types'
 
-const PROPOSAL_ID = Number(process.env.PROPOSAL_ID)
 const provider = new JsonRpcProvider(RPC_URL)
 
 /**
  * @notice Simulates execution of a governance proposal
+ * @dev TODO support sending value (seems proposal.values is a function when it should be an array?)
  * @param proposal Proposal to simulate
  * @param governor Contract instance of the governor contract for that proposal
  * @returns Transaction data and receipt
  */
 async function simulate(proposal: Proposal, governor: Contract) {
+  // Arbitrary, random EOA that we'll use to kick off the transaction
+  const eoa = '0xFFa23F5068972666B99496aAAA639f3Ec5A1FE91'
+
+  // Prepare tenderly payload
   const simulationPayload: TenderlyPayload = {
     network_id: '1',
-    block_number: 13636201,
-    from: '',
-    to: '',
-    input: '',
+    block_number: FORK_BLOCK,
+    from: eoa,
+    to: governor.address,
+    input: governor.interface.encodeFunctionData('execute', [proposal.id]),
     gas: 30000000,
+    gas_price: '0',
     value: '0',
     save: false,
     generate_access_list: true,
@@ -38,7 +43,7 @@ async function simulate(proposal: Proposal, governor: Contract) {
     headers: { 'X-Access-Key': TENDERLY_ACCESS_TOKEN },
     data: simulationPayload,
   }
-  const response = await fetchUrl(TENDERLY_URL, <Partial<FETCH_OPT>>fetchOptions)
+  const response = <TenderlySimulationResponse>await fetchUrl(TENDERLY_URL, <Partial<FETCH_OPT>>fetchOptions)
   return { tx: response }
 }
 
