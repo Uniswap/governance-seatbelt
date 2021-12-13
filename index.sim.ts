@@ -4,63 +4,13 @@
 
 require('dotenv').config()
 import fs from 'fs'
-import fetchUrl, { FETCH_OPT } from 'micro-ftch'
-import { Contract } from 'ethers'
-import { getAddress } from '@ethersproject/address'
-
-import {
-  DAO_NAME,
-  FORK_BLOCK,
-  PROPOSAL_ID,
-  RUNNING_LOCALLY,
-  TENDERLY_ACCESS_TOKEN,
-  TENDERLY_URL,
-} from './utils/constants'
+import { DAO_NAME, PROPOSAL_ID, RUNNING_LOCALLY } from './utils/constants'
 import { governorBravo } from './utils/contracts/governor-bravo'
 import { provider } from './utils/clients/ethers'
-import { AllCheckResults, Proposal, TenderlyPayload, TenderlySimulation } from './types'
+import { simulate } from './utils/clients/tenderly'
+import { AllCheckResults, Proposal } from './types'
 import ALL_CHECKS from './checks'
 import { toProposalReport } from './presentation/markdown'
-
-/**
- * @notice Simulates execution of a governance proposal
- * @dev TODO support sending value (seems proposal.values is a function when it should be an array?)
- * @param proposal Proposal to simulate
- * @param governor Contract instance of the governor contract for that proposal
- * @returns Transaction data and receipt
- */
-async function simulate(proposal: Proposal, governor: Contract) {
-  // Arbitrary, random EOA that we'll use to kick off the transaction
-  const eoa = '0xFFa23F5068972666B99496aAAA639f3Ec5A1FE91'
-
-  // Prepare tenderly payload
-  const simulationPayload: TenderlyPayload = {
-    network_id: String(provider.network.chainId) as TenderlyPayload['network_id'],
-    block_number: FORK_BLOCK,
-    from: eoa,
-    to: governor.address,
-    input: governor.interface.encodeFunctionData('execute', [proposal.id]),
-    gas: 30000000, // current block gas limit
-    gas_price: '0',
-    value: '0',
-    save: false,
-    generate_access_list: true,
-  }
-
-  // Send simulation request
-  const fetchOptions = <Partial<FETCH_OPT>>{
-    method: 'POST',
-    type: 'json',
-    headers: { 'X-Access-Key': TENDERLY_ACCESS_TOKEN },
-    data: simulationPayload,
-  }
-  const sim = <TenderlySimulation>await fetchUrl(TENDERLY_URL, fetchOptions)
-
-  // Post-processing to ensure addresses we use are checksummed (since ethers returns checksummed addresses)
-  sim.transaction.addresses = sim.transaction.addresses.map(getAddress)
-  sim.contracts.forEach((contract) => (contract.address = getAddress(contract.address)))
-  return sim
-}
 
 /**
  * @notice Executes proposal checks and generates a report for the proposal ID specified
