@@ -1,5 +1,4 @@
 import { Contract } from 'ethers'
-import { GOVERNOR_ADDRESS } from '../constants'
 import { provider } from '../clients/ethers'
 
 const GOVERNOR_BRAVO_ABI = [
@@ -56,4 +55,4 @@ const GOVERNOR_BRAVO_ABI = [
   'function votingPeriod() view returns (uint256)',
 ]
 
-export const governorBravo = new Contract(GOVERNOR_ADDRESS, GOVERNOR_BRAVO_ABI, provider)
+export const governorBravo = (address: string) => new Contract(address, GOVERNOR_BRAVO_ABI, provider)

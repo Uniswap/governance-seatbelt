@@ -2,19 +2,23 @@ import { BigNumber } from 'ethers'
 import { ContractTransaction } from '@ethersproject/contracts'
 
 // --- Simulation configurations ---
-export interface SimulationConfigExecuted {
-  type: 'executed'
+interface SimulationConfigBase {
+  type: 'executed' | 'proposed' | 'new'
   daoName: string // e.g. 'Compound' or 'Uniswap'
   governorAddress: string // address of the governor
+}
+
+export interface SimulationConfigExecuted extends SimulationConfigBase {
+  type: 'executed'
   proposalId: number // ID of the executed proposal
 }
 
-export interface SimulationConfigProposed {
+export interface SimulationConfigProposed extends SimulationConfigBase {
   type: 'proposed'
   // TODO add support for in-progress proposals
 }
 
-export interface SimulationConfigNew {
+export interface SimulationConfigNew extends SimulationConfigBase {
   type: 'new'
   // TODO add support for proposals which do not yet exist on-chain
 }

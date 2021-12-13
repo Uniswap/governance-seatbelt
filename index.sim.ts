@@ -4,11 +4,10 @@
 
 require('dotenv').config()
 import fs from 'fs'
-import { DAO_NAME, PROPOSAL_ID, RUNNING_LOCALLY } from './utils/constants'
-import { governorBravo } from './utils/contracts/governor-bravo'
+import { RUNNING_LOCALLY, SIM_NAME } from './utils/constants'
 import { provider } from './utils/clients/ethers'
 import { simulate } from './utils/clients/tenderly'
-import { AllCheckResults, Proposal } from './types'
+import { AllCheckResults, SimulationConfig } from './types'
 import ALL_CHECKS from './checks'
 import { toProposalReport } from './presentation/markdown'
 
@@ -18,20 +17,12 @@ import { toProposalReport } from './presentation/markdown'
  * at the block specified by the FORK_BLOCK environment variable.
  */
 async function main() {
-  // --- Save off current block/datetime (where "current" means the block we forked at) ---
-  const latestBlock = await provider.getBlock('latest')
-
-  // --- Find the proposal we're analyzing ---
-  const blockRange = [0, latestBlock.number]
-  const createProposalLogs = await governorBravo.queryFilter(governorBravo.filters.ProposalCreated(), ...blockRange)
-  const proposalEvent = createProposalLogs.filter((log) => log.args?.id.toNumber() === PROPOSAL_ID)[0]
-  if (!proposalEvent) {
-    throw new Error(`Proposal ID ${PROPOSAL_ID} not found in logs for governor at ${governorBravo.address}`)
-  }
-  const proposal = proposalEvent.args as unknown as Proposal
+  // --- Get simulation parameters ---
+  const configPath = `./sims/${SIM_NAME}.sim.ts`
+  const config: SimulationConfig = require(configPath).config // dynamic path `import` statements not allowed
 
   // --- Simulate proposal execution ---
-  const sim = await simulate(proposal, governorBravo)
+  const { sim, proposal, latestBlock } = await simulate(config)
 
   // --- Run proposal checks ---
   const checkResults: AllCheckResults = Object.fromEntries(
@@ -56,7 +47,7 @@ async function main() {
 
   if (RUNNING_LOCALLY) {
     // Running locally, dump to file
-    const dir = `./reports/${DAO_NAME}/${governorBravo.address}/`
+    const dir = `./reports/${config.daoName}/${config.governorAddress}/`
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
     fs.writeFileSync(`${dir}/${proposal.id}.md`, report)
   } else {
