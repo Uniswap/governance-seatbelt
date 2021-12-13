@@ -23,7 +23,7 @@ export type CheckResult = {
 
 export interface ProposalCheck {
   name: string
-  checkProposal(proposal: Proposal, tx: ContractTransaction): Promise<CheckResult>
+  checkProposal(proposal: Proposal, tx: TenderlySimulation): Promise<CheckResult>
 }
 
 export interface AllCheckResults {
