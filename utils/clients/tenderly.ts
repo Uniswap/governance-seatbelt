@@ -53,18 +53,22 @@ export async function simulateExecuted(config: SimulationConfigExecuted) {
     save: false,
     generate_access_list: true,
   }
+  const sim = await sendSimulation(simulationPayload)
+  return { sim, proposal, latestBlock }
+}
 
+async function sendSimulation(payload: TenderlyPayload) {
   // Send simulation request
   const fetchOptions = <Partial<FETCH_OPT>>{
     method: 'POST',
     type: 'json',
     headers: { 'X-Access-Key': TENDERLY_ACCESS_TOKEN },
-    data: simulationPayload,
+    data: payload,
   }
   const sim = <TenderlySimulation>await fetchUrl(TENDERLY_URL, fetchOptions)
 
   // Post-processing to ensure addresses we use are checksummed (since ethers returns checksummed addresses)
   sim.transaction.addresses = sim.transaction.addresses.map(getAddress)
   sim.contracts.forEach((contract) => (contract.address = getAddress(contract.address)))
-  return { sim, proposal, latestBlock }
+  return sim
 }
