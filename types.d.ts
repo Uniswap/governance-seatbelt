@@ -15,7 +15,7 @@ export interface SimulationConfigExecuted extends SimulationConfigBase {
 
 export interface SimulationConfigProposed extends SimulationConfigBase {
   type: 'proposed'
-  // TODO add support for in-progress proposals
+  proposalId: number // ID of the executed proposal
 }
 
 export interface SimulationConfigNew extends SimulationConfigBase {
@@ -26,16 +26,38 @@ export interface SimulationConfigNew extends SimulationConfigBase {
 export type SimulationConfig = SimulationConfigExecuted | SimulationConfigProposed | SimulationConfigNew
 
 // --- Proposal checks ---
-export interface Proposal {
+export type ProposalActions = [
+  // defined as an array instead of an object because the return data from governor.getActions()
+  // has no `values` key if all values are zero
+  string[],
+  BigNumber[],
+  string[],
+  string[]
+]
+
+export interface ProposalStruct {
   id: BigNumber
   proposer: string
+  eta: BigNumber
+  startBlock: BigNumber
+  endBlock: BigNumber
+  forVotes: BigNumber
+  againstVotes: BigNumber
+  abstainVotes: BigNumber
+  canceled: boolean
+  executed: boolean
+}
+
+export interface ProposalEvent {
+  id: BigNumber
+  proposer: string
+  startBlock: BigNumber
+  endBlock: BigNumber
+  description: string
   targets: string[]
   values: BigNumber[]
   signatures: string[]
   calldatas: string[]
-  startBlock: BigNumber
-  endBlock: BigNumber
-  description: string
 }
 
 export type Message = string
