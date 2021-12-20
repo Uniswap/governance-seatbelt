@@ -7,3 +7,7 @@ reports/
 # hardhat
 artifacts/
 cache/
+
+# other
+trace*.json
+tenderly*.json

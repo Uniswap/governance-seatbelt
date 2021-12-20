@@ -1,4 +1,4 @@
-import { AllCheckResults, Proposal } from '../types'
+import { AllCheckResults, ProposalEvent } from '../types'
 import { Block } from '@ethersproject/abstract-provider'
 import { BigNumber } from 'ethers'
 
@@ -83,7 +83,7 @@ function estimateTime(current: Block, block: BigNumber): number {
  */
 export function toProposalReport(
   blocks: { current: Block; start: Block | null; end: Block | null },
-  proposal: Proposal,
+  proposal: ProposalEvent,
   checks: AllCheckResults
 ): string {
   const { id, proposer, targets, endBlock, startBlock, description } = proposal
