@@ -1,4 +1,4 @@
-import { BigNumber } from 'ethers'
+import { BigNumber, Block } from 'ethers'
 import { ContractTransaction } from '@ethersproject/contracts'
 
 // --- Simulation configurations ---
@@ -24,6 +24,12 @@ export interface SimulationConfigNew extends SimulationConfigBase {
 }
 
 export type SimulationConfig = SimulationConfigExecuted | SimulationConfigProposed | SimulationConfigNew
+
+export interface SimulationResult {
+  sim: TenderlySimulation
+  proposal: ProposalEvent
+  block: Block
+}
 
 // --- Proposal checks ---
 export type ProposalActions = [
@@ -70,7 +76,7 @@ export type CheckResult = {
 
 export interface ProposalCheck {
   name: string
-  checkProposal(proposal: Proposal, tx: TenderlySimulation): Promise<CheckResult>
+  checkProposal(proposal: ProposalEvent, tx: TenderlySimulation): Promise<CheckResult>
 }
 
 export interface AllCheckResults {
@@ -118,6 +124,10 @@ export type TenderlyPayload = {
   save_if_fails?: boolean
   state_objects?: Record<string, StateObject>
   contracts?: ContractObject[]
+  block_header?: {
+    number?: string
+    timestamp?: string
+  }
   generate_access_list?: boolean
 }
 

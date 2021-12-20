@@ -22,7 +22,7 @@ async function main() {
   const config: SimulationConfig = require(configPath).config // dynamic path `import` statements not allowed
 
   // --- Simulate proposal execution ---
-  const { sim, proposal, latestBlock } = await simulate(config)
+  const { sim, proposal, block } = await simulate(config)
 
   // --- Run proposal checks ---
   const checkResults: AllCheckResults = Object.fromEntries(
@@ -39,11 +39,11 @@ async function main() {
 
   // --- Save report ---
   const [startBlock, endBlock] = await Promise.all([
-    proposal.startBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.startBlock.toNumber()) : null,
-    proposal.endBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.endBlock.toNumber()) : null,
+    proposal.startBlock.toNumber() <= block.number ? provider.getBlock(proposal.startBlock.toNumber()) : null,
+    proposal.endBlock.toNumber() <= block.number ? provider.getBlock(proposal.endBlock.toNumber()) : null,
   ])
 
-  const report = toProposalReport({ start: startBlock, end: endBlock, current: latestBlock }, proposal, checkResults)
+  const report = toProposalReport({ start: startBlock, end: endBlock, current: block }, proposal, checkResults)
 
   if (RUNNING_LOCALLY) {
     // Running locally, dump to file

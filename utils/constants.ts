@@ -6,3 +6,4 @@ export const RUNNING_LOCALLY = Boolean(process.env.RUNNING_LOCALLY) // use 1 or 
 export const TENDERLY_URL = `https://api.tenderly.co/api/v1/account/me/project/${process.env.TENDERLY_PROJECT_SLUG}/simulate`
 export const TENDERLY_ACCESS_TOKEN: string = process.env.TENDERLY_ACCESS_TOKEN!
 export const SIM_NAME: string = process.env.SIM_NAME!
+export const BLOCK_GAS_LIMIT = 30_000_000
