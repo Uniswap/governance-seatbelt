@@ -78,21 +78,51 @@ async function main() {
       )
     )
 
-    // Save report
+    // Generate report
     const [startBlock, endBlock] = await Promise.all([
       proposal.startBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.startBlock.toNumber()) : null,
       proposal.endBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.endBlock.toNumber()) : null,
     ])
     const report = toProposalReport({ start: startBlock, end: endBlock, current: latestBlock }, proposal, checkResults)
 
+    // Save report
+    const basePath = `${config.daoName}/${config.governorAddress}`
+    const filename = `${proposal.id}.md`
     if (RUNNING_LOCALLY) {
       // Running locally, dump to file
-      const dir = `./reports/${config.daoName}/${config.governorAddress}/`
+      const dir = `./reports/${basePath}/`
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-      fs.writeFileSync(`${dir}/${proposal.id}.md`, report)
+      fs.writeFileSync(`${dir}/${filename}`, report)
     } else {
       // Running in CI, save to file on REPORTS_BRANCH
-      // TODO
+      const { github } = await import('./utils/clients/github') // lazy load to avoid errors about missing env vars when not in CI
+      const path = `${basePath}/${filename}`
+      let sha: string | undefined
+      try {
+        const { data } = await github.rest.repos.getContent({
+          owner: GITHUB_REPO_OWNER,
+          repo: GITHUB_REPO_NAME,
+          ref: REPORTS_BRANCH,
+          path,
+        })
+        if ('sha' in data) {
+          sha = data.sha
+        }
+      } catch (error) {
+        console.warn('Failed to get sha for file at path', path, error)
+      }
+
+      const currentDateTime = new Date(latestBlock.timestamp * 1000)
+      const formattedDateTime = currentDateTime.toISOString()
+      await github.rest.repos.createOrUpdateFileContents({
+        owner: GITHUB_REPO_OWNER,
+        repo: GITHUB_REPO_NAME,
+        branch: REPORTS_BRANCH,
+        message: `Update ${path} as of ${formattedDateTime}`,
+        content: Buffer.from(report, 'utf-8').toString('base64'),
+        path,
+        sha,
+      })
     }
   }
 }
