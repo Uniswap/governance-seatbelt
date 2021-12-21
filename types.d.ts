@@ -1,4 +1,4 @@
-import { BigNumber, Block } from 'ethers'
+import { BigNumber, BigNumberish, Block } from 'ethers'
 import { ContractTransaction } from '@ethersproject/contracts'
 
 // --- Simulation configurations ---
@@ -10,12 +10,12 @@ interface SimulationConfigBase {
 
 export interface SimulationConfigExecuted extends SimulationConfigBase {
   type: 'executed'
-  proposalId: number // ID of the executed proposal
+  proposalId: BigNumberish // ID of the executed proposal
 }
 
 export interface SimulationConfigProposed extends SimulationConfigBase {
   type: 'proposed'
-  proposalId: number // ID of the executed proposal
+  proposalId: BigNumberish // ID of the executed proposal
 }
 
 export interface SimulationConfigNew extends SimulationConfigBase {
@@ -29,6 +29,10 @@ export interface SimulationResult {
   sim: TenderlySimulation
   proposal: ProposalEvent
   block: Block
+}
+
+export interface SimulationData extends SimulationResult {
+  config: SimulationConfig
 }
 
 // --- Proposal checks ---

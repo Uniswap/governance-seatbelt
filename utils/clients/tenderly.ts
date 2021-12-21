@@ -46,7 +46,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const blockRange = [0, latestBlock.number]
   const governor = governorBravo(governorAddress)
 
-  const [_proposal, _actions, createProposalLogs] = await Promise.all([
+  const [_proposal, _actions, proposalCreatedLogs] = await Promise.all([
     governor.proposals(proposalId),
     governor.getActions(proposalId),
     governor.queryFilter(governor.filters.ProposalCreated(), ...blockRange),
@@ -54,7 +54,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const proposal = <ProposalStruct>_proposal
   const [targets, values, sigs, calldatas] = <ProposalActions>_actions
 
-  const proposalCreatedEvent = createProposalLogs.filter((log) => log.args?.id.toNumber() === proposalId)[0]
+  const proposalCreatedEvent = proposalCreatedLogs.filter((log) => log.args?.id.toNumber() === proposalId)[0]
   if (!proposalCreatedEvent) throw new Error(`Proposal creation log for #${proposalId} not found in governor logs`)
 
   // --- Storage slots and offsets for GovernorBravo ---
