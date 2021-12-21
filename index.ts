@@ -1,3 +1,7 @@
+/**
+ * @notice Entry point for executing a single proposal against a forked mainnet
+ */
+
 require('dotenv').config()
 import fs from 'fs'
 import {
@@ -7,92 +11,118 @@ import {
   GOVERNOR_ADDRESS,
   REPORTS_BRANCH,
   RUNNING_LOCALLY,
+  SIM_NAME,
 } from './utils/constants'
-import { governorBravo } from './utils/contracts/governor-bravo'
 import { provider } from './utils/clients/ethers'
-import { AllCheckResults, Proposal } from './types'
+import { simulate } from './utils/clients/tenderly'
+import { AllCheckResults, ProposalEvent, SimulationConfig, SimulationConfigProposed, SimulationData } from './types'
 import ALL_CHECKS from './checks'
 import { toProposalReport } from './presentation/markdown'
+import { governorBravo } from './utils/contracts/governor-bravo'
 
+/**
+ * @notice Simulate governance proposals and run proposal checks against them
+ */
 async function main() {
-  const latestBlock = await provider.getBlock('latest')
+  // --- Run simulations ---
+  // Prepare array to store all simulation outputs
+  const simOutputs: SimulationData[] = []
 
-  const currentDateTime = new Date(latestBlock.timestamp * 1000)
-  const formattedDateTime = currentDateTime.toISOString()
+  // Determine if we are running a specific simulation or all on-chain proposals for a specified governor.
+  if (SIM_NAME) {
+    // If a SIM_NAME is provided, we run that simulation
+    const configPath = `./sims/${SIM_NAME}.sim.ts`
+    const config: SimulationConfig = require(configPath).config // dynamic path `import` statements not allowed
+    const { sim, proposal, latestBlock } = await simulate(config)
+    simOutputs.push({ sim, proposal, latestBlock, config })
+  } else {
+    // If no SIM_NAME is provided, we simulate all active proposals
+    if (!GOVERNOR_ADDRESS) throw new Error('Must provider a GOVERNOR_ADDRESS')
+    if (!DAO_NAME) throw new Error('Must provider a DAO_NAME')
+    const latestBlock = await provider.getBlock('latest')
 
-  const createProposalLogs = await governorBravo.queryFilter(
-    governorBravo.filters.ProposalCreated(),
-    0,
-    latestBlock.number
-  )
+    // Look for any active proposal IDs
+    // TODO this gives us all proposals, not active ones
+    const governor = governorBravo(GOVERNOR_ADDRESS)
+    const proposalCreatedLogs = await governor.queryFilter(governor.filters.ProposalCreated(), 0, latestBlock.number)
+    const activeProposalIds = proposalCreatedLogs.map((logs) => (logs.args as unknown as ProposalEvent).id.toNumber())
 
-  const activeProposals: Proposal[] = createProposalLogs
-    .filter((proposal) => proposal.args /*&& proposal.args.endBlock.gte(currentBlock)*/)
-    .map((proposal) => proposal.args as unknown as Proposal)
+    // Simulate them
+    // We intentionally do not run these in parallel to avoid hitting Tenderly API rate limits or flooding
+    // them with requests if we e.g. backtest all proposals for a governor (instead of just active ones)
+    for (const id of activeProposalIds) {
+      const config: SimulationConfigProposed = {
+        type: 'proposed',
+        daoName: DAO_NAME,
+        governorAddress: governor.address,
+        proposalId: id,
+      }
+      const { sim, proposal, latestBlock } = await simulate(config)
+      simOutputs.push({ sim, proposal, latestBlock, config })
+    }
+  }
 
-  for (const proposal of activeProposals) {
-    console.log(`Checking proposal ${proposal.id}...`)
+  // --- Run proposal checks and save output ---
+  for (const simOutput of simOutputs) {
+    // Run checks
+    const { sim, proposal, latestBlock, config } = simOutput
     const checkResults: AllCheckResults = Object.fromEntries(
       await Promise.all(
         Object.keys(ALL_CHECKS).map(async (checkId) => [
           checkId,
           {
             name: ALL_CHECKS[checkId].name,
-            result: await ALL_CHECKS[checkId].checkProposal(proposal),
+            result: await ALL_CHECKS[checkId].checkProposal(proposal, sim),
           },
         ])
       )
     )
 
-    try {
-      const path = `${DAO_NAME}/${GOVERNOR_ADDRESS}/${proposal.id}.md`
+    // Generate report
+    const [startBlock, endBlock] = await Promise.all([
+      proposal.startBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.startBlock.toNumber()) : null,
+      proposal.endBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.endBlock.toNumber()) : null,
+    ])
+    const report = toProposalReport({ start: startBlock, end: endBlock, current: latestBlock }, proposal, checkResults)
 
-      const [startBlock, endBlock] = await Promise.all([
-        proposal.startBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.startBlock.toNumber()) : null,
-        proposal.endBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.endBlock.toNumber()) : null,
-      ])
-
-      const report = toProposalReport(
-        { start: startBlock, end: endBlock, current: latestBlock },
-        proposal,
-        checkResults
-      )
-
-      if (RUNNING_LOCALLY) {
-        // Running locally, dump to file
-        const dir = `./reports/${DAO_NAME}/${GOVERNOR_ADDRESS}/` // TODO more robust way to keep this in sync with `path`
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-        fs.writeFileSync(`${dir}/${proposal.id}.md`, report)
-      } else {
-        // Running in CI, save to file on REPORTS_BRANCH
-        const { github } = await import('./utils/clients/github') // lazy load to avoid errors about missing env vars when not in CI
-        let sha: string | undefined
-        try {
-          const { data } = await github.rest.repos.getContent({
-            owner: GITHUB_REPO_OWNER,
-            repo: GITHUB_REPO_NAME,
-            ref: REPORTS_BRANCH,
-            path,
-          })
-          if ('sha' in data) {
-            sha = data.sha
-          }
-        } catch (error) {
-          console.warn('Failed to get sha for file at path', path, error)
-        }
-
-        await github.rest.repos.createOrUpdateFileContents({
+    // Save report
+    const basePath = `${config.daoName}/${config.governorAddress}`
+    const filename = `${proposal.id}.md`
+    if (RUNNING_LOCALLY) {
+      // Running locally, dump to file
+      const dir = `./reports/${basePath}/`
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+      fs.writeFileSync(`${dir}/${filename}`, report)
+    } else {
+      // Running in CI, save to file on REPORTS_BRANCH
+      const { github } = await import('./utils/clients/github') // lazy load to avoid errors about missing env vars when not in CI
+      const path = `${basePath}/${filename}`
+      let sha: string | undefined
+      try {
+        const { data } = await github.rest.repos.getContent({
           owner: GITHUB_REPO_OWNER,
           repo: GITHUB_REPO_NAME,
-          branch: REPORTS_BRANCH,
-          message: `Update ${path} as of ${formattedDateTime}`,
-          content: Buffer.from(report, 'utf-8').toString('base64'),
+          ref: REPORTS_BRANCH,
           path,
-          sha,
         })
+        if ('sha' in data) {
+          sha = data.sha
+        }
+      } catch (error) {
+        console.warn('Failed to get sha for file at path', path, error)
       }
-    } catch (error) {
-      console.error('Failed to update file contents', error)
+
+      const currentDateTime = new Date(latestBlock.timestamp * 1000)
+      const formattedDateTime = currentDateTime.toISOString()
+      await github.rest.repos.createOrUpdateFileContents({
+        owner: GITHUB_REPO_OWNER,
+        repo: GITHUB_REPO_NAME,
+        branch: REPORTS_BRANCH,
+        message: `Update ${path} as of ${formattedDateTime}`,
+        content: Buffer.from(report, 'utf-8').toString('base64'),
+        path,
+        sha,
+      })
     }
   }
 }
