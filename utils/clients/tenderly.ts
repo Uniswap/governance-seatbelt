@@ -221,24 +221,43 @@ async function simulateExecuted(config: SimulationConfigExecuted): Promise<Simul
 
 // --- Helper methods ---
 
+// Sleep for the specified number of milliseconds
+const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay)) // delay in milliseconds
+
+// Get a random integer between two values
+const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min) + min) // max is exclusive, min is inclusive
+
 /**
  * @notice Sends a transaction simulation request to the Tenderly API
+ * @dev Uses a simple exponential backoff when requests fail, with the following parameters:
+ *   - Initial delay is 1 second
+ *   - We randomize the delay duration to avoid synchronization issues if client is sending multiple requests simultaneously
+ *   - We double delay each time and throw an error if delay is over 8 seconds
  * @param payload Transaction simulation parameters
+ * @param delay How long to wait until next simulation request after failure, in milliseconds
  */
-async function sendSimulation(payload: TenderlyPayload) {
-  // Send simulation request
-  const fetchOptions = <Partial<FETCH_OPT>>{
-    method: 'POST',
-    type: 'json',
-    headers: { 'X-Access-Key': TENDERLY_ACCESS_TOKEN },
-    data: payload,
-  }
-  const sim = <TenderlySimulation>await fetchUrl(TENDERLY_URL, fetchOptions)
+async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<TenderlySimulation> {
+  try {
+    // Send simulation request
+    const fetchOptions = <Partial<FETCH_OPT>>{
+      method: 'POST',
+      type: 'json',
+      headers: { 'X-Access-Key': TENDERLY_ACCESS_TOKEN },
+      data: payload,
+    }
+    const sim = <TenderlySimulation>await fetchUrl(TENDERLY_URL, fetchOptions)
 
-  // Post-processing to ensure addresses we use are checksummed (since ethers returns checksummed addresses)
-  sim.transaction.addresses = sim.transaction.addresses.map(getAddress)
-  sim.contracts.forEach((contract) => (contract.address = getAddress(contract.address)))
-  return sim
+    // Post-processing to ensure addresses we use are checksummed (since ethers returns checksummed addresses)
+    sim.transaction.addresses = sim.transaction.addresses.map(getAddress)
+    sim.contracts.forEach((contract) => (contract.address = getAddress(contract.address)))
+    return sim
+  } catch (err) {
+    if (delay > 8000) throw err
+    console.warn(err)
+    console.warn(`Simulation request failed with the above error, retrying in ~${delay} milliseconds...`)
+    await sleep(delay + randomInt(0, 1000))
+    return await sendSimulation(payload, delay * 2)
+  }
 }
 
 /**
