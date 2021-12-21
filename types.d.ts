@@ -28,7 +28,7 @@ export type SimulationConfig = SimulationConfigExecuted | SimulationConfigPropos
 export interface SimulationResult {
   sim: TenderlySimulation
   proposal: ProposalEvent
-  block: Block
+  latestBlock: Block
 }
 
 export interface SimulationData extends SimulationResult {

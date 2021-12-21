@@ -33,8 +33,8 @@ async function main() {
     // If a SIM_NAME is provided, we run that simulation
     const configPath = `./sims/${SIM_NAME}.sim.ts`
     const config: SimulationConfig = require(configPath).config // dynamic path `import` statements not allowed
-    const { sim, proposal, block } = await simulate(config)
-    simOutputs.push({ sim, proposal, block, config })
+    const { sim, proposal, latestBlock } = await simulate(config)
+    simOutputs.push({ sim, proposal, latestBlock, config })
   } else {
     // If no SIM_NAME is provided, we simulate all active proposals
     if (!GOVERNOR_ADDRESS) throw new Error('Must provider a GOVERNOR_ADDRESS')
@@ -51,22 +51,21 @@ async function main() {
     // We intentionally do not run these in parallel to avoid hitting Tenderly API rate limits or flooding
     // them with requests if we e.g. backtest all proposals for a governor (instead of just active ones)
     for (const id of activeProposalIds) {
-      if (id !== 9) continue
       const config: SimulationConfigProposed = {
         type: 'proposed',
         daoName: DAO_NAME,
         governorAddress: governor.address,
         proposalId: id,
       }
-      const { sim, proposal, block } = await simulate(config)
-      simOutputs.push({ sim, proposal, block, config })
+      const { sim, proposal, latestBlock } = await simulate(config)
+      simOutputs.push({ sim, proposal, latestBlock, config })
     }
   }
 
   // --- Run proposal checks and save output ---
   for (const simOutput of simOutputs) {
     // Run checks
-    const { sim, proposal, block, config } = simOutput
+    const { sim, proposal, latestBlock, config } = simOutput
     const checkResults: AllCheckResults = Object.fromEntries(
       await Promise.all(
         Object.keys(ALL_CHECKS).map(async (checkId) => [
@@ -81,10 +80,10 @@ async function main() {
 
     // Save report
     const [startBlock, endBlock] = await Promise.all([
-      proposal.startBlock.toNumber() <= block.number ? provider.getBlock(proposal.startBlock.toNumber()) : null,
-      proposal.endBlock.toNumber() <= block.number ? provider.getBlock(proposal.endBlock.toNumber()) : null,
+      proposal.startBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.startBlock.toNumber()) : null,
+      proposal.endBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.endBlock.toNumber()) : null,
     ])
-    const report = toProposalReport({ start: startBlock, end: endBlock, current: block }, proposal, checkResults)
+    const report = toProposalReport({ start: startBlock, end: endBlock, current: latestBlock }, proposal, checkResults)
 
     if (RUNNING_LOCALLY) {
       // Running locally, dump to file

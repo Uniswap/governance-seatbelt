@@ -173,7 +173,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
     },
   }
   const sim = await sendSimulation(simulationPayload)
-  return { sim, proposal: proposalCreatedEvent.args as unknown as ProposalEvent, block: latestBlock }
+  return { sim, proposal: proposalCreatedEvent.args as unknown as ProposalEvent, latestBlock }
 }
 
 /**
@@ -216,7 +216,7 @@ async function simulateExecuted(config: SimulationConfigExecuted): Promise<Simul
     generate_access_list: true,
   }
   const sim = await sendSimulation(simulationPayload)
-  return { sim, proposal, block: latestBlock }
+  return { sim, proposal, latestBlock }
 }
 
 // --- Helper methods ---
