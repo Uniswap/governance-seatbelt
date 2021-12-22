@@ -114,7 +114,7 @@ async function main() {
 
       const currentDateTime = new Date(latestBlock.timestamp * 1000)
       const formattedDateTime = currentDateTime.toISOString()
-      await github.rest.repos.createOrUpdateFileContents({
+      const res = await github.rest.repos.createOrUpdateFileContents({
         owner: GITHUB_REPO_OWNER,
         repo: GITHUB_REPO_NAME,
         branch: REPORTS_BRANCH,
@@ -123,6 +123,11 @@ async function main() {
         path,
         sha,
       })
+      if (res.status < 200 || res.status > 299) {
+        console.warn(JSON.stringify(res));
+        console.warn('createOrUpdateFileContents failed with the above response')
+      }
+      console.log(`Report successfully generated for ${path}`);
     }
   }
 }
