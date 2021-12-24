@@ -11,6 +11,7 @@ import {
   GOVERNOR_ADDRESS,
   REPORTS_BRANCH,
   RUNNING_LOCALLY,
+  SIM_ALL,
   SIM_NAME,
 } from './utils/constants'
 import { provider } from './utils/clients/ethers'
@@ -18,7 +19,7 @@ import { simulate } from './utils/clients/tenderly'
 import { AllCheckResults, ProposalEvent, SimulationConfig, SimulationConfigProposed, SimulationData } from './types'
 import ALL_CHECKS from './checks'
 import { toProposalReport } from './presentation/markdown'
-import { governorBravo } from './utils/contracts/governor-bravo'
+import { governorBravo, PROPOSAL_STATES, FINAL_PROPOSAL_STATES } from './utils/contracts/governor-bravo'
 
 /**
  * @notice Simulate governance proposals and run proposal checks against them
@@ -36,16 +37,32 @@ async function main() {
     const { sim, proposal, latestBlock } = await simulate(config)
     simOutputs.push({ sim, proposal, latestBlock, config })
   } else {
-    // If no SIM_NAME is provided, we simulate all active proposals
+    // If no SIM_NAME is provided, we get proposals to simulate from the chain
     if (!GOVERNOR_ADDRESS) throw new Error('Must provider a GOVERNOR_ADDRESS')
     if (!DAO_NAME) throw new Error('Must provider a DAO_NAME')
     const latestBlock = await provider.getBlock('latest')
 
-    // Look for any active proposal IDs
-    // TODO this gives us all proposals, not active ones
+    // Fetch all proposal IDs
     const governor = governorBravo(GOVERNOR_ADDRESS)
     const proposalCreatedLogs = await governor.queryFilter(governor.filters.ProposalCreated(), 0, latestBlock.number)
-    const activeProposalIds = proposalCreatedLogs.map((logs) => (logs.args as unknown as ProposalEvent).id.toNumber())
+    const allProposalIds = proposalCreatedLogs.map((logs) => (logs.args as unknown as ProposalEvent).id.toNumber())
+
+    // Remove proposals from GovernorAlpha based on the initial GovernorBravo proposal ID
+    const initialProposalId = await governor.initialProposalId()
+    const validProposalIds = allProposalIds.filter((id) => id > initialProposalId.toNumber())
+
+    // If we aren't simulating all proposals, filter down to just the active ones
+    let activeProposalIds: number[] = validProposalIds // assume we're simulating all by default
+    if (!SIM_ALL) {
+      // Remove proposals that are in a finalized state
+      const states = await Promise.all(validProposalIds.map((id) => governor.state(id)))
+      activeProposalIds = validProposalIds.reduce((activeIds, id, i) => {
+        const state = String(states[i]) as keyof typeof PROPOSAL_STATES
+        const isFinalized = FINAL_PROPOSAL_STATES.includes(PROPOSAL_STATES[state])
+        if (!isFinalized) activeIds.push(id)
+        return activeIds
+      }, [] as number[])
+    }
 
     // Simulate them
     // We intentionally do not run these in parallel to avoid hitting Tenderly API rate limits or flooding
@@ -124,10 +141,10 @@ async function main() {
         sha,
       })
       if (res.status < 200 || res.status > 299) {
-        console.warn(JSON.stringify(res));
+        console.warn(JSON.stringify(res))
         console.warn('createOrUpdateFileContents failed with the above response')
       }
-      console.log(`Report successfully generated for ${path}`);
+      console.log(`Report successfully generated for ${path}`)
     }
   }
 }

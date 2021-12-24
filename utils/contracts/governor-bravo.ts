@@ -56,3 +56,25 @@ const GOVERNOR_BRAVO_ABI = [
 ]
 
 export const governorBravo = (address: string) => new Contract(address, GOVERNOR_BRAVO_ABI, provider)
+
+// All possible states a proposal might be in.
+// These are defined by the `ProposalState` enum so when we fetch the state of a proposal ID
+// we receive an integer response, and use this to map that integer to the state
+export const PROPOSAL_STATES = {
+  '0': 'Pending',
+  '1': 'Active',
+  '2': 'Canceled',
+  '3': 'Defeated',
+  '4': 'Succeeded',
+  '5': 'Queued',
+  '6': 'Expired',
+  '7': 'Executed',
+}
+
+// Subset of proposal states that indicates a proposal is finalized
+export const FINAL_PROPOSAL_STATES = [
+  PROPOSAL_STATES['2'],
+  PROPOSAL_STATES['3'],
+  PROPOSAL_STATES['6'],
+  PROPOSAL_STATES['7'],
+]
