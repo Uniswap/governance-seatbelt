@@ -50,9 +50,12 @@ jobs:
       - name: Run checks
         run: yarn start
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUNNING_LOCALLY: 0
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RPC_URL: ${{ secrets.RPC_URL }}
+          SIM_ALL: 1
+          TENDERLY_ACCESS_TOKEN: ${{ secrets.TENDERLY_ACCESS_TOKEN }}
+          TENDERLY_PROJECT_SLUG: ${{ secrets.TENDERLY_PROJECT_SLUG }}
           DAO_NAME: ${{ matrix.DAO_NAME }}
           GOVERNOR_ADDRESS: ${{ matrix.GOVERNOR_ADDRESS }}
-          RUNNING_LOCALLY: 0

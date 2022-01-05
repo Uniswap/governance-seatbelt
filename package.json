@@ -8,7 +8,6 @@
   "scripts": {
     "compile": "hardhat compile",
     "start": "ts-node index.ts",
-    "start:sim": "yarn ts-node index.sim.ts",
     "lint:fix": "prettier --write ."
   },
   "repository": {
