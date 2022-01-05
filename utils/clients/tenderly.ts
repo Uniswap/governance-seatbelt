@@ -256,8 +256,9 @@ async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<T
     sim.transaction.addresses = sim.transaction.addresses.map(getAddress)
     sim.contracts.forEach((contract) => (contract.address = getAddress(contract.address)))
     return sim
-  } catch (err) {
-    if (delay > 8000) throw err
+  } catch (err: any) {
+    const is429 = typeof err === 'object' && err?.statusCode === 400
+    if (delay > 8000 || !is429) throw err
     console.warn(err)
     console.warn(
       `Simulation request failed with the above error, retrying in ~${delay} milliseconds. See request payload below`
