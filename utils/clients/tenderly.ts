@@ -254,7 +254,8 @@ async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<T
   } catch (err) {
     if (delay > 8000) throw err
     console.warn(err)
-    console.warn(`Simulation request failed with the above error, retrying in ~${delay} milliseconds...`)
+    console.warn(`Simulation request failed with the above error, retrying in ~${delay} milliseconds. See request payload below`)
+    console.log(JSON.stringify(payload))
     await sleep(delay + randomInt(0, 1000))
     return await sendSimulation(payload, delay * 2)
   }
