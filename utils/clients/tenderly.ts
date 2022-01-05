@@ -144,7 +144,8 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   // ensure Tenderly properly parses the simulation payload
   const simulationPayload: TenderlyPayload = {
     network_id: '1',
-    block_number: simBlock.toNumber(),
+    // this field represents the block state to simulate against, so we use the latest block number
+    block_number: latestBlock.number,
     from,
     to: governor.address,
     input: governor.interface.encodeFunctionData('execute', [proposal.id]),
@@ -153,7 +154,11 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
     value,
     save: false, // set this to true to see the simulated transaction in your Tenderly dashboard (useful for debugging)
     generate_access_list: true, // not required, but useful as a sanity check to ensure consistency in the simulation response
-    block_header: { timestamp: hexStripZeros(simTimestamp.toHexString()) },
+    block_header: {
+      // this data represents what block.number and block.timestamp should return in the EVM during the simulation
+      number: hexStripZeros(simBlock.toHexString()),
+      timestamp: hexStripZeros(simTimestamp.toHexString()),
+    },
     state_objects: {
       // Give `from` address 10 ETH to send transaction
       [from]: { balance: parseEther('10').toString() },
@@ -254,7 +259,9 @@ async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<T
   } catch (err) {
     if (delay > 8000) throw err
     console.warn(err)
-    console.warn(`Simulation request failed with the above error, retrying in ~${delay} milliseconds. See request payload below`)
+    console.warn(
+      `Simulation request failed with the above error, retrying in ~${delay} milliseconds. See request payload below`
+    )
     console.log(JSON.stringify(payload))
     await sleep(delay + randomInt(0, 1000))
     return await sendSimulation(payload, delay * 2)
