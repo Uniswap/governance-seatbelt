@@ -258,7 +258,11 @@ async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<T
     return sim
   } catch (err: any) {
     const is429 = typeof err === 'object' && err?.statusCode === 400
-    if (delay > 8000 || !is429) throw err
+    if (delay > 8000 || !is429) {
+      console.warn(`Simulation request failed with the below request payload and error`)
+      console.log(JSON.stringify(payload))
+      throw err
+    }
     console.warn(err)
     console.warn(
       `Simulation request failed with the above error, retrying in ~${delay} milliseconds. See request payload below`
