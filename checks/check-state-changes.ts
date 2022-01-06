@@ -1,0 +1,72 @@
+import { getAddress } from '@ethersproject/address'
+import { ProposalCheck, StateDiff } from '../types'
+
+/**
+ * Reports all state changes from the proposal
+ */
+export const checkStateChanges: ProposalCheck = {
+  name: 'Reports all state changes from the proposal',
+  async checkProposal(proposal, sim) {
+    let info = ''
+    const warnings = []
+    // Check if the transaction reverted, and if so return revert reason
+    if (!sim.transaction.status) {
+      const txInfo = sim.transaction.transaction_info
+      const reason = txInfo.stack_trace ? txInfo.stack_trace[0].error_reason : 'unknown error'
+      const error = `Transaction reverted with reason: ${reason}`
+      return { info: [], warnings: [], errors: [error] }
+    }
+
+    // State diffs in the simulation are an array, so first we organize them by address
+    const stateDiffs = sim.transaction.transaction_info.state_diff.reduce((diffs, diff) => {
+      const addr = getAddress(diff.raw[0].address)
+      if (!diffs[addr]) diffs[addr] = [diff]
+      else diffs[addr].push(diff)
+      return diffs
+    }, {} as Record<string, StateDiff[]>)
+
+    // Parse state changes at each address
+    for (const [address, diffs] of Object.entries(stateDiffs)) {
+      // Use contracts array to get contract name of address
+      const contractName = sim.contracts.find((c) => c.address === address)?.contract_name || address
+      info += `\n - ${contractName}`
+
+      // Parse each diff. A single diff may involve multiple storage changes, e.g. a proposal that
+      // executes three transactions will show three state changes to the `queuedTransactions`
+      // mapping within a single `diff` element
+      diffs.forEach((diff) => {
+        if (!diff.soltype) {
+          // In this branch, state change is not decoded, so return raw data of each storage write
+          // (all other branches have decoded state changes)
+          diff.raw.forEach(
+            (w) => (info += `\n    - Slot \`${w.key}\` changed from \`${w.original}\` to \`${w.dirty}\``)
+          )
+        } else if (diff.soltype.simple_type) {
+          // This is a simple type with a single changed value
+          info += `\n    - \`${diff.soltype.name}\` changed from \`${diff.original}\` to \`${diff.dirty}\``
+        } else if (diff.soltype.type.startsWith('mapping')) {
+          // This is a complex type like a mapping, which may have multiple changes. The diff.original
+          // and diff.dirty fields can be strings or objects, and for complex types they are objects,
+          // so we cast them as such
+          const keys = Object.keys(diff.original)
+          const original = diff.original as Record<string, any>
+          const dirty = diff.dirty as Record<string, any>
+          keys.forEach(
+            (k) =>
+              (info += `\n    - \`${diff.soltype.name}\` key \`${k}\` changed from \`${original[k]}\` to \`${dirty[k]}\``)
+          )
+        } else {
+          // TODO arrays and nested mapping are currently not well supported -- find a transaction
+          // that changes state of these types to inspect the Tenderly simulation response and
+          // handle it accordingly. In the meantime we show the raw state changes and print a
+          // warning about decoding the data
+          diff.raw.forEach((w) => {
+            info += `\n    - Slot \`${w.key}\` changed from \`${w.original}\` to \`${w.dirty}\``
+            warnings.push(`Could not parse state: add support for formatting type ${diff.soltype.type} (slot ${w.key})`)
+          })
+        }
+      })
+    }
+    return { info: [`State changes:${info}`], warnings: [], errors: [] }
+  },
+}

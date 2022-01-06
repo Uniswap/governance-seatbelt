@@ -337,12 +337,24 @@ interface TransactionInfo {
   intrinsic_gas: number
   refund_gas: number
   call_trace: CallTrace
-  stack_trace: null
+  stack_trace: null | StackTrace[]
   logs: Log[]
   state_diff: StateDiff[]
   raw_state_diff: null
   console_logs: null
   created_at: Date
+}
+
+interface StackTrace {
+  file_index: number
+  contract: string
+  name: string
+  line: number
+  error: string
+  error_reason: string
+  code: string
+  op: string
+  length: number
 }
 
 interface CallTrace {
@@ -608,8 +620,8 @@ interface LogRaw {
 
 interface StateDiff {
   soltype: SoltypeElement
-  original: string
-  dirty: string
+  original: string | Record<string, any>
+  dirty: string | Record<string, any>
   raw: RawElement[]
 }
 
