@@ -271,7 +271,11 @@ interface ContractInfo {
   source: string
 }
 
-interface TokenData {}
+interface TokenData {
+  symbol: string
+  name: string
+  decimals: number
+}
 
 interface GeneratedAccessList {
   address: string
