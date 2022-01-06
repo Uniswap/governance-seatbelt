@@ -26,6 +26,7 @@ export const checkStateChanges: ProposalCheck = {
     }, {} as Record<string, StateDiff[]>)
 
     // Parse state changes at each address
+    // TODO support ETH state changes once tenderly adds support for that in the simulation response
     for (const [address, diffs] of Object.entries(stateDiffs)) {
       // Use contracts array to get contract name of address
       const contractName = sim.contracts.find((c) => c.address === address)?.contract_name || address
@@ -33,17 +34,22 @@ export const checkStateChanges: ProposalCheck = {
 
       // Parse each diff. A single diff may involve multiple storage changes, e.g. a proposal that
       // executes three transactions will show three state changes to the `queuedTransactions`
-      // mapping within a single `diff` element
+      // mapping within a single `diff` element. We always JSON.stringify the values so structs
+      // (i.e. tuples) don't print as [object Object]
       diffs.forEach((diff) => {
         if (!diff.soltype) {
           // In this branch, state change is not decoded, so return raw data of each storage write
           // (all other branches have decoded state changes)
-          diff.raw.forEach(
-            (w) => (info += `\n    - Slot \`${w.key}\` changed from \`${w.original}\` to \`${w.dirty}\``)
-          )
+          diff.raw.forEach((w) => {
+            const oldVal = JSON.stringify(w.original)
+            const newVal = JSON.stringify(w.dirty)
+            info += `\n    - Slot \`${w.key}\` changed from \`${oldVal}\` to \`${newVal}\``
+          })
         } else if (diff.soltype.simple_type) {
-          // This is a simple type with a single changed value
-          info += `\n    - \`${diff.soltype.name}\` changed from \`${diff.original}\` to \`${diff.dirty}\``
+          // This is a simple type with a single changed value (stringifying not strictly necessary, but can't hurt)
+          const oldVal = JSON.stringify(diff.original)
+          const newVal = JSON.stringify(diff.dirty)
+          info += `\n    - \`${diff.soltype.name}\` changed from \`${oldVal}\` to \`${newVal}\``
         } else if (diff.soltype.type.startsWith('mapping')) {
           // This is a complex type like a mapping, which may have multiple changes. The diff.original
           // and diff.dirty fields can be strings or objects, and for complex types they are objects,
@@ -51,17 +57,20 @@ export const checkStateChanges: ProposalCheck = {
           const keys = Object.keys(diff.original)
           const original = diff.original as Record<string, any>
           const dirty = diff.dirty as Record<string, any>
-          keys.forEach(
-            (k) =>
-              (info += `\n    - \`${diff.soltype.name}\` key \`${k}\` changed from \`${original[k]}\` to \`${dirty[k]}\``)
-          )
+          keys.forEach((k) => {
+            const oldVal = JSON.stringify(original[k])
+            const newVal = JSON.stringify(dirty[k])
+            info += `\n    - \`${diff.soltype.name}\` key \`${k}\` changed from \`${oldVal}\` to \`${newVal}\``
+          })
         } else {
           // TODO arrays and nested mapping are currently not well supported -- find a transaction
           // that changes state of these types to inspect the Tenderly simulation response and
           // handle it accordingly. In the meantime we show the raw state changes and print a
           // warning about decoding the data
           diff.raw.forEach((w) => {
-            info += `\n    - Slot \`${w.key}\` changed from \`${w.original}\` to \`${w.dirty}\``
+            const oldVal = JSON.stringify(w.original)
+            const newVal = JSON.stringify(w.dirty)
+            info += `\n    - Slot \`${w.key}\` changed from \`${oldVal}\` to \`${newVal}\``
             warnings.push(`Could not parse state: add support for formatting type ${diff.soltype.type} (slot ${w.key})`)
           })
         }

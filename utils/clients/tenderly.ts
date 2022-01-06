@@ -46,10 +46,11 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const blockRange = [0, latestBlock.number]
   const governor = governorBravo(governorAddress)
 
-  const [_proposal, _actions, proposalCreatedLogs] = await Promise.all([
+  const [_proposal, _actions, proposalCreatedLogs, timelockAddress] = await Promise.all([
     governor.proposals(proposalId),
     governor.getActions(proposalId),
     governor.queryFilter(governor.filters.ProposalCreated(), ...blockRange),
+    governor.admin(),
   ])
   const proposal = <ProposalStruct>_proposal
   const [targets, values, sigs, calldatas] = <ProposalActions>_actions
@@ -117,11 +118,14 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const value = (values as BigNumber[]).reduce((sum, cur) => sum.add(cur), BigNumber.from(0)).toString()
   const simBlock = proposal.endBlock.add(1)
 
-  // Choose an arbitrary ETA and compute a valid block timestamp
-  const eta = BigNumber.from('10000000000') // 2286-11-20T17:46:40.000Z
-  const timelock = await getTimelock(await governor.admin())
-  const gracePeriod = <BigNumber>await timelock.GRACE_PERIOD()
-  const simTimestamp = eta.add(gracePeriod).sub(gracePeriod.div(2))
+  // Compute the approximate earliest possible execution time based on governance parameters. This
+  // can only be approximate because voting period is defined in blocks, not as a timestamp. We
+  // assume 12 second block times to prefer underestimating timestamp rather than overestimating,
+  // and we prefer underestimating to avoid simulations reverting in cases where governance
+  // proposals call methods that pass in a start timestamp that must be lower than the current
+  // block timestamp (represented by the `simTimestamp` variable below)
+  const simTimestamp = BigNumber.from(latestBlock.timestamp).add(simBlock.sub(proposal.endBlock).mul(12))
+  const eta = simTimestamp // set proposal eta to be equal to the timestamp we simulate at
 
   // Compute transaction hashes used by the Timelock
   const txHashes = targets.map((target, i) => {
@@ -145,7 +149,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const simulationPayload: TenderlyPayload = {
     network_id: '1',
     // this field represents the block state to simulate against, so we use the latest block number
-    block_number: latestBlock.number,
+    block_number: latestBlock.number - 1, // subtract 1 to ensure block is mined and "finalized"
     from,
     to: governor.address,
     input: governor.interface.encodeFunctionData('execute', [proposal.id]),
@@ -163,7 +167,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
       // Give `from` address 10 ETH to send transaction
       [from]: { balance: parseEther('10').toString() },
       // Ensure transactions are queued in the timelock
-      [timelock.address]: { storage: timelockStorageObj },
+      [timelockAddress]: { storage: timelockStorageObj },
       // Ensure governor storage is properly configured so `state(proposalId)` returns `Queued`
       [governor.address]: {
         storage: {
@@ -314,13 +318,4 @@ function erc20(token: string) {
     'event Approval(address indexed owner, address indexed spender, uint256 value)',
   ]
   return new Contract(token, ERC20_ABI, provider)
-}
-
-/**
- * @notice Returns a Timelock instance of the specified address
- * @param timelock Timelock address
- */
-function getTimelock(timelock: string) {
-  const TIMELOCK_ABI = ['function GRACE_PERIOD() external view returns (uint256)']
-  return new Contract(timelock, TIMELOCK_ABI, provider)
 }
