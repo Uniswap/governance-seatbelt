@@ -1,14 +1,12 @@
 name: Governance Checks
 
-# on any push to main, we rerun all checks for live proposals
 on:
+  schedule:
+    - cron: '0 * * * *'
   push:
     branches:
       - main
   workflow_dispatch:
-
-#  schedule:
-#    - cron: "0 * * * *" # every hour we download translations and update the pr from crowdin
 
 jobs:
   check-proposals:
