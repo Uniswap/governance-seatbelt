@@ -90,9 +90,11 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const forVotesOffset = 9
   const againstVotesOffset = 10
   const abstainVotesOffset = 11
+  const canceledSlotOffset = 12 // this is packed with `executed`
 
   // Compute slot numbers
   const proposalSlot = getSolidityStorageSlotUint(proposalsMapSlot, proposal.id)
+  const canceledSlot = hexZeroPad(BigNumber.from(proposalSlot).add(canceledSlotOffset).toHexString(), 32)
   const etaSlot = hexZeroPad(BigNumber.from(proposalSlot).add(etaOffset).toHexString(), 32)
   const forVotesSlot = hexZeroPad(BigNumber.from(proposalSlot).add(forVotesOffset).toHexString(), 32)
   const againstVotesSlot = hexZeroPad(BigNumber.from(proposalSlot).add(againstVotesOffset).toHexString(), 32)
@@ -100,6 +102,8 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
 
   // --- Prepare simulation configuration ---
   // We need the following state conditions to be true to successfully simulate a proposal:
+  //   - proposal.canceled == false
+  //   - proposal.executed == false
   //   - block.number > proposal.endBlock
   //   - proposal.forVotes > proposal.againstVotes
   //   - proposal.forVotes > quorumVotes
@@ -177,6 +181,8 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
           [forVotesSlot]: hexZeroPad(votingTokenSupply.toHexString(), 32),
           [againstVotesSlot]: hexZeroPad('0x0', 32),
           [abstainVotesSlot]: hexZeroPad('0x0', 32),
+          // The canceled and execute slots are packed, so we can zero out that full slot
+          [canceledSlot]: hexZeroPad('0x0', 32),
         },
       },
     },
