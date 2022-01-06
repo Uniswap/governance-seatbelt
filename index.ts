@@ -52,11 +52,11 @@ async function main() {
     const validProposalIds = allProposalIds.filter((id) => id > initialProposalId.toNumber())
 
     // If we aren't simulating all proposals, filter down to just the active ones
-    let activeProposalIds: number[] = validProposalIds // assume we're simulating all by default
+    let simProposalIds: number[] = validProposalIds // assume we're simulating all by default
     if (!SIM_ALL) {
       // Remove proposals that are in a finalized state
       const states = await Promise.all(validProposalIds.map((id) => governor.state(id)))
-      activeProposalIds = validProposalIds.reduce((activeIds, id, i) => {
+      simProposalIds = validProposalIds.reduce((activeIds, id, i) => {
         const state = String(states[i]) as keyof typeof PROPOSAL_STATES
         const isFinalized = FINAL_PROPOSAL_STATES.includes(PROPOSAL_STATES[state])
         if (!isFinalized) activeIds.push(id)
@@ -67,7 +67,10 @@ async function main() {
     // Simulate them
     // We intentionally do not run these in parallel to avoid hitting Tenderly API rate limits or flooding
     // them with requests if we e.g. backtest all proposals for a governor (instead of just active ones)
-    for (const id of activeProposalIds) {
+    const numProposals = simProposalIds.length
+    console.log(`Simulating ${numProposals} ${DAO_NAME} proposals: IDs of ${JSON.stringify(simProposalIds)}`)
+    for (const id of simProposalIds) {
+      console.log(`  Simulating ${DAO_NAME} proposal ${id}...`)
       const config: SimulationConfigProposed = {
         type: 'proposed',
         daoName: DAO_NAME,
@@ -76,13 +79,16 @@ async function main() {
       }
       const { sim, proposal, latestBlock } = await simulate(config)
       simOutputs.push({ sim, proposal, latestBlock, config })
+      console.log(`    done`)
     }
   }
 
   // --- Run proposal checks and save output ---
+  console.log('Starting proposal checks and report generation...')
   for (const simOutput of simOutputs) {
     // Run checks
     const { sim, proposal, latestBlock, config } = simOutput
+    console.log(`  Running for proposal ${proposal.id}...`)
     const checkResults: AllCheckResults = Object.fromEntries(
       await Promise.all(
         Object.keys(ALL_CHECKS).map(async (checkId) => [
@@ -144,9 +150,10 @@ async function main() {
         console.warn(JSON.stringify(res))
         console.warn('createOrUpdateFileContents failed with the above response')
       }
-      console.log(`Report successfully generated for ${path}`)
+      console.log(`    Report successfully generated for ${path}`)
     }
   }
+  console.log('Done!')
 }
 
 main()
