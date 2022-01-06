@@ -11,15 +11,14 @@ import {
   GOVERNOR_ADDRESS,
   REPORTS_BRANCH,
   RUNNING_LOCALLY,
-  SIM_ALL,
   SIM_NAME,
 } from './utils/constants'
 import { provider } from './utils/clients/ethers'
 import { simulate } from './utils/clients/tenderly'
-import { AllCheckResults, ProposalEvent, SimulationConfig, SimulationConfigProposed, SimulationData } from './types'
+import { AllCheckResults, ProposalEvent, SimulationConfig, SimulationConfigBase, SimulationData } from './types'
 import ALL_CHECKS from './checks'
 import { toProposalReport } from './presentation/markdown'
-import { governorBravo, PROPOSAL_STATES, FINAL_PROPOSAL_STATES } from './utils/contracts/governor-bravo'
+import { governorBravo, PROPOSAL_STATES } from './utils/contracts/governor-bravo'
 
 /**
  * @notice Simulate governance proposals and run proposal checks against them
@@ -51,31 +50,32 @@ async function main() {
     const initialProposalId = await governor.initialProposalId()
     const validProposalIds = allProposalIds.filter((id) => id > initialProposalId.toNumber())
 
-    // If we aren't simulating all proposals, filter down to just the active ones
-    let simProposalIds: number[] = validProposalIds // assume we're simulating all by default
-    if (!SIM_ALL) {
-      // Remove proposals that are in a finalized state
-      const states = await Promise.all(validProposalIds.map((id) => governor.state(id)))
-      simProposalIds = validProposalIds.reduce((activeIds, id, i) => {
-        const state = String(states[i]) as keyof typeof PROPOSAL_STATES
-        const isFinalized = FINAL_PROPOSAL_STATES.includes(PROPOSAL_STATES[state])
-        if (!isFinalized) activeIds.push(id)
-        return activeIds
-      }, [] as number[])
-    }
+    // If we aren't simulating all proposals, filter down to just the active ones. For now we
+    // assume we're simulating all by default
+    const states = await Promise.all(validProposalIds.map((id) => governor.state(id)))
+    const simProposals: { id: number; simType: SimulationConfigBase['type'] }[] = validProposalIds.map((id, i) => {
+      // If state is `Executed` (state 7), we use the executed sim type and effectively just
+      // simulate the real transaction. For all other states, we use the `proposed` type because
+      // state overrides are required to simulate the transaction
+      const state = String(states[i]) as keyof typeof PROPOSAL_STATES
+      const isExecuted = PROPOSAL_STATES[state] === 'Executed'
+      return { id, simType: isExecuted ? 'executed' : 'proposed' }
+    })
+    const simProposalsIds = simProposals.map((sim) => sim.id)
 
     // Simulate them
     // We intentionally do not run these in parallel to avoid hitting Tenderly API rate limits or flooding
-    // them with requests if we e.g. backtest all proposals for a governor (instead of just active ones)
-    const numProposals = simProposalIds.length
-    console.log(`Simulating ${numProposals} ${DAO_NAME} proposals: IDs of ${JSON.stringify(simProposalIds)}`)
-    for (const id of simProposalIds) {
-      console.log(`  Simulating ${DAO_NAME} proposal ${id}...`)
-      const config: SimulationConfigProposed = {
-        type: 'proposed',
+    // them with requests if we e.g. simulate all proposals for a governor (instead of just active ones)
+    const numProposals = simProposals.length
+    console.log(`Simulating ${numProposals} ${DAO_NAME} proposals: IDs of ${JSON.stringify(simProposalsIds)}`)
+    for (const simProposal of simProposals) {
+      // Determine if this proposal is already `executed` or currently in-progress (`proposed`)
+      console.log(`  Simulating ${DAO_NAME} proposal ${simProposal.id}...`)
+      const config: SimulationConfig = {
+        type: simProposal.simType,
         daoName: DAO_NAME,
         governorAddress: governor.address,
-        proposalId: id,
+        proposalId: simProposal.id,
       }
       const { sim, proposal, latestBlock } = await simulate(config)
       simOutputs.push({ sim, proposal, latestBlock, config })

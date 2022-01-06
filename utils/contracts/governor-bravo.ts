@@ -70,11 +70,3 @@ export const PROPOSAL_STATES = {
   '6': 'Expired',
   '7': 'Executed',
 }
-
-// Subset of proposal states that indicates a proposal is finalized
-export const FINAL_PROPOSAL_STATES = [
-  PROPOSAL_STATES['2'],
-  PROPOSAL_STATES['3'],
-  PROPOSAL_STATES['6'],
-  PROPOSAL_STATES['7'],
-]
