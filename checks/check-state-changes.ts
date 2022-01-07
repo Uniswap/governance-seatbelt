@@ -1,5 +1,8 @@
 import { getAddress } from '@ethersproject/address'
 import { ProposalCheck, StateDiff } from '../types'
+import { getGovernorBravoSlots } from '../utils/clients/tenderly'
+import { governorBravo } from '../utils/contracts/governor-bravo'
+import { GOVERNOR_ADDRESS } from '../utils/constants'
 
 /**
  * Reports all state changes from the proposal
@@ -17,13 +20,28 @@ export const checkStateChanges: ProposalCheck = {
       return { info: [], warnings: [], errors: [error] }
     }
 
-    // State diffs in the simulation are an array, so first we organize them by address
+    // State diffs in the simulation are an array, so first we organize them by address. We skip
+    // recording state changes for (1) the the `queuedTransactions` mapping of the timelock, and
+    // (2) the `proposal.executed` change of the governor, because this will be consistent across
+    // all proposals and mainly add noise to the output
+    const timelockAddress = await governorBravo(GOVERNOR_ADDRESS!).admin()
     const stateDiffs = sim.transaction.transaction_info.state_diff.reduce((diffs, diff) => {
       const addr = getAddress(diff.raw[0].address)
-      if (!diffs[addr]) diffs[addr] = [diff]
+      // Check if this is a diff that should be filtered out
+      const isGovernor = getAddress(addr) == getAddress(GOVERNOR_ADDRESS!)
+      const isTimelock = getAddress(addr) == timelockAddress
+      const isGovernorExecutedSlot = diff.raw[0].key === getGovernorBravoSlots(proposal.id).canceled // canceled and executed are in same slot
+      const isQueuedTx = diff.soltype?.name.includes('queuedTransactions')
+      const shouldSkipDiff = (isGovernor && isGovernorExecutedSlot) || (isTimelock && isQueuedTx)
+      // Skip diffs as required and add the rest to our diffs object
+      if (shouldSkipDiff) return diffs
+      else if (!diffs[addr]) diffs[addr] = [diff]
       else diffs[addr].push(diff)
       return diffs
     }, {} as Record<string, StateDiff[]>)
+
+    // Return if no state diffs to show
+    if (!Object.keys(stateDiffs).length) return { info: ['No state changes'], warnings: [], errors: [] }
 
     // Parse state changes at each address
     // TODO support ETH state changes once tenderly adds support for that in the simulation response
@@ -67,7 +85,7 @@ export const checkStateChanges: ProposalCheck = {
           keys.forEach((k) => {
             const oldVal = JSON.stringify(original[k])
             const newVal = JSON.stringify(dirty[k])
-            info += `\n        - \`${diff.soltype.name}\` key \`${k}\` changed from \`${oldVal}\` to \`${newVal}\``
+            info += `\n        - \`${diff.soltype?.name}\` key \`${k}\` changed from \`${oldVal}\` to \`${newVal}\``
           })
         } else {
           // TODO arrays and nested mapping are currently not well supported -- find a transaction
@@ -78,7 +96,9 @@ export const checkStateChanges: ProposalCheck = {
             const oldVal = JSON.stringify(w.original)
             const newVal = JSON.stringify(w.dirty)
             info += `\n        - Slot \`${w.key}\` changed from \`${oldVal}\` to \`${newVal}\``
-            warnings.push(`Could not parse state: add support for formatting type ${diff.soltype.type} (slot ${w.key})`)
+            warnings.push(
+              `Could not parse state: add support for formatting type ${diff.soltype?.type} (slot ${w.key})`
+            )
           })
         }
       })

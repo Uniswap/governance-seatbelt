@@ -623,7 +623,7 @@ interface LogRaw {
 }
 
 interface StateDiff {
-  soltype: SoltypeElement
+  soltype: SoltypeElement | null
   original: string | Record<string, any>
   dirty: string | Record<string, any>
   raw: RawElement[]
