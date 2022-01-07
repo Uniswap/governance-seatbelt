@@ -59,46 +59,8 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   if (!proposalCreatedEvent) throw new Error(`Proposal creation log for #${proposalId} not found in governor logs`)
 
   // --- Storage slots and offsets for GovernorBravo ---
-  // TODO generalize this for other storage layouts by probing for slot numbers
-
-  // Storage slots of variables in Governor
-  const votingTokenSlot = '0x9' // slot of voting token, e.g. UNI, COMP  (getter is named after token, so can't generalize it that way)
-  const proposalsMapSlot = '0xa' // proposals ID to proposal struct mapping
-
-  // Storage slots of variables in Timelock
-  const queuedTxsSlot = '0x3' // mapping from tx hash to bool about it's queue status
-
-  // Proposal struct slot offsets, based on the proposal struct
-  //     struct Proposal {
-  //       uint id;
-  //       address proposer;
-  //       uint eta;
-  //       address[] targets;
-  //       uint[] values;
-  //       string[] signatures;
-  //       bytes[] calldatas;
-  //       uint startBlock;
-  //       uint endBlock;
-  //       uint forVotes;
-  //       uint againstVotes;
-  //       uint abstainVotes;
-  //       bool canceled;
-  //       bool executed;
-  //       mapping (address => Receipt) receipts;
-  //     }
-  const etaOffset = 2
-  const forVotesOffset = 9
-  const againstVotesOffset = 10
-  const abstainVotesOffset = 11
-  const canceledSlotOffset = 12 // this is packed with `executed`
-
-  // Compute slot numbers
-  const proposalSlot = getSolidityStorageSlotUint(proposalsMapSlot, proposal.id)
-  const canceledSlot = hexZeroPad(BigNumber.from(proposalSlot).add(canceledSlotOffset).toHexString(), 32)
-  const etaSlot = hexZeroPad(BigNumber.from(proposalSlot).add(etaOffset).toHexString(), 32)
-  const forVotesSlot = hexZeroPad(BigNumber.from(proposalSlot).add(forVotesOffset).toHexString(), 32)
-  const againstVotesSlot = hexZeroPad(BigNumber.from(proposalSlot).add(againstVotesOffset).toHexString(), 32)
-  const abstainVotesSlot = hexZeroPad(BigNumber.from(proposalSlot).add(abstainVotesOffset).toHexString(), 32)
+  const govSlots = getGovernorBravoSlots(proposal.id)
+  const queuedTxsSlot = '0x3' // timelock mapping from tx hash to bool about it's queue status
 
   // --- Prepare simulation configuration ---
   // We need the following state conditions to be true to successfully simulate a proposal:
@@ -113,7 +75,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   //   - queuedTransactions[txHash] = true for each action in the proposal
 
   // Get voting token and total supply
-  const rawVotingToken = await provider.getStorageAt(governor.address, votingTokenSlot)
+  const rawVotingToken = await provider.getStorageAt(governor.address, govSlots.votingToken)
   const votingToken = getAddress(`0x${rawVotingToken.slice(26)}`)
   const votingTokenSupply = <BigNumber>await erc20(votingToken).totalSupply() // used to manipulate vote count
 
@@ -176,13 +138,13 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
       [governor.address]: {
         storage: {
           // Set the proposal ETA to a random future timestamp
-          [etaSlot]: hexZeroPad(eta.toHexString(), 32),
+          [govSlots.eta]: hexZeroPad(eta.toHexString(), 32),
           // Set for votes to the total supply of the voting token, and against and abstain votes to zero
-          [forVotesSlot]: hexZeroPad(votingTokenSupply.toHexString(), 32),
-          [againstVotesSlot]: hexZeroPad('0x0', 32),
-          [abstainVotesSlot]: hexZeroPad('0x0', 32),
+          [govSlots.forVotes]: hexZeroPad(votingTokenSupply.toHexString(), 32),
+          [govSlots.againstVotes]: hexZeroPad('0x0', 32),
+          [govSlots.abstainVotes]: hexZeroPad('0x0', 32),
           // The canceled and execute slots are packed, so we can zero out that full slot
-          [canceledSlot]: hexZeroPad('0x0', 32),
+          [govSlots.canceled]: hexZeroPad('0x0', 32),
         },
       },
     },
@@ -294,6 +256,52 @@ function getSolidityStorageSlotUint(mappingSlot: string, key: BigNumberish) {
   // this will also work for address types, since address and uints are encoded the same way
   const slot = hexZeroPad(mappingSlot, 32)
   return hexStripZeros(keccak256(defaultAbiCoder.encode(['uint256', 'uint256'], [key, slot])))
+}
+
+/**
+ * @notice Returns an object containing various GovernorBravo slots
+ * @param id Proposal ID
+ */
+export function getGovernorBravoSlots(proposalId: BigNumberish) {
+  // TODO generalize this for other storage layouts
+
+  // Proposal struct slot offsets, based on the governor's proposal struct
+  //     struct Proposal {
+  //       uint id;
+  //       address proposer;
+  //       uint eta;
+  //       address[] targets;
+  //       uint[] values;
+  //       string[] signatures;
+  //       bytes[] calldatas;
+  //       uint startBlock;
+  //       uint endBlock;
+  //       uint forVotes;
+  //       uint againstVotes;
+  //       uint abstainVotes;
+  //       bool canceled;
+  //       bool executed;
+  //       mapping (address => Receipt) receipts;
+  //     }
+  const etaOffset = 2
+  const forVotesOffset = 9
+  const againstVotesOffset = 10
+  const abstainVotesOffset = 11
+  const canceledSlotOffset = 12 // this is packed with `executed`
+
+  // Compute and return slot numbers
+  const proposalsMapSlot = '0xa' // proposals ID to proposal struct mapping
+  const proposalSlot = getSolidityStorageSlotUint(proposalsMapSlot, proposalId)
+  return {
+    votingToken: '0x9', // slot of voting token, e.g. UNI, COMP  (getter is named after token, so can't generalize it that way),
+    proposalsMap: proposalsMapSlot,
+    proposal: proposalSlot,
+    canceled: hexZeroPad(BigNumber.from(proposalSlot).add(canceledSlotOffset).toHexString(), 32),
+    eta: hexZeroPad(BigNumber.from(proposalSlot).add(etaOffset).toHexString(), 32),
+    forVotes: hexZeroPad(BigNumber.from(proposalSlot).add(forVotesOffset).toHexString(), 32),
+    againstVotes: hexZeroPad(BigNumber.from(proposalSlot).add(againstVotesOffset).toHexString(), 32),
+    abstainVotes: hexZeroPad(BigNumber.from(proposalSlot).add(abstainVotesOffset).toHexString(), 32),
+  }
 }
 
 /**
