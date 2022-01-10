@@ -1,5 +1,6 @@
-import { BigNumber, BigNumberish, Block } from 'ethers'
+import { BigNumber, BigNumberish, Block, Contract } from 'ethers'
 import { ContractTransaction } from '@ethersproject/contracts'
+import { JsonRpcProvider } from '@ethersproject/providers'
 
 // --- Simulation configurations ---
 interface SimulationConfigBase {
@@ -78,9 +79,15 @@ export type CheckResult = {
   errors: Message[]
 }
 
+export type ProposalData = {
+  governor: Contract
+  timelock: Contract
+  provider: JsonRpcProvider
+}
+
 export interface ProposalCheck {
   name: string
-  checkProposal(proposal: ProposalEvent, tx: TenderlySimulation): Promise<CheckResult>
+  checkProposal(proposal: ProposalEvent, tx: TenderlySimulation, deps: ProposalData): Promise<CheckResult>
 }
 
 export interface AllCheckResults {
@@ -142,11 +149,11 @@ export type TenderlyPayload = {
 export interface TenderlySimulation {
   transaction: Transaction
   simulation: Simulation
-  contracts: Contract[]
+  contracts: TenderlyContract[]
   generated_access_list: GeneratedAccessList[]
 }
 
-interface Contract {
+interface TenderlyContract {
   id: string
   contract_id: string
   balance: string

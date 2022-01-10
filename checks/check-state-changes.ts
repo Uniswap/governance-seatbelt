@@ -1,15 +1,13 @@
 import { getAddress } from '@ethersproject/address'
 import { ProposalCheck, StateDiff } from '../types'
 import { getGovernorBravoSlots } from '../utils/clients/tenderly'
-import { governorBravo } from '../utils/contracts/governor-bravo'
-import { GOVERNOR_ADDRESS } from '../utils/constants'
 
 /**
  * Reports all state changes from the proposal
  */
 export const checkStateChanges: ProposalCheck = {
   name: 'Reports all state changes from the proposal',
-  async checkProposal(proposal, sim) {
+  async checkProposal(proposal, sim, deps) {
     let info = ''
     const warnings = []
     // Check if the transaction reverted, and if so return revert reason
@@ -24,12 +22,11 @@ export const checkStateChanges: ProposalCheck = {
     // recording state changes for (1) the the `queuedTransactions` mapping of the timelock, and
     // (2) the `proposal.executed` change of the governor, because this will be consistent across
     // all proposals and mainly add noise to the output
-    const timelockAddress = await governorBravo(GOVERNOR_ADDRESS!).admin()
     const stateDiffs = sim.transaction.transaction_info.state_diff.reduce((diffs, diff) => {
       const addr = getAddress(diff.raw[0].address)
       // Check if this is a diff that should be filtered out
-      const isGovernor = getAddress(addr) == getAddress(GOVERNOR_ADDRESS!)
-      const isTimelock = getAddress(addr) == timelockAddress
+      const isGovernor = getAddress(addr) == deps.governor.address
+      const isTimelock = getAddress(addr) == deps.timelock.address
       const isGovernorExecutedSlot = diff.raw[0].key === getGovernorBravoSlots(proposal.id).canceled // canceled and executed are in same slot
       const isQueuedTx = diff.soltype?.name.includes('queuedTransactions')
       const shouldSkipDiff = (isGovernor && isGovernorExecutedSlot) || (isTimelock && isQueuedTx)

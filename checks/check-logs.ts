@@ -1,14 +1,12 @@
 import { getAddress } from '@ethersproject/address'
 import { ProposalCheck, Log } from '../types'
-import { governorBravo } from '../utils/contracts/governor-bravo'
-import { GOVERNOR_ADDRESS } from '../utils/constants'
 
 /**
  * Reports all emitted events from the proposal
  */
 export const checkLogs: ProposalCheck = {
   name: 'Reports all events emitted from the proposal',
-  async checkProposal(proposal, sim) {
+  async checkProposal(proposal, sim, deps) {
     let info = ''
 
     // Emitted logs in the simulation are an array, so first we organize them by address. We skip
@@ -16,13 +14,12 @@ export const checkLogs: ProposalCheck = {
     // (2) the `proposal.executed` change of the governor, because this will be consistent across
     // all proposals and mainly add noise to the output
     // TODO remove some logic currently duplicated in the checkStateChanges check?
-    const timelockAddress = await governorBravo(GOVERNOR_ADDRESS!).admin()
 
     const events = sim.transaction.transaction_info.logs?.reduce((logs, log) => {
       const addr = getAddress(log.raw.address)
       // Check if this is a log that should be filtered out
-      const isGovernor = getAddress(addr) == getAddress(GOVERNOR_ADDRESS!)
-      const isTimelock = getAddress(addr) == timelockAddress
+      const isGovernor = getAddress(addr) == deps.governor.address
+      const isTimelock = getAddress(addr) == deps.timelock.address
       const shouldSkipLog =
         (isGovernor && log.name === 'ProposalExecuted') || (isTimelock && log.name === 'ExecuteTransaction')
       // Skip logs as required and add the rest to our logs object

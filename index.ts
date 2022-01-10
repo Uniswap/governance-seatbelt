@@ -19,6 +19,7 @@ import { AllCheckResults, ProposalEvent, SimulationConfig, SimulationConfigBase,
 import ALL_CHECKS from './checks'
 import { toProposalReport } from './presentation/markdown'
 import { governorBravo, PROPOSAL_STATES } from './utils/contracts/governor-bravo'
+import { timelock } from './utils/contracts/timelock'
 
 /**
  * @notice Simulate governance proposals and run proposal checks against them
@@ -84,6 +85,10 @@ async function main() {
   }
 
   // --- Run proposal checks and save output ---
+  // Generate the proposal data and dependencies needed by checks
+  const governor = governorBravo(simOutputs[0].config.governorAddress) // all sims have the same governor address
+  const proposalData = { governor, provider, timelock: timelock(await governor.admin()) }
+
   console.log('Starting proposal checks and report generation...')
   for (const simOutput of simOutputs) {
     // Run checks
@@ -95,7 +100,7 @@ async function main() {
           checkId,
           {
             name: ALL_CHECKS[checkId].name,
-            result: await ALL_CHECKS[checkId].checkProposal(proposal, sim),
+            result: await ALL_CHECKS[checkId].checkProposal(proposal, sim, proposalData),
           },
         ])
       )
