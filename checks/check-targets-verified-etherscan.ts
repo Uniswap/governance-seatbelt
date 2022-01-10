@@ -27,7 +27,7 @@ export const checkTouchedContractsVerifiedEtherscan: ProposalCheck = {
 /**
  * For a given simulation response, check verification status of a set of addresses
  */
-async function checkVerificationStatuses(sim: TenderlySimulation, addresses: string[]) {
+async function checkVerificationStatuses(sim: TenderlySimulation, addresses: string[]): Promise<string> {
   let info = '' // prepare output
   for (const addr of addresses) {
     const status = await checkVerificationStatus(sim, addr)
@@ -41,7 +41,10 @@ async function checkVerificationStatuses(sim: TenderlySimulation, addresses: str
 /**
  * For a given address, check if it's an EOA, a verified contract, or an unverified contract
  */
-async function checkVerificationStatus(sim: TenderlySimulation, addr: string) {
+async function checkVerificationStatus(
+  sim: TenderlySimulation,
+  addr: string
+): Promise<'verified' | 'eoa' | 'unverified'> {
   // If an address exists in the contracts array, it's verified on Etherscan
   const contract = sim.contracts.find((item) => item.address === addr)
   if (contract) return 'verified'
