@@ -1,14 +1,12 @@
 name: Governance Checks
 
-# on any push to main, we rerun all checks for live proposals
 on:
+  schedule:
+    - cron: '0 * * * *'
   push:
     branches:
       - main
   workflow_dispatch:
-
-#  schedule:
-#    - cron: "0 * * * *" # every hour we download translations and update the pr from crowdin
 
 jobs:
   check-proposals:
@@ -54,7 +52,6 @@ jobs:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RPC_URL: ${{ secrets.RPC_URL }}
-          SIM_ALL: 1
           TENDERLY_ACCESS_TOKEN: ${{ secrets.TENDERLY_ACCESS_TOKEN }}
           TENDERLY_PROJECT_SLUG: ${{ secrets.TENDERLY_PROJECT_SLUG }}
           DAO_NAME: ${{ matrix.DAO_NAME }}

@@ -46,10 +46,11 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const blockRange = [0, latestBlock.number]
   const governor = governorBravo(governorAddress)
 
-  const [_proposal, _actions, proposalCreatedLogs] = await Promise.all([
+  const [_proposal, _actions, proposalCreatedLogs, timelockAddress] = await Promise.all([
     governor.proposals(proposalId),
     governor.getActions(proposalId),
     governor.queryFilter(governor.filters.ProposalCreated(), ...blockRange),
+    governor.admin(),
   ])
   const proposal = <ProposalStruct>_proposal
   const [targets, values, sigs, calldatas] = <ProposalActions>_actions
@@ -58,47 +59,13 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   if (!proposalCreatedEvent) throw new Error(`Proposal creation log for #${proposalId} not found in governor logs`)
 
   // --- Storage slots and offsets for GovernorBravo ---
-  // TODO generalize this for other storage layouts by probing for slot numbers
-
-  // Storage slots of variables in Governor
-  const votingTokenSlot = '0x9' // slot of voting token, e.g. UNI, COMP  (getter is named after token, so can't generalize it that way)
-  const proposalsMapSlot = '0xa' // proposals ID to proposal struct mapping
-
-  // Storage slots of variables in Timelock
-  const queuedTxsSlot = '0x3' // mapping from tx hash to bool about it's queue status
-
-  // Proposal struct slot offsets, based on the proposal struct
-  //     struct Proposal {
-  //       uint id;
-  //       address proposer;
-  //       uint eta;
-  //       address[] targets;
-  //       uint[] values;
-  //       string[] signatures;
-  //       bytes[] calldatas;
-  //       uint startBlock;
-  //       uint endBlock;
-  //       uint forVotes;
-  //       uint againstVotes;
-  //       uint abstainVotes;
-  //       bool canceled;
-  //       bool executed;
-  //       mapping (address => Receipt) receipts;
-  //     }
-  const etaOffset = 2
-  const forVotesOffset = 9
-  const againstVotesOffset = 10
-  const abstainVotesOffset = 11
-
-  // Compute slot numbers
-  const proposalSlot = getSolidityStorageSlotUint(proposalsMapSlot, proposal.id)
-  const etaSlot = hexZeroPad(BigNumber.from(proposalSlot).add(etaOffset).toHexString(), 32)
-  const forVotesSlot = hexZeroPad(BigNumber.from(proposalSlot).add(forVotesOffset).toHexString(), 32)
-  const againstVotesSlot = hexZeroPad(BigNumber.from(proposalSlot).add(againstVotesOffset).toHexString(), 32)
-  const abstainVotesSlot = hexZeroPad(BigNumber.from(proposalSlot).add(abstainVotesOffset).toHexString(), 32)
+  const govSlots = getGovernorBravoSlots(proposal.id)
+  const queuedTxsSlot = '0x3' // timelock mapping from tx hash to bool about it's queue status
 
   // --- Prepare simulation configuration ---
   // We need the following state conditions to be true to successfully simulate a proposal:
+  //   - proposal.canceled == false
+  //   - proposal.executed == false
   //   - block.number > proposal.endBlock
   //   - proposal.forVotes > proposal.againstVotes
   //   - proposal.forVotes > quorumVotes
@@ -108,7 +75,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   //   - queuedTransactions[txHash] = true for each action in the proposal
 
   // Get voting token and total supply
-  const rawVotingToken = await provider.getStorageAt(governor.address, votingTokenSlot)
+  const rawVotingToken = await provider.getStorageAt(governor.address, govSlots.votingToken)
   const votingToken = getAddress(`0x${rawVotingToken.slice(26)}`)
   const votingTokenSupply = <BigNumber>await erc20(votingToken).totalSupply() // used to manipulate vote count
 
@@ -117,11 +84,14 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const value = (values as BigNumber[]).reduce((sum, cur) => sum.add(cur), BigNumber.from(0)).toString()
   const simBlock = proposal.endBlock.add(1)
 
-  // Choose an arbitrary ETA and compute a valid block timestamp
-  const eta = BigNumber.from('10000000000') // 2286-11-20T17:46:40.000Z
-  const timelock = await getTimelock(await governor.admin())
-  const gracePeriod = <BigNumber>await timelock.GRACE_PERIOD()
-  const simTimestamp = eta.add(gracePeriod).sub(gracePeriod.div(2))
+  // Compute the approximate earliest possible execution time based on governance parameters. This
+  // can only be approximate because voting period is defined in blocks, not as a timestamp. We
+  // assume 12 second block times to prefer underestimating timestamp rather than overestimating,
+  // and we prefer underestimating to avoid simulations reverting in cases where governance
+  // proposals call methods that pass in a start timestamp that must be lower than the current
+  // block timestamp (represented by the `simTimestamp` variable below)
+  const simTimestamp = BigNumber.from(latestBlock.timestamp).add(simBlock.sub(proposal.endBlock).mul(12))
+  const eta = simTimestamp // set proposal eta to be equal to the timestamp we simulate at
 
   // Compute transaction hashes used by the Timelock
   const txHashes = targets.map((target, i) => {
@@ -144,7 +114,8 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   // ensure Tenderly properly parses the simulation payload
   const simulationPayload: TenderlyPayload = {
     network_id: '1',
-    block_number: simBlock.toNumber(),
+    // this field represents the block state to simulate against, so we use the latest block number
+    block_number: latestBlock.number - 1, // subtract 1 to ensure block is mined and "finalized"
     from,
     to: governor.address,
     input: governor.interface.encodeFunctionData('execute', [proposal.id]),
@@ -153,21 +124,27 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
     value,
     save: false, // set this to true to see the simulated transaction in your Tenderly dashboard (useful for debugging)
     generate_access_list: true, // not required, but useful as a sanity check to ensure consistency in the simulation response
-    block_header: { timestamp: hexStripZeros(simTimestamp.toHexString()) },
+    block_header: {
+      // this data represents what block.number and block.timestamp should return in the EVM during the simulation
+      number: hexStripZeros(simBlock.toHexString()),
+      timestamp: hexStripZeros(simTimestamp.toHexString()),
+    },
     state_objects: {
       // Give `from` address 10 ETH to send transaction
       [from]: { balance: parseEther('10').toString() },
       // Ensure transactions are queued in the timelock
-      [timelock.address]: { storage: timelockStorageObj },
+      [timelockAddress]: { storage: timelockStorageObj },
       // Ensure governor storage is properly configured so `state(proposalId)` returns `Queued`
       [governor.address]: {
         storage: {
           // Set the proposal ETA to a random future timestamp
-          [etaSlot]: hexZeroPad(eta.toHexString(), 32),
+          [govSlots.eta]: hexZeroPad(eta.toHexString(), 32),
           // Set for votes to the total supply of the voting token, and against and abstain votes to zero
-          [forVotesSlot]: hexZeroPad(votingTokenSupply.toHexString(), 32),
-          [againstVotesSlot]: hexZeroPad('0x0', 32),
-          [abstainVotesSlot]: hexZeroPad('0x0', 32),
+          [govSlots.forVotes]: hexZeroPad(votingTokenSupply.toHexString(), 32),
+          [govSlots.againstVotes]: hexZeroPad('0x0', 32),
+          [govSlots.abstainVotes]: hexZeroPad('0x0', 32),
+          // The canceled and execute slots are packed, so we can zero out that full slot
+          [govSlots.canceled]: hexZeroPad('0x0', 32),
         },
       },
     },
@@ -251,10 +228,18 @@ async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<T
     sim.transaction.addresses = sim.transaction.addresses.map(getAddress)
     sim.contracts.forEach((contract) => (contract.address = getAddress(contract.address)))
     return sim
-  } catch (err) {
-    if (delay > 8000) throw err
+  } catch (err: any) {
+    const is429 = typeof err === 'object' && err?.statusCode === 400
+    if (delay > 8000 || !is429) {
+      console.warn(`Simulation request failed with the below request payload and error`)
+      console.log(JSON.stringify(payload))
+      throw err
+    }
     console.warn(err)
-    console.warn(`Simulation request failed with the above error, retrying in ~${delay} milliseconds...`)
+    console.warn(
+      `Simulation request failed with the above error, retrying in ~${delay} milliseconds. See request payload below`
+    )
+    console.log(JSON.stringify(payload))
     await sleep(delay + randomInt(0, 1000))
     return await sendSimulation(payload, delay * 2)
   }
@@ -271,6 +256,52 @@ function getSolidityStorageSlotUint(mappingSlot: string, key: BigNumberish) {
   // this will also work for address types, since address and uints are encoded the same way
   const slot = hexZeroPad(mappingSlot, 32)
   return hexStripZeros(keccak256(defaultAbiCoder.encode(['uint256', 'uint256'], [key, slot])))
+}
+
+/**
+ * @notice Returns an object containing various GovernorBravo slots
+ * @param id Proposal ID
+ */
+export function getGovernorBravoSlots(proposalId: BigNumberish) {
+  // TODO generalize this for other storage layouts
+
+  // Proposal struct slot offsets, based on the governor's proposal struct
+  //     struct Proposal {
+  //       uint id;
+  //       address proposer;
+  //       uint eta;
+  //       address[] targets;
+  //       uint[] values;
+  //       string[] signatures;
+  //       bytes[] calldatas;
+  //       uint startBlock;
+  //       uint endBlock;
+  //       uint forVotes;
+  //       uint againstVotes;
+  //       uint abstainVotes;
+  //       bool canceled;
+  //       bool executed;
+  //       mapping (address => Receipt) receipts;
+  //     }
+  const etaOffset = 2
+  const forVotesOffset = 9
+  const againstVotesOffset = 10
+  const abstainVotesOffset = 11
+  const canceledSlotOffset = 12 // this is packed with `executed`
+
+  // Compute and return slot numbers
+  const proposalsMapSlot = '0xa' // proposals ID to proposal struct mapping
+  const proposalSlot = getSolidityStorageSlotUint(proposalsMapSlot, proposalId)
+  return {
+    votingToken: '0x9', // slot of voting token, e.g. UNI, COMP  (getter is named after token, so can't generalize it that way),
+    proposalsMap: proposalsMapSlot,
+    proposal: proposalSlot,
+    canceled: hexZeroPad(BigNumber.from(proposalSlot).add(canceledSlotOffset).toHexString(), 32),
+    eta: hexZeroPad(BigNumber.from(proposalSlot).add(etaOffset).toHexString(), 32),
+    forVotes: hexZeroPad(BigNumber.from(proposalSlot).add(forVotesOffset).toHexString(), 32),
+    againstVotes: hexZeroPad(BigNumber.from(proposalSlot).add(againstVotesOffset).toHexString(), 32),
+    abstainVotes: hexZeroPad(BigNumber.from(proposalSlot).add(abstainVotesOffset).toHexString(), 32),
+  }
 }
 
 /**
@@ -301,13 +332,4 @@ function erc20(token: string) {
     'event Approval(address indexed owner, address indexed spender, uint256 value)',
   ]
   return new Contract(token, ERC20_ABI, provider)
-}
-
-/**
- * @notice Returns a Timelock instance of the specified address
- * @param timelock Timelock address
- */
-function getTimelock(timelock: string) {
-  const TIMELOCK_ABI = ['function GRACE_PERIOD() external view returns (uint256)']
-  return new Contract(timelock, TIMELOCK_ABI, provider)
 }

@@ -1,20 +1,14 @@
-import { ProposalCheck } from '../types'
+import { JsonRpcProvider } from '@ethersproject/providers'
+import { ProposalCheck, TenderlySimulation } from '../types'
 
 /**
  * Check all targets with code are verified on Etherscan
  */
 export const checkTargetsVerifiedEtherscan: ProposalCheck = {
   name: 'Check all targets are verified on Etherscan',
-  async checkProposal(proposal, sim) {
-    let info = '' // prepare output
+  async checkProposal(proposal, sim, deps) {
     const uniqueTargets = proposal.targets.filter((addr, i, targets) => targets.indexOf(addr) === i)
-    uniqueTargets.forEach((addr) => {
-      const contract = sim.contracts.find((item) => item.address === addr)
-      // TODO verify with tenderly that this is true, i.e. if an address is not in that array it's an EOA
-      if (!contract) info += `\n    - ${addr}: EOA (verification not applicable)`
-      else if (Boolean(contract.verified_by)) info += `\n    - ${addr}: Contract (verified)`
-      else info += `\n    - ${addr}: Contract (not verified)`
-    })
+    const info = await checkVerificationStatuses(sim, uniqueTargets, deps.provider)
     return { info: [`Targets:${info}`], warnings: [], errors: [] }
   },
 }
@@ -24,15 +18,42 @@ export const checkTargetsVerifiedEtherscan: ProposalCheck = {
  */
 export const checkTouchedContractsVerifiedEtherscan: ProposalCheck = {
   name: 'Check all touched contracts are verified on Etherscan',
-  async checkProposal(proposal, sim) {
-    let info = '' // prepare output
-    sim.transaction.addresses.forEach((addr) => {
-      const contract = sim.contracts.find((item) => item.address === addr)
-      // TODO verify with tenderly that this is true, i.e. if an address is not in that array it's an EOA
-      if (!contract) info += `\n    - ${addr}: EOA (verification not applicable)`
-      else if (Boolean(contract.verified_by)) info += `\n    - ${addr}: Contract (verified)`
-      else info += `\n    - ${addr}: Contract (not verified)`
-    })
+  async checkProposal(proposal, sim, deps) {
+    const info = await checkVerificationStatuses(sim, sim.transaction.addresses, deps.provider)
     return { info: [`Touched address:${info}`], warnings: [], errors: [] }
   },
+}
+
+/**
+ * For a given simulation response, check verification status of a set of addresses
+ */
+async function checkVerificationStatuses(
+  sim: TenderlySimulation,
+  addresses: string[],
+  provider: JsonRpcProvider
+): Promise<string> {
+  let info = '' // prepare output
+  for (const addr of addresses) {
+    const status = await checkVerificationStatus(sim, addr, provider)
+    if (status === 'eoa') info += `\n    - ${addr}: EOA (verification not applicable)`
+    else if (status === 'verified') info += `\n    - ${addr}: Contract (verified)`
+    else info += `\n    - ${addr}: Contract (not verified)`
+  }
+  return info
+}
+
+/**
+ * For a given address, check if it's an EOA, a verified contract, or an unverified contract
+ */
+async function checkVerificationStatus(
+  sim: TenderlySimulation,
+  addr: string,
+  provider: JsonRpcProvider
+): Promise<'verified' | 'eoa' | 'unverified'> {
+  // If an address exists in the contracts array, it's verified on Etherscan
+  const contract = sim.contracts.find((item) => item.address === addr)
+  if (contract) return 'verified'
+  // Otherwise, check if there's code at the address. Addresses with code not in the contracts array are not verified
+  const code = await provider.getCode(addr)
+  return code === '0x' ? 'eoa' : 'unverified'
 }

@@ -1,5 +1,6 @@
-import { BigNumber, BigNumberish, Block } from 'ethers'
+import { BigNumber, BigNumberish, Block, Contract } from 'ethers'
 import { ContractTransaction } from '@ethersproject/contracts'
+import { JsonRpcProvider } from '@ethersproject/providers'
 
 // --- Simulation configurations ---
 interface SimulationConfigBase {
@@ -78,9 +79,15 @@ export type CheckResult = {
   errors: Message[]
 }
 
+export type ProposalData = {
+  governor: Contract
+  timelock: Contract
+  provider: JsonRpcProvider
+}
+
 export interface ProposalCheck {
   name: string
-  checkProposal(proposal: ProposalEvent, tx: TenderlySimulation): Promise<CheckResult>
+  checkProposal(proposal: ProposalEvent, tx: TenderlySimulation, deps: ProposalData): Promise<CheckResult>
 }
 
 export interface AllCheckResults {
@@ -142,11 +149,11 @@ export type TenderlyPayload = {
 export interface TenderlySimulation {
   transaction: Transaction
   simulation: Simulation
-  contracts: Contract[]
+  contracts: TenderlyContract[]
   generated_access_list: GeneratedAccessList[]
 }
 
-interface Contract {
+interface TenderlyContract {
   id: string
   contract_id: string
   balance: string
@@ -271,7 +278,11 @@ interface ContractInfo {
   source: string
 }
 
-interface TokenData {}
+interface TokenData {
+  symbol: string
+  name: string
+  decimals: number
+}
 
 interface GeneratedAccessList {
   address: string
@@ -337,12 +348,24 @@ interface TransactionInfo {
   intrinsic_gas: number
   refund_gas: number
   call_trace: CallTrace
-  stack_trace: null
-  logs: Log[]
+  stack_trace: null | StackTrace[]
+  logs: Log[] | null
   state_diff: StateDiff[]
   raw_state_diff: null
   console_logs: null
   created_at: Date
+}
+
+interface StackTrace {
+  file_index: number
+  contract: string
+  name: string
+  line: number
+  error: string
+  error_reason: string
+  code: string
+  op: string
+  length: number
 }
 
 interface CallTrace {
@@ -584,7 +607,7 @@ interface PurpleSoltype {
 }
 
 interface Input {
-  soltype: SoltypeElement
+  soltype: SoltypeElement | null
   value: boolean | string
 }
 
@@ -594,7 +617,7 @@ interface CallTraceFunctionState {
 }
 
 interface Log {
-  name: string
+  name: string | null
   anonymous: boolean
   inputs: Input[]
   raw: LogRaw
@@ -607,9 +630,9 @@ interface LogRaw {
 }
 
 interface StateDiff {
-  soltype: SoltypeElement
-  original: string
-  dirty: string
+  soltype: SoltypeElement | null
+  original: string | Record<string, any>
+  dirty: string | Record<string, any>
   raw: RawElement[]
 }
 

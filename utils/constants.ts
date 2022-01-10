@@ -14,5 +14,4 @@ export const DAO_NAME = process.env.DAO_NAME ? process.env.DAO_NAME : null
 export const GOVERNOR_ADDRESS = process.env.GOVERNOR_ADDRESS ? process.env.GOVERNOR_ADDRESS : null
 export const REPORTS_BRANCH = 'reports'
 export const REPOSITORY = 'Uniswap/governance-seatbelt'
-export const SIM_ALL = [0, '0', false, 'false'].includes(process.env.SIM_ALL!) ? false : true
 export const [GITHUB_REPO_OWNER, GITHUB_REPO_NAME] = typeof REPOSITORY === 'string' ? REPOSITORY.split('/') : []
