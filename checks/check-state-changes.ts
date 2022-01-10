@@ -71,9 +71,9 @@ export const checkStateChanges: ProposalCheck = {
             info += `\n        - Slot \`${w.key}\` changed from \`${oldVal}\` to \`${newVal}\``
           })
         } else if (diff.soltype.simple_type) {
-          // This is a simple type with a single changed value (stringifying not strictly necessary, but can't hurt)
-          const oldVal = JSON.stringify(diff.original)
-          const newVal = JSON.stringify(diff.dirty)
+          // This is a simple type with a single changed value
+          const oldVal = JSON.parse(JSON.stringify(diff.original))
+          const newVal = JSON.parse(JSON.stringify(diff.dirty))
           info += `\n        - \`${diff.soltype.name}\` changed from \`${oldVal}\` to \`${newVal}\``
         } else if (diff.soltype.type.startsWith('mapping')) {
           // This is a complex type like a mapping, which may have multiple changes. The diff.original
