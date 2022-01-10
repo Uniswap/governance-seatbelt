@@ -8,6 +8,7 @@ export const checkLogs: ProposalCheck = {
   name: 'Reports all events emitted from the proposal',
   async checkProposal(proposal, sim, deps) {
     let info = ''
+    const warnings = []
 
     // Emitted logs in the simulation are an array, so first we organize them by address. We skip
     // recording logs for (1) the the `queuedTransactions` mapping of the timelock, and
@@ -54,6 +55,7 @@ export const checkLogs: ProposalCheck = {
         } else {
           // Log is not decoded, report the raw data
           // TODO find a transaction with undecoded logs to know how topics/data are formatted in simulation response
+          info += `\n        - Undecoded log: \`${JSON.stringify(log)}\``
         }
       })
     }
