@@ -12,7 +12,7 @@ or in the `reports` folder if running locally.
 Some notes on the outputs of reports:
 
 - If a transaction reverts, that will be reported in the state changes section
-- State changes will currently show the governor contract with an undecoded state change of `0x000...0000` to ``0x000...0100`. This represents the `proposal.executed` variable being changed from `false` to `true`, and will be properly decoded in the future
+- State changes will currently show the governor contract with an undecoded state change of `0x000...0000` to `0x000...0100`. This represents the `proposal.executed` variable being changed from `false` to `true`, and will be properly decoded in the future
 
 ## Usage
 
