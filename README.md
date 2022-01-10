@@ -39,7 +39,7 @@ TENDERLY_ACCESS_TOKEN=yourAccessToken
 # Project slug can be found in the URL of your project: https://dashboard.tenderly.co/<username>/<project_slug>/transactions
 TENDERLY_PROJECT_SLUG=projectName
 
-# Set to 1 if running locally, or 0 for CI (a value of 0 is currently unsupported)
+# Set to 1 if running locally, or 0 for CI
 RUNNING_LOCALLY=1
 
 # Define the DAO name and the address of its governor
