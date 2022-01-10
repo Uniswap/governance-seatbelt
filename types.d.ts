@@ -342,7 +342,7 @@ interface TransactionInfo {
   refund_gas: number
   call_trace: CallTrace
   stack_trace: null | StackTrace[]
-  logs: Log[]
+  logs: Log[] | null
   state_diff: StateDiff[]
   raw_state_diff: null
   console_logs: null
@@ -600,7 +600,7 @@ interface PurpleSoltype {
 }
 
 interface Input {
-  soltype: SoltypeElement
+  soltype: SoltypeElement | null
   value: boolean | string
 }
 
@@ -610,7 +610,7 @@ interface CallTraceFunctionState {
 }
 
 interface Log {
-  name: string
+  name: string | null
   anonymous: boolean
   inputs: Input[]
   raw: LogRaw
