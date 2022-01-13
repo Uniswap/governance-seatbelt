@@ -1,6 +1,6 @@
 import { getAddress } from '@ethersproject/address'
+import { getContractName, getGovernorBravoSlots } from '../utils/clients/tenderly'
 import { ProposalCheck, StateDiff } from '../types'
-import { getGovernorBravoSlots } from '../utils/clients/tenderly'
 
 /**
  * Reports all state changes from the proposal
@@ -45,14 +45,7 @@ export const checkStateChanges: ProposalCheck = {
     for (const [address, diffs] of Object.entries(stateDiffs)) {
       // Use contracts array to get contract name of address
       const contract = sim.contracts.find((c) => c.address === address)
-      let contractName = contract?.contract_name
-
-      // If the contract is a token, include the full token name. This is useful in cases where the
-      // token is a proxy, so the contract name doesn't give much useful information
-      if (contract?.token_data?.name) contractName += ` (${contract?.token_data?.name})`
-
-      // Lastly, append the contract address and save it off
-      info += `\n    - ${contractName} at \`${address}\``
+      info += `\n    - ${getContractName(contract)}`
 
       // Parse each diff. A single diff may involve multiple storage changes, e.g. a proposal that
       // executes three transactions will show three state changes to the `queuedTransactions`

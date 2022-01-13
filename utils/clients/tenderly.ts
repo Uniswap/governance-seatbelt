@@ -18,6 +18,7 @@ import {
   SimulationConfigExecuted,
   SimulationConfigProposed,
   SimulationResult,
+  TenderlyContract,
   TenderlyPayload,
   TenderlySimulation,
 } from '../../types'
@@ -203,6 +204,22 @@ const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, de
 
 // Get a random integer between two values
 const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min) + min) // max is exclusive, min is inclusive
+
+/**
+ * @notice Given a Tenderly contract object, generates a descriptive human-friendly name for that contract
+ * @param contract Tenderly contract object to generate name from
+ */
+export function getContractName(contract: TenderlyContract | undefined) {
+  if (!contract) return 'unknown contract name'
+  let contractName = contract?.contract_name
+
+  // If the contract is a token, include the full token name. This is useful in cases where the
+  // token is a proxy, so the contract name doesn't give much useful information
+  if (contract?.token_data?.name) contractName += ` (${contract?.token_data?.name})`
+
+  // Lastly, append the contract address and save it off
+  return `${contractName} at \`${getAddress(contract.address)}\``
+}
 
 /**
  * @notice Sends a transaction simulation request to the Tenderly API

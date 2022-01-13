@@ -1,6 +1,7 @@
 import { writeFileSync, unlinkSync } from 'fs'
 import util from 'util'
 import { exec as execCallback } from 'child_process'
+import { getContractName } from '../utils/clients/tenderly'
 import { ProposalCheck } from '../types'
 
 // convert exec method from a callback to a promise
@@ -46,14 +47,15 @@ export const checkSlither: ProposalCheck = {
 
       // Append results to report info
       // Note that slither supports a `--json` flag  we could use, but directly printing the formatted
-      // results in a code block is sufficient and simpler
+      // results in a code block is simpler and sufficient for now
+      info += `\n - Slither report for ${getContractName(contract)}`
       info += `\n\`\`\`\n${output.stderr}\`\`\``
 
       // Delete the contract files
       for (const file of contract.data.contract_info) unlinkSync(file.name)
     }
 
-    return { info: [`Slither report:${info}`], warnings, errors: [] }
+    return { info: [info], warnings, errors: [] }
   },
 }
 

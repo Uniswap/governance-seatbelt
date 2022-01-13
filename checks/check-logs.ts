@@ -1,4 +1,5 @@
 import { getAddress } from '@ethersproject/address'
+import { getContractName } from '../utils/clients/tenderly'
 import { ProposalCheck, Log } from '../types'
 
 /**
@@ -37,14 +38,7 @@ export const checkLogs: ProposalCheck = {
     for (const [address, logs] of Object.entries(events)) {
       // Use contracts array to get contract name of address
       const contract = sim.contracts.find((c) => c.address === address)
-      let contractName = contract?.contract_name
-
-      // If the contract is a token, include the full token name. This is useful in cases where the
-      // token is a proxy, so the contract name doesn't give much useful information
-      if (contract?.token_data?.name) contractName += ` (${contract?.token_data?.name})`
-
-      // Lastly, append the contract address and save it off
-      info += `\n    - ${contractName} at \`${address}\``
+      info += `\n    - ${getContractName(contract)}`
 
       // Format log data for report
       logs.forEach((log) => {
