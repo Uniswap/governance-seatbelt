@@ -1,4 +1,6 @@
-import { writeFileSync, unlinkSync } from 'fs'
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
 import util from 'util'
 import { exec as execCallback } from 'child_process'
 import { getAddress } from '@ethersproject/address'
@@ -50,6 +52,7 @@ export const checkSlither: ProposalCheck = {
     // contracts at once would cause errors when:
     //   1. contracts at different addresses rely on different compiler versions, or
     //   2. contracts at different addresses have the same names
+    const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), 'seatbelt-contracts-'))
     for (const contract of contracts) {
       const addr = getAddress(contract.address)
       if (addressesToSkip.has(addr)) continue
@@ -64,10 +67,10 @@ export const checkSlither: ProposalCheck = {
       const solcVersion = solcVersionMatch[0]
 
       // Save the contract locally
-      for (const file of contract.data.contract_info) writeFileSync(file.name, file.source)
+      for (const file of contract.data.contract_info) fs.writeFileSync(`${tmpdir}/${file.name}`, file.source)
 
       // Run slither
-      const slitherOutput = await runSlither(solcVersion)
+      const slitherOutput = await runSlither(solcVersion, tmpdir)
       if (!slitherOutput) {
         warnings.push(`Slither execution failed for \`${contract.contract_name}\` at \`${addr}\``)
         continue
@@ -81,15 +84,17 @@ export const checkSlither: ProposalCheck = {
       if (slitherOutput) info += `\n\`\`\`\n${slitherOutput.stderr}\`\`\``
 
       // Delete the contract files
-      for (const file of contract.data.contract_info) unlinkSync(file.name)
+      for (const file of contract.data.contract_info) fs.unlinkSync(`${tmpdir}/${file.name}`)
     }
 
+    fs.rmdirSync(tmpdir)
     return { info: [info], warnings, errors: [] }
   },
 }
 
 /**
- * Tries to run slither via python installation. If a printer name is passed, the printer will be run
+ * Tries to run slither via python installation in the specified directory. If a printer name is
+ * passed, the printer will be run
  * @dev Requires solc-select and slither to be installed
  * @dev If you have nix/dapptools installed, you'll need to make sure the path to your python
  * executables (find this with `which solc-select`) comes before the path to your nix executables.
@@ -97,10 +102,16 @@ export const checkSlither: ProposalCheck = {
  * the nix version of solc will take precedence over the solc-select version, and slither will fail
  * @dev The list of available printers can be found here: https://github.com/crytic/slither/wiki/Printer-documentation
  */
-async function runSlither(solcVersion: string, printer: string | undefined = undefined): Promise<ExecOutput | null> {
+async function runSlither(
+  solcVersion: string,
+  dir: string,
+  printer: string | undefined = undefined
+): Promise<ExecOutput | null> {
   try {
     const printerCmd = printer ? ` --print ${printer}` : ''
-    return await exec(`solc-select install ${solcVersion} && SOLC_VERSION=${solcVersion} slither .${printerCmd}`)
+    return await exec(
+      `cd ${dir} && solc-select install ${solcVersion} && SOLC_VERSION=${solcVersion} slither .${printerCmd}`
+    )
   } catch (e: any) {
     if ('stderr' in e) return e // output is in stderr, but slither reports results as an exception
     console.warn(`Error: Could not run slither${printer ? ` printer ${printer}` : ''} via Python: ${JSON.stringify(e)}`)
