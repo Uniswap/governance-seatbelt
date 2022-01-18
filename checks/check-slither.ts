@@ -44,7 +44,7 @@ export const checkSlither: ProposalCheck = {
     if (contracts.length === 0) {
       return { info: ['No contracts to analyze: only the timelock and governor are touched'], warnings, errors: [] }
     }
-    
+
     // For each verified contract, we write the files, run slither, then delete the files. We do
     // this instead of running Slither on all contracts at once because the running against all
     // contracts at once would cause errors when:
@@ -66,9 +66,9 @@ export const checkSlither: ProposalCheck = {
       // Save the contract locally
       for (const file of contract.data.contract_info) writeFileSync(file.name, file.source)
 
-      // Run slither against it
-      const output = await runSlither(solcVersion)
-      if (!output) {
+      // Run slither
+      const slitherOutput = await runSlither(solcVersion)
+      if (!slitherOutput) {
         warnings.push(`Slither execution failed for \`${contract.contract_name}\` at \`${addr}\``)
         continue
       }
@@ -78,7 +78,7 @@ export const checkSlither: ProposalCheck = {
       // results in a code block is simpler and sufficient for now
       const formatting = info === '' ? '' : '\n- '
       info += `${formatting}Slither report for ${getContractName(contract)}`
-      info += `\n\`\`\`\n${output.stderr}\`\`\``
+      if (slitherOutput) info += `\n\`\`\`\n${slitherOutput.stderr}\`\`\``
 
       // Delete the contract files
       for (const file of contract.data.contract_info) unlinkSync(file.name)
@@ -89,19 +89,21 @@ export const checkSlither: ProposalCheck = {
 }
 
 /**
- * Tries to run slither via python installation
+ * Tries to run slither via python installation. If a printer name is passed, the printer will be run
  * @dev Requires solc-select and slither to be installed
  * @dev If you have nix/dapptools installed, you'll need to make sure the path to your python
  * executables (find this with `which solc-select`) comes before the path to your nix executables.
  * This may require editing your $PATH variable prior to running this check. If you don't do this,
  * the nix version of solc will take precedence over the solc-select version, and slither will fail
+ * @dev The list of available printers can be found here: https://github.com/crytic/slither/wiki/Printer-documentation
  */
-async function runSlither(solcVersion: string): Promise<ExecOutput | null> {
+async function runSlither(solcVersion: string, printer: string | undefined = undefined): Promise<ExecOutput | null> {
   try {
-    return await exec(`solc-select install ${solcVersion} && SOLC_VERSION=${solcVersion} slither .`)
+    const printerCmd = printer ? ` --print ${printer}` : ''
+    return await exec(`solc-select install ${solcVersion} && SOLC_VERSION=${solcVersion} slither .${printerCmd}`)
   } catch (e: any) {
     if ('stderr' in e) return e // output is in stderr, but slither reports results as an exception
-    console.warn(`Error: Could not run slither via Python: ${JSON.stringify(e)}`)
+    console.warn(`Error: Could not run slither${printer ? ` printer ${printer}` : ''} via Python: ${JSON.stringify(e)}`)
     return null
   }
 }
