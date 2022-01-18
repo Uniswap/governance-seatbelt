@@ -1,6 +1,7 @@
 import { writeFileSync, unlinkSync } from 'fs'
 import util from 'util'
 import { exec as execCallback } from 'child_process'
+import { getAddress } from '@ethersproject/address'
 import { getContractName } from '../utils/clients/tenderly'
 import { ProposalCheck } from '../types'
 
@@ -15,21 +16,48 @@ type ExecOutput = {
 
 /**
  * Runs slither against the verified contracts and reports the outputs.
- * Assumes slither is already installed and can be run with python
+ * Assumes solc-select and slither are both already installed with python
  */
 export const checkSlither: ProposalCheck = {
   name: 'Runs slither against the verified contracts',
   async checkProposal(proposal, sim, deps) {
     let info = ''
     let warnings: string[] = []
-    // For each verified contract with code, we write the files, run slither, then delete the
-    // files. We do this instead of running Slither on all contracts at once since contracts at
-    // different addresses can have the same names, which would result in an error when compiling
-    for (const contract of sim.contracts) {
+
+    // Skip existing timelock and governor contracts to reduce noise. These contracts are already
+    // deployed and in use, and if they are being updated, the new contract will be one of the
+    // touched contracts that get's analyzed
+    // NOTE: This requires an archive node since we need to query for the governor implementation
+    // at the simulation block number, since the implementation may have changed since
+    const addressesToSkip = new Set([deps.timelock.address, deps.governor.address])
+    try {
+      addressesToSkip.add(await deps.governor.implementation({ blockTag: sim.transaction.block_number }))
+    } catch (e) {
+      const msg = `Could not read address of governor implementation at block \`${sim.transaction.block_number}\`. Make sure the \`RPC_URL\` is an archive node. As a result the Slither check will show warnings on the governor's implementation contract.`
+      console.warn(`WARNING: ${msg}. Details:`)
+      console.warn(e)
+      warnings.push(msg)
+    }
+
+    // Return early if the only contracts touched are the timelock and governor
+    const contracts = sim.contracts.filter((contract) => !addressesToSkip.has(getAddress(contract.address)))
+    if (contracts.length === 0) {
+      return { info: ['No contracts to analyze: only the timelock and governor are touched'], warnings, errors: [] }
+    }
+    
+    // For each verified contract, we write the files, run slither, then delete the files. We do
+    // this instead of running Slither on all contracts at once because the running against all
+    // contracts at once would cause errors when:
+    //   1. contracts at different addresses rely on different compiler versions, or
+    //   2. contracts at different addresses have the same names
+    for (const contract of contracts) {
+      const addr = getAddress(contract.address)
+      if (addressesToSkip.has(addr)) continue
+
       // Get solc version used
       const solcVersionMatch = contract.compiler_version.match(/\d*\.\d*\.\d*/)
       if (!solcVersionMatch) {
-        const msg = `Slither not run for \`${contract.contract_name}\` at \`${contract.address}\`: could not parse solc version`
+        const msg = `Slither not run for \`${contract.contract_name}\` at \`${addr}\`: could not parse solc version`
         warnings.push(msg)
         continue
       }
@@ -41,14 +69,15 @@ export const checkSlither: ProposalCheck = {
       // Run slither against it
       const output = await runSlither(solcVersion)
       if (!output) {
-        warnings.push(`Slither execution failed for \`${contract.contract_name}\` at \`${contract.address}\``)
+        warnings.push(`Slither execution failed for \`${contract.contract_name}\` at \`${addr}\``)
         continue
       }
 
       // Append results to report info
       // Note that slither supports a `--json` flag  we could use, but directly printing the formatted
       // results in a code block is simpler and sufficient for now
-      info += `\n - Slither report for ${getContractName(contract)}`
+      const formatting = info === '' ? '' : '\n- '
+      info += `${formatting}Slither report for ${getContractName(contract)}`
       info += `\n\`\`\`\n${output.stderr}\`\`\``
 
       // Delete the contract files
@@ -71,7 +100,7 @@ async function runSlither(solcVersion: string): Promise<ExecOutput | null> {
   try {
     return await exec(`solc-select install ${solcVersion} && SOLC_VERSION=${solcVersion} slither .`)
   } catch (e: any) {
-    if ('stdout' in e) return e // output is in stdout, but slither reports results as an exception
+    if ('stderr' in e) return e // output is in stderr, but slither reports results as an exception
     console.warn(`Error: Could not run slither via Python: ${JSON.stringify(e)}`)
     return null
   }
