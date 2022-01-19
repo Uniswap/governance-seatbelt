@@ -46,7 +46,8 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
 
   // --- Get details about the proposal we're simulating ---
   const network = await provider.getNetwork()
-  const latestBlock = await provider.getBlock(getLatestBlock(network.chainId))
+  const blockNumberToUse = (await getLatestBlock(network.chainId)) - 3 // subtracting a few blocks to ensure tenderly has the block
+  const latestBlock = await provider.getBlock(blockNumberToUse)
   const blockRange = [0, latestBlock.number]
   const governor = governorBravo(governorAddress)
 
