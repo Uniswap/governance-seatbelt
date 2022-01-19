@@ -13,6 +13,7 @@ Some notes on the outputs of reports:
 
 - If a transaction reverts, that will be reported in the state changes section
 - State changes and events around the proposal execution process, such as the `ExecuteTransaction` event and `queuedTransactions` state changes, are omitted from reports to reduce noise
+- Slither analysis for the timelock, governor proxy, and governor implementation is skipped to reduce noise in the output. Note that skipping analysis for the implementation on historical proposals requires an archive node, and a warning will be shown if archive data is required not available
 
 ## Usage
 
