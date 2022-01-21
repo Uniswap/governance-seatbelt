@@ -17,6 +17,8 @@ jobs:
             GOVERNOR_ADDRESS: '0x408ED6354d4973f66138C91495F2f2FCbd8724C3'
           - DAO_NAME: 'Compound'
             GOVERNOR_ADDRESS: '0xc0Da02939E1441F497fd74F78cE7Decb17B66529'
+          - DAO_NAME: 'Candle'
+            GOVERNOR_ADDRESS: '0xB80Be29667021AE0B617AC9eFe0a3A1a58033681'
 
     name: Check all live proposals
     runs-on: ubuntu-latest
