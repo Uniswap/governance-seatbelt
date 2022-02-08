@@ -81,7 +81,9 @@ export const checkSlither: ProposalCheck = {
       // results in a code block is simpler and sufficient for now
       const formatting = info === '' ? '' : '\n- '
       info += `${formatting}Slither report for ${getContractName(contract)}`
-      if (slitherOutput) info += `\n\`\`\`\n${slitherOutput.stderr}\`\`\``
+      if (slitherOutput) {
+        info += `\n\n<details>\n<summary>View Report</summary>\n\n\`\`\`\n${slitherOutput.stderr}\`\`\`\n\n</details>\n\n`
+      }
 
       // Delete the contract files
       for (const file of contract.data.contract_info) fs.unlinkSync(`${tmpdir}/${file.name}`)
