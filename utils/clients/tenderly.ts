@@ -103,29 +103,37 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
   // Generate the state object to hold the proposal data in the governor
   const governorStorageObj: Record<string, string> = {}
   targets.forEach((target, i) => {
-    const targetSlot = hexZeroPad(BigNumber.from(govSlots.targets).add(i).toHexString(), 32)
-    const valuesSlot = hexZeroPad(BigNumber.from(govSlots.values).add(i).toHexString(), 32)
-    const sigsSlot = hexZeroPad(BigNumber.from(govSlots.signatures).add(i).toHexString(), 32)
-    const calldataSlot = hexZeroPad(BigNumber.from(govSlots.calldatas).add(i).toHexString(), 32)
+    // for dynamic arrays, the slot of that array stores the length of the array
+    governorStorageObj[govSlots.targets] = to32ByteHexString(1)
+    governorStorageObj[govSlots.values] = to32ByteHexString(values.length)
 
-    // for dynamic arrays, the above slots store the length of the arrays
-    governorStorageObj[targetSlot] = hexZeroPad(BigNumber.from(targets.length).toHexString(), 32)
-    governorStorageObj[valuesSlot] = hexZeroPad(BigNumber.from(values.length).toHexString(), 32)
+    // for dynamic arrays, data starts in the hash of the slot value
+    const targetSlotStart = BigNumber.from(keccak256(govSlots.targets))
+    const valuesSlotStart = BigNumber.from(keccak256(govSlots.values))
 
-    // the data slots start at the hash of the prior slot
-    governorStorageObj[to32ByteHexString(keccak256(targetSlot))] = to32ByteHexString(targets[i])
-    governorStorageObj[to32ByteHexString(keccak256(valuesSlot))] = to32ByteHexString(values[i])
-    governorStorageObj[sigsSlot] = hexZeroPad(BigNumber.from(0).toHexString(), 32) // TODO support non-empty signatures
-    governorStorageObj[calldataSlot] = to32ByteHexString(calldatas[i].slice(2).length + 1)
+    // store data based on the current index
+    const targetSlot = to32ByteHexString(targetSlotStart.add(i))
+    const valuesSlot = to32ByteHexString(valuesSlotStart.add(i))
+    governorStorageObj[targetSlot] = to32ByteHexString(targets[i])
+    governorStorageObj[valuesSlot] = to32ByteHexString(values[i])
 
-    const calldataValSlot = to32ByteHexString(keccak256(calldataSlot))
+    // for now, we require signatures to be empty so the slot stays empty, i.e. we don't need to store anything
+    // TODO support non-empty signatures
+    // governorStorageObj[govSlots.signatures] = to32ByteHexString(0)
+
+    // Calldata type is bytes, so the slot itself stores `lengthInBytes * 2 + 1`
+    governorStorageObj[govSlots.calldatas] = to32ByteHexString(calldatas[i].slice(2).length + 1)
+
+    // Then calldata is chunked in 32 byte increments starting at keccak(slot)
+    const calldataValSlotStart = to32ByteHexString(keccak256(govSlots.calldatas))
     const slotsRequired = Math.ceil(calldatas[i].slice(2).length / 64)
 
+    const calldataNo0xPrefix = calldatas[i].slice(2)
     for (let j = 0; j < slotsRequired; j += 1) {
-      const slot = to32ByteHexString(BigNumber.from(calldataValSlot).add(j))
-      const offset = 64 * j
-      const endIndex = Math.min(2 + 64 + offset, calldatas[i].length)
-      let data = `0x${calldatas[i].slice(2 + offset, endIndex)}`
+      const slot = to32ByteHexString(BigNumber.from(calldataValSlotStart).add(j))
+      const startIndex = 64 * j
+      const endIndex = Math.min(64 + startIndex, calldataNo0xPrefix.length)
+      let data = `0x${calldataNo0xPrefix.slice(startIndex, endIndex)}`
       if (data.length !== 66) data = data.padEnd(66, '0')
       governorStorageObj[slot] = data
     }
