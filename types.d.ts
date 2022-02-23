@@ -21,7 +21,11 @@ export interface SimulationConfigProposed extends SimulationConfigBase {
 
 export interface SimulationConfigNew extends SimulationConfigBase {
   type: 'new'
-  // TODO add support for proposals which do not yet exist on-chain
+  targets: string[]
+  values: BigNumberish[]
+  signatures: string[]
+  calldatas: string[]
+  description: string
 }
 
 export type SimulationConfig = SimulationConfigExecuted | SimulationConfigProposed | SimulationConfigNew

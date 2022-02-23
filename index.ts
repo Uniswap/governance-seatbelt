@@ -70,6 +70,7 @@ async function main() {
     const numProposals = simProposals.length
     console.log(`Simulating ${numProposals} ${DAO_NAME} proposals: IDs of ${JSON.stringify(simProposalsIds)}`)
     for (const simProposal of simProposals) {
+      if (simProposal.simType === 'new') throw new Error('Simulation type "new" is not supported in this branch')
       // Determine if this proposal is already `executed` or currently in-progress (`proposed`)
       console.log(`  Simulating ${DAO_NAME} proposal ${simProposal.id}...`)
       const config: SimulationConfig = {
