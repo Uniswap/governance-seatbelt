@@ -108,14 +108,19 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
     const sigsSlot = hexZeroPad(BigNumber.from(govSlots.signatures).add(i).toHexString(), 32)
     const calldataSlot = hexZeroPad(BigNumber.from(govSlots.calldatas).add(i).toHexString(), 32)
 
-    governorStorageObj[govSlots.targets] = hexZeroPad('0x1', 32) // boolean value of true, encoded
-    governorStorageObj[targetSlot] = hexZeroPad(BigNumber.from(targets[i]).toHexString(), 32)
-    governorStorageObj[valuesSlot] = hexZeroPad(BigNumber.from(values[i]).toHexString(), 32)
-    governorStorageObj[sigsSlot] = hexZeroPad(BigNumber.from(0).toHexString(), 32) // TODO support non-empty signatures
+    // for dynamic arrays, the above slots store the length of the arrays
+    governorStorageObj[targetSlot] = hexZeroPad(BigNumber.from(targets.length).toHexString(), 32)
+    governorStorageObj[valuesSlot] = hexZeroPad(BigNumber.from(values.length).toHexString(), 32)
 
+    // the data slots start at the hash of the prior slot
+    governorStorageObj[to32ByteHexString(keccak256(targetSlot))] = to32ByteHexString(targets[i])
+    governorStorageObj[to32ByteHexString(keccak256(valuesSlot))] = to32ByteHexString(values[i])
+    governorStorageObj[sigsSlot] = hexZeroPad(BigNumber.from(0).toHexString(), 32) // TODO support non-empty signatures
     governorStorageObj[calldataSlot] = to32ByteHexString(calldatas[i].slice(2).length + 1)
+
     const calldataValSlot = to32ByteHexString(keccak256(calldataSlot))
     const slotsRequired = Math.ceil(calldatas[i].slice(2).length / 64)
+
     for (let j = 0; j < slotsRequired; j += 1) {
       const slot = to32ByteHexString(BigNumber.from(calldataValSlot).add(j))
       const offset = 64 * j
@@ -480,10 +485,10 @@ export function getGovernorBravoSlots(proposalId: BigNumberish) {
     forVotes: hexZeroPad(BigNumber.from(proposalSlot).add(forVotesOffset).toHexString(), 32),
     againstVotes: hexZeroPad(BigNumber.from(proposalSlot).add(againstVotesOffset).toHexString(), 32),
     abstainVotes: hexZeroPad(BigNumber.from(proposalSlot).add(abstainVotesOffset).toHexString(), 32),
-    targets: hexZeroPad(keccak256(BigNumber.from(targetsOffset).toHexString()), 32),
-    values: hexZeroPad(keccak256(BigNumber.from(valuesOffset).toHexString()), 32),
-    signatures: hexZeroPad(keccak256(BigNumber.from(signaturesOffset).toHexString()), 32),
-    calldatas: hexZeroPad(keccak256(BigNumber.from(calldatasOffset).toHexString()), 32),
+    targets: hexZeroPad(BigNumber.from(proposalSlot).add(targetsOffset).toHexString(), 32),
+    values: hexZeroPad(BigNumber.from(proposalSlot).add(valuesOffset).toHexString(), 32),
+    signatures: hexZeroPad(BigNumber.from(proposalSlot).add(signaturesOffset).toHexString(), 32),
+    calldatas: hexZeroPad(BigNumber.from(proposalSlot).add(calldatasOffset).toHexString(), 32),
   }
 }
 
