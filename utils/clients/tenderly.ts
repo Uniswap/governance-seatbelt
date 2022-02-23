@@ -65,7 +65,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
     targets,
     values: values.map(BigNumber.from),
     signatures,
-    calldatas
+    calldatas,
   }
 
   // --- Storage slots and offsets for GovernorBravo ---
@@ -103,10 +103,10 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
   // Generate the state object to hold the proposal data in the governor
   const governorStorageObj: Record<string, string> = {}
   targets.forEach((target, i) => {
-    const targetSlot = hexZeroPad(BigNumber.from(govSlots.targets).add(i).toHexString(), 32);
-    const valuesSlot = hexZeroPad(BigNumber.from(govSlots.values).add(i).toHexString(), 32);
-    const sigsSlot = hexZeroPad(BigNumber.from(govSlots.signatures).add(i).toHexString(), 32);
-    const calldataSlot = hexZeroPad(BigNumber.from(govSlots.calldatas).add(i).toHexString(), 32);
+    const targetSlot = hexZeroPad(BigNumber.from(govSlots.targets).add(i).toHexString(), 32)
+    const valuesSlot = hexZeroPad(BigNumber.from(govSlots.values).add(i).toHexString(), 32)
+    const sigsSlot = hexZeroPad(BigNumber.from(govSlots.signatures).add(i).toHexString(), 32)
+    const calldataSlot = hexZeroPad(BigNumber.from(govSlots.calldatas).add(i).toHexString(), 32)
 
     governorStorageObj[govSlots.targets] = hexZeroPad('0x1', 32) // boolean value of true, encoded
     governorStorageObj[targetSlot] = hexZeroPad(BigNumber.from(targets[i]).toHexString(), 32)
@@ -125,16 +125,18 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
       governorStorageObj[slot] = data
     }
   })
+  // Set the proposal count
+  governorStorageObj[govSlots.proposalCount] = hexZeroPad(proposal.id.toHexString(), 32)
   // Set the proposal ETA to a random future timestamp
-  governorStorageObj[govSlots.eta]= hexZeroPad(eta.toHexString(), 32)
+  governorStorageObj[govSlots.eta] = hexZeroPad(eta.toHexString(), 32)
   // Set for votes to the total supply of the voting token, and against and abstain votes to zero
-  governorStorageObj[govSlots.forVotes]= hexZeroPad(votingTokenSupply.toHexString(), 32)
-  governorStorageObj[govSlots.againstVotes]= hexZeroPad('0x0', 32)
-  governorStorageObj[govSlots.abstainVotes]= hexZeroPad('0x0', 32)
+  governorStorageObj[govSlots.forVotes] = hexZeroPad(votingTokenSupply.toHexString(), 32)
+  governorStorageObj[govSlots.againstVotes] = hexZeroPad('0x0', 32)
+  governorStorageObj[govSlots.abstainVotes] = hexZeroPad('0x0', 32)
   // The canceled and execute slots are packed, so we can zero out that full slot
-  governorStorageObj[govSlots.canceled]= hexZeroPad('0x0', 32)
+  governorStorageObj[govSlots.canceled] = hexZeroPad('0x0', 32)
 
-  console.log('governorStorageObj: ', governorStorageObj);
+  console.log('governorStorageObj: ', governorStorageObj)
 
   // --- Simulate it ---
   // We need the following state conditions to be true to successfully simulate a proposal:
@@ -172,9 +174,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
       // Ensure transactions are queued in the timelock
       [timelockAddress]: { storage: timelockStorageObj },
       // Ensure governor storage is properly configured so `state(proposalId)` returns `Queued`
-      [governor.address]: {
-        storage: governorStorageObj,
-      },
+      [governor.address]: { storage: governorStorageObj },
     },
   }
   const sim = await sendSimulation(simulationPayload)
@@ -471,7 +471,7 @@ export function getGovernorBravoSlots(proposalId: BigNumberish) {
   const proposalsMapSlot = '0xa' // proposals ID to proposal struct mapping
   const proposalSlot = getSolidityStorageSlotUint(proposalsMapSlot, proposalId)
   return {
-    proposalCount: '0x7', // slot of the proposalCount storage variable
+    proposalCount: to32ByteHexString('0x7'), // slot of the proposalCount storage variable
     votingToken: '0x9', // slot of voting token, e.g. UNI, COMP  (getter is named after token, so can't generalize it that way),
     proposalsMap: proposalsMapSlot,
     proposal: proposalSlot,
@@ -480,7 +480,7 @@ export function getGovernorBravoSlots(proposalId: BigNumberish) {
     forVotes: hexZeroPad(BigNumber.from(proposalSlot).add(forVotesOffset).toHexString(), 32),
     againstVotes: hexZeroPad(BigNumber.from(proposalSlot).add(againstVotesOffset).toHexString(), 32),
     abstainVotes: hexZeroPad(BigNumber.from(proposalSlot).add(abstainVotesOffset).toHexString(), 32),
-    targets:  hexZeroPad(keccak256(BigNumber.from(targetsOffset).toHexString()), 32),
+    targets: hexZeroPad(keccak256(BigNumber.from(targetsOffset).toHexString()), 32),
     values: hexZeroPad(keccak256(BigNumber.from(valuesOffset).toHexString()), 32),
     signatures: hexZeroPad(keccak256(BigNumber.from(signaturesOffset).toHexString()), 32),
     calldatas: hexZeroPad(keccak256(BigNumber.from(calldatasOffset).toHexString()), 32),
