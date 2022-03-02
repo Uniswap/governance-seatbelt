@@ -1,9 +1,10 @@
 import { getAddress } from '@ethersproject/address'
 import { defaultAbiCoder } from '@ethersproject/abi'
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
-import { hexStripZeros, hexZeroPad } from '@ethersproject/bytes'
+import { hexlify, hexDataLength, hexStripZeros, hexValue, hexZeroPad } from '@ethersproject/bytes'
 import { Contract } from '@ethersproject/contracts'
 import { keccak256 } from '@ethersproject/keccak256'
+import { toUtf8Bytes } from '@ethersproject/strings'
 import { parseEther } from '@ethersproject/units'
 import { provider } from './ethers'
 
@@ -44,7 +45,11 @@ export async function simulate(config: SimulationConfig) {
  * @param config Configuration object
  */
 async function simulateNew(config: SimulationConfigNew): Promise<SimulationResult> {
+  // --- Validate config ---
   const { governorAddress, targets, values, signatures, calldatas, description } = config
+  if (targets.length !== values.length) throw new Error('targets and values must be the same length')
+  if (targets.length !== signatures.length) throw new Error('targets and signatures must be the same length')
+  if (targets.length !== calldatas.length) throw new Error('targets and calldatas must be the same length')
 
   // --- Get details about the proposal we're simulating ---
   const network = await provider.getNetwork()
@@ -100,32 +105,69 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
     timelockStorageObj[slot] = hexZeroPad('0x1', 32) // boolean value of true, encoded
   })
 
+  // --- Governor Storage ---
   // Generate the state object to hold the proposal data in the governor
+  // reference: https://docs.soliditylang.org/en/v0.8.11/internals/layout_in_storage.html#mappings-and-dynamic-arrays
   const governorStorageObj: Record<string, string> = {}
-  targets.forEach((target, i) => {
-    // for dynamic arrays, the slot of that array stores the length of the array
-    governorStorageObj[govSlots.targets] = to32ByteHexString(1)
-    governorStorageObj[govSlots.values] = to32ByteHexString(values.length)
 
-    // for dynamic arrays, data starts in the hash of the slot value
+  // for dynamic arrays, the slot of that array stores the length of the array
+  governorStorageObj[govSlots.targets] = to32ByteHexString(targets.length)
+  governorStorageObj[govSlots.values] = to32ByteHexString(values.length)
+  governorStorageObj[govSlots.signatures] = to32ByteHexString(signatures.length)
+  governorStorageObj[govSlots.calldatas] = to32ByteHexString(calldatas.length)
+
+  targets.forEach((target, i) => {
+    // Targets and values
+    // for dynamic arrays, data starts in the hash of the slot value, so calculate the start slot
     const targetSlotStart = BigNumber.from(keccak256(govSlots.targets))
     const valuesSlotStart = BigNumber.from(keccak256(govSlots.values))
 
-    // store data based on the current index
+    // then figure out the current slot based on start slot and current index
     const targetSlot = to32ByteHexString(targetSlotStart.add(i))
     const valuesSlot = to32ByteHexString(valuesSlotStart.add(i))
     governorStorageObj[targetSlot] = to32ByteHexString(targets[i])
     governorStorageObj[valuesSlot] = to32ByteHexString(values[i])
 
-    // for now, we require signatures to be empty so the slot stays empty, i.e. we don't need to store anything
-    // TODO support non-empty signatures
-    // governorStorageObj[govSlots.signatures] = to32ByteHexString(0)
-
-    // Calldata type is bytes, so the slot itself stores `lengthInBytes * 2 + 1`
-    governorStorageObj[govSlots.calldatas] = to32ByteHexString(calldatas[i].slice(2).length + 1)
-
-    // Then calldata is chunked in 32 byte increments starting at keccak(slot)
+    // Signatures and calldatas
+    const sigValSlotStart = to32ByteHexString(keccak256(govSlots.signatures))
     const calldataValSlotStart = to32ByteHexString(keccak256(govSlots.calldatas))
+
+    // if the length is less than 32 bytes, it's packed into the slot with the data itself,
+    // otherwise it's chunked into 32 byte words starting at keccak(slot)
+    const sigAsHex = hexlify(toUtf8Bytes(signatures[i]))
+    const sigBytes = hexDataLength(sigAsHex)
+    if (sigBytes < 32) {
+      const sigLen = hexValue(sigBytes * 2).slice(2)
+      const numZeros = 64 - sigBytes * 2 - sigLen.length
+      const sigData = `0x${hexValue(sigAsHex).slice(2)}${'0'.repeat(numZeros)}${sigLen}`
+      governorStorageObj[sigValSlotStart] = sigData
+    } else {
+      // TODO we don't need this branch for the test case, but should add support for it
+      throw new Error('Sigs over 31 bytes not yet supported')
+    }
+
+    console.log('calldatas[i]: ', calldatas[i])
+    const calldataAsHex = hexlify(calldatas[i])
+    const calldataBytes = hexDataLength(calldataAsHex)
+    console.log('calldataBytes: ', calldataBytes)
+    if (calldataBytes < 32) {
+      // TODO we don't need this branch for the test case, but should add support for it
+      throw new Error('Calldata below 32 bytes not yet supported')
+    } else {
+      if (calldataBytes % 32 !== 0) throw new Error('calldata length not divisible by 32')
+      const chunkedCalldata: string[] = []
+      for (let j = 0; j < calldataBytes * 2; j += 64) {
+        chunkedCalldata.push(`0x${calldataAsHex.slice(2 + j, 2 + j + 64)}`)
+      }
+      // store the length*2 + 1 of the calldata array in the slot, and values starting in the hash of that slot
+      governorStorageObj[calldataValSlotStart] = to32ByteHexString(calldataBytes * 2 + 1)
+      const calldataValSlotStart2 = BigNumber.from(keccak256(calldataValSlotStart))
+      chunkedCalldata.forEach((chunk, i) => {
+        const slot = to32ByteHexString(calldataValSlotStart2.add(i))
+        governorStorageObj[slot] = chunk
+      })
+    }
+
     const slotsRequired = Math.ceil(calldatas[i].slice(2).length / 64)
 
     const calldataNo0xPrefix = calldatas[i].slice(2)
@@ -148,8 +190,6 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
   governorStorageObj[govSlots.abstainVotes] = hexZeroPad('0x0', 32)
   // The canceled and execute slots are packed, so we can zero out that full slot
   governorStorageObj[govSlots.canceled] = hexZeroPad('0x0', 32)
-
-  console.log('governorStorageObj: ', governorStorageObj)
 
   // --- Simulate it ---
   // We need the following state conditions to be true to successfully simulate a proposal:
