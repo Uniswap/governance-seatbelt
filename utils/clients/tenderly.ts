@@ -146,10 +146,8 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
       throw new Error('Sigs over 31 bytes not yet supported')
     }
 
-    console.log('calldatas[i]: ', calldatas[i])
     const calldataAsHex = hexlify(calldatas[i])
     const calldataBytes = hexDataLength(calldataAsHex)
-    console.log('calldataBytes: ', calldataBytes)
     if (calldataBytes < 32) {
       // TODO we don't need this branch for the test case, but should add support for it
       throw new Error('Calldata below 32 bytes not yet supported')
@@ -166,18 +164,6 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
         const slot = to32ByteHexString(calldataValSlotStart2.add(i))
         governorStorageObj[slot] = chunk
       })
-    }
-
-    const slotsRequired = Math.ceil(calldatas[i].slice(2).length / 64)
-
-    const calldataNo0xPrefix = calldatas[i].slice(2)
-    for (let j = 0; j < slotsRequired; j += 1) {
-      const slot = to32ByteHexString(BigNumber.from(calldataValSlotStart).add(j))
-      const startIndex = 64 * j
-      const endIndex = Math.min(64 + startIndex, calldataNo0xPrefix.length)
-      let data = `0x${calldataNo0xPrefix.slice(startIndex, endIndex)}`
-      if (data.length !== 66) data = data.padEnd(66, '0')
-      governorStorageObj[slot] = data
     }
   })
   // Set the proposal count
