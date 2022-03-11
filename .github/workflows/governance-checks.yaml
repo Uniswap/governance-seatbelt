@@ -17,6 +17,8 @@ jobs:
             GOVERNOR_ADDRESS: '0x408ED6354d4973f66138C91495F2f2FCbd8724C3'
           - DAO_NAME: 'Compound'
             GOVERNOR_ADDRESS: '0xc0Da02939E1441F497fd74F78cE7Decb17B66529'
+          - DAO_NAME: 'Unlock'
+            GOVERNOR_ADDRESS: '0x7757f7f21F5Fa9b1fd168642B79416051cd0BB94'
 
     name: Check all live proposals
     runs-on: ubuntu-latest
