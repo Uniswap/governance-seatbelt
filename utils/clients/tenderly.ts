@@ -10,16 +10,23 @@ import { provider } from './ethers'
 
 import fetchUrl, { FETCH_OPT } from 'micro-ftch'
 import { governorBravo } from '../contracts/governor-bravo'
-import { BLOCK_GAS_LIMIT, TENDERLY_ACCESS_TOKEN, TENDERLY_BASE_URL, TENDERLY_SIM_URL } from '../constants'
+import {
+  BLOCK_GAS_LIMIT,
+  TENDERLY_ACCESS_TOKEN,
+  TENDERLY_BASE_URL,
+  TENDERLY_ENCODE_URL,
+  TENDERLY_SIM_URL,
+} from '../constants'
 import {
   ProposalActions,
   ProposalEvent,
   ProposalStruct,
   SimulationConfig,
   SimulationConfigExecuted,
-  SimulationConfigProposed,
   SimulationConfigNew,
+  SimulationConfigProposed,
   SimulationResult,
+  StorageEncodingResponse,
   TenderlyContract,
   TenderlyPayload,
   TenderlySimulation,
@@ -105,77 +112,38 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
     timelockStorageObj[slot] = hexZeroPad('0x1', 32) // boolean value of true, encoded
   })
 
-  // --- Governor Storage ---
-  // Generate the state object to hold the proposal data in the governor
-  // reference: https://docs.soliditylang.org/en/v0.8.11/internals/layout_in_storage.html#mappings-and-dynamic-arrays
-  const governorStorageObj: Record<string, string> = {}
-
-  // for dynamic arrays, the slot of that array stores the length of the array
-  governorStorageObj[govSlots.targets] = to32ByteHexString(targets.length)
-  governorStorageObj[govSlots.values] = to32ByteHexString(values.length)
-  governorStorageObj[govSlots.signatures] = to32ByteHexString(signatures.length)
-  governorStorageObj[govSlots.calldatas] = to32ByteHexString(calldatas.length)
+  // Use the Tenderly API to get the encoded state overrides for governor storage
+  const proposalKey = `proposals[${proposalId.toString()}]`
+  const governorStateOverrides = {
+    networkID: '1',
+    stateOverrides: {
+      [governor.address]: {
+        value: {
+          proposalCount: proposalId.toString(),
+          [`${proposalKey}.id`]: proposal.id.toString(),
+          [`${proposalKey}.proposer`]: DEFAULT_FROM,
+          [`${proposalKey}.eta`]: eta.toString(),
+          [`${proposalKey}.startBlock`]: proposal.startBlock.toString(),
+          [`${proposalKey}.endBlock`]: proposal.endBlock.toString(),
+          [`${proposalKey}.forVotes`]: votingTokenSupply.toString(),
+          [`${proposalKey}.againstVotes`]: '0',
+          [`${proposalKey}.abstainVotes`]: '0',
+          [`${proposalKey}.canceled`]: 'false',
+          [`${proposalKey}.executed`]: 'false',
+        },
+      },
+    },
+  }
 
   targets.forEach((target, i) => {
-    // Targets and values
-    // for dynamic arrays, data starts in the hash of the slot value, so calculate the start slot
-    const targetSlotStart = BigNumber.from(keccak256(govSlots.targets))
-    const valuesSlotStart = BigNumber.from(keccak256(govSlots.values))
-
-    // then figure out the current slot based on start slot and current index
-    const targetSlot = to32ByteHexString(targetSlotStart.add(i))
-    const valuesSlot = to32ByteHexString(valuesSlotStart.add(i))
-    governorStorageObj[targetSlot] = to32ByteHexString(targets[i])
-    governorStorageObj[valuesSlot] = to32ByteHexString(values[i])
-
-    // Signatures and calldatas
-    const sigValSlotStart = to32ByteHexString(keccak256(govSlots.signatures))
-    const calldataValSlotStart = to32ByteHexString(keccak256(govSlots.calldatas))
-
-    // if the length is less than 32 bytes, it's packed into the slot with the data itself,
-    // otherwise it's chunked into 32 byte words starting at keccak(slot)
-    const sigAsHex = hexlify(toUtf8Bytes(signatures[i]))
-    const sigBytes = hexDataLength(sigAsHex)
-    if (sigBytes < 32) {
-      const sigLen = hexValue(sigBytes * 2).slice(2)
-      const numZeros = 64 - sigBytes * 2 - sigLen.length
-      const sigData = `0x${hexValue(sigAsHex).slice(2)}${'0'.repeat(numZeros)}${sigLen}`
-      governorStorageObj[sigValSlotStart] = sigData
-    } else {
-      // TODO we don't need this branch for the test case, but should add support for it
-      throw new Error('Sigs over 31 bytes not yet supported')
-    }
-
-    const calldataAsHex = hexlify(calldatas[i])
-    const calldataBytes = hexDataLength(calldataAsHex)
-    if (calldataBytes < 32) {
-      // TODO we don't need this branch for the test case, but should add support for it
-      throw new Error('Calldata below 32 bytes not yet supported')
-    } else {
-      if (calldataBytes % 32 !== 0) throw new Error('calldata length not divisible by 32')
-      const chunkedCalldata: string[] = []
-      for (let j = 0; j < calldataBytes * 2; j += 64) {
-        chunkedCalldata.push(`0x${calldataAsHex.slice(2 + j, 2 + j + 64)}`)
-      }
-      // store the length*2 + 1 of the calldata array in the slot, and values starting in the hash of that slot
-      governorStorageObj[calldataValSlotStart] = to32ByteHexString(calldataBytes * 2 + 1)
-      const calldataValSlotStart2 = BigNumber.from(keccak256(calldataValSlotStart))
-      chunkedCalldata.forEach((chunk, i) => {
-        const slot = to32ByteHexString(calldataValSlotStart2.add(i))
-        governorStorageObj[slot] = chunk
-      })
-    }
+    const value = BigNumber.from(values[i]).toString()
+    governorStateOverrides.stateOverrides[governor.address].value[`${proposalKey}.targets[${i}]`] = target
+    governorStateOverrides.stateOverrides[governor.address].value[`${proposalKey}.values[${i}]`] = value
+    governorStateOverrides.stateOverrides[governor.address].value[`${proposalKey}.signatures[${i}]`] = signatures[i]
+    governorStateOverrides.stateOverrides[governor.address].value[`${proposalKey}.calldatas[${i}]`] = calldatas[i]
   })
-  // Set the proposal count
-  governorStorageObj[govSlots.proposalCount] = hexZeroPad(proposal.id.toHexString(), 32)
-  // Set the proposal ETA to a random future timestamp
-  governorStorageObj[govSlots.eta] = hexZeroPad(eta.toHexString(), 32)
-  // Set for votes to the total supply of the voting token, and against and abstain votes to zero
-  governorStorageObj[govSlots.forVotes] = hexZeroPad(votingTokenSupply.toHexString(), 32)
-  governorStorageObj[govSlots.againstVotes] = hexZeroPad('0x0', 32)
-  governorStorageObj[govSlots.abstainVotes] = hexZeroPad('0x0', 32)
-  // The canceled and execute slots are packed, so we can zero out that full slot
-  governorStorageObj[govSlots.canceled] = hexZeroPad('0x0', 32)
+
+  const governorStorageObj = await sendEncodeRequest(governorStateOverrides)
 
   // --- Simulate it ---
   // We need the following state conditions to be true to successfully simulate a proposal:
@@ -189,7 +157,6 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
   //   - block.timestamp >= proposal.eta
   //   - block.timestamp <  proposal.eta + timelock.GRACE_PERIOD()
   //   - queuedTransactions[txHash] = true for each action in the proposal
-
   const simulationPayload: TenderlyPayload = {
     network_id: '1',
     // this field represents the block state to simulate against, so we use the latest block number
@@ -213,7 +180,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
       // Ensure transactions are queued in the timelock
       [timelockAddress]: { storage: timelockStorageObj },
       // Ensure governor storage is properly configured so `state(proposalId)` returns `Queued`
-      [governor.address]: { storage: governorStorageObj },
+      [governor.address]: { storage: governorStorageObj.stateOverrides[governor.address.toLowerCase()].value },
     },
   }
   const sim = await sendSimulation(simulationPayload)
@@ -420,6 +387,15 @@ async function getLatestBlock(chainId: BigNumberish): Promise<number> {
     await fetchUrl(`${TENDERLY_BASE_URL}/network/${BigNumber.from(chainId).toString()}/block-number`, fetchOptions)
   )
   return res.block_number
+}
+
+/**
+ * @notice Encode state overrides
+ * @param payload State overrides to send
+ */
+async function sendEncodeRequest(payload: any): Promise<StorageEncodingResponse> {
+  const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
+  return <Promise<StorageEncodingResponse>>fetchUrl(TENDERLY_ENCODE_URL, fetchOptions)
 }
 
 /**

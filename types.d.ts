@@ -99,6 +99,19 @@ export interface AllCheckResults {
 }
 
 // --- Tenderly types, Request ---
+// Response from tenderly endpoint that encodes state data
+type StorageEncodingResponse = {
+  stateOverrides: {
+    // these keys are the contract addresses, all lower case
+    [key: string]: {
+      value: {
+        // these are the slot numbers, as 32 byte hex strings
+        [key: string]: string
+      }
+    }
+  }
+}
+
 type StateObject = {
   balance?: string
   code?: string
