@@ -21,7 +21,7 @@ export const config: SimulationConfigNew = {
   governorAddress: '0x408ED6354d4973f66138C91495F2f2FCbd8724C3',
   targets: [UNI_ADDRESS], // array of targets to call
   values: [0], // array of values with each call
-  signatures: ['transfer(address,uint256)'], // array of function signatures -- leave empty if generating calldata with ethers like we do here
-  calldatas: [transferCalldataParsed], // array of encoded calldata (excluding 4byte function selector)
+  signatures: [''], // array of function signatures -- leave empty if generating calldata with ethers like we do here
+  calldatas: [transferCalldata], // array of encoded calldata
   description: 'Transfer 100 UNI to 0xdead',
 }
