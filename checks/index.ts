@@ -16,7 +16,7 @@ const ALL_CHECKS: {
   checkLogs,
   checkTargetsVerifiedEtherscan,
   checkTouchedContractsVerifiedEtherscan,
-  // checkSlither, // TODO temporarily commented out to increase speed of running sims/checks for developing new features
+  checkSlither,
 }
 
 export default ALL_CHECKS

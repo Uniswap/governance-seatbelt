@@ -13,7 +13,6 @@ const amount = parseUnits('100', 18) // transfer 100 UNI, which has 18 decimals
 
 const uniInterface = new Interface(ERC20_ABI)
 const transferCalldata = uniInterface.encodeFunctionData('transfer', [to, amount])
-const transferCalldataParsed = `0x${transferCalldata.slice(10)}`
 
 export const config: SimulationConfigNew = {
   type: 'new',
