@@ -1,5 +1,5 @@
 /**
- * @notice Sample simulation configuration file for proposals that have been executed on chain
+ * @notice Sample simulation configuration file for proposals that have been executed on chain.
  */
 import { SimulationConfigExecuted } from '../types'
 
