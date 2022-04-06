@@ -51,4 +51,4 @@ GOVERNOR_ADDRESS=0x408ED6354d4973f66138C91495F2f2FCbd8724C3
 There are now two modes of operation:
 
 1. Run `yarn start` to simulate and run checks on all GovernorBravo proposals
-2. Create a file called `<analysisName>.sim.ts` and run a specific simulation with `SIM_NAME=analysisName yarn start:sim`. See `compound-43.sim.ts` for an example.
+2. Create a file called `<analysisName>.sim.ts` and run a specific simulation with `SIM_NAME=analysisName yarn start`. See the `*.sim.ts` files in the `sims` folder for examples.
