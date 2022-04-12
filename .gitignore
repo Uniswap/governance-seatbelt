@@ -8,6 +8,9 @@ reports/
 artifacts/
 cache/
 
+# slither
+crytic-export/
+
 # other
 trace*.json
 tenderly*.json
