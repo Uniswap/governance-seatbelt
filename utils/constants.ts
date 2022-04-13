@@ -1,5 +1,6 @@
 // Always required
 export const BLOCK_GAS_LIMIT = 30_000_000
+export const ETHERSCAN_API_KEY: string = process.env.ETHERSCAN_API_KEY!
 export const RPC_URL: string = process.env.RPC_URL!
 export const RUNNING_LOCALLY = [0, '0', false, 'false'].includes(process.env.RUNNING_LOCALLY!) ? false : true
 export const TENDERLY_ACCESS_TOKEN: string = process.env.TENDERLY_ACCESS_TOKEN!

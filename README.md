@@ -29,6 +29,9 @@ Note that currently only `GovernorBravo` style governors are supported.
 First, create a file called `.env` with the following environment variables:
 
 ```sh
+# Etherscan API Key, used when running Slither.
+ETHERSCAN_API_KEY=yourEtherscanApiKey
+
 # URL to your node, e.g. Infura or Alchemy endpoint
 RPC_URL=yourNodeUrl
 

@@ -2,6 +2,7 @@ import util from 'util'
 import { exec as execCallback } from 'child_process'
 import { getAddress } from '@ethersproject/address'
 import { getContractName } from '../utils/clients/tenderly'
+import { ETHERSCAN_API_KEY } from '../utils/constants'
 import { ProposalCheck } from '../types'
 
 // Convert exec method from a callback to a promise.
@@ -82,7 +83,7 @@ export const checkSlither: ProposalCheck = {
 async function runSlither(address: string, printer: string | undefined = undefined): Promise<ExecOutput | null> {
   try {
     const printerCmd = printer ? ` --print ${printer}` : ''
-    return await exec(`slither ${address}${printerCmd}`)
+    return await exec(`slither ${address}${printerCmd} --etherscan-apikey ${ETHERSCAN_API_KEY}`)
   } catch (e: any) {
     if ('stderr' in e) return e // output is in stderr, but slither reports results as an exception
     console.warn(`Error: Could not run slither${printer ? ` printer ${printer}` : ''} via Python: ${JSON.stringify(e)}`)
