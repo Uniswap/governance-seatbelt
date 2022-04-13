@@ -72,21 +72,18 @@ export const checkSlither: ProposalCheck = {
 }
 
 /**
- * Tries to run slither via python installation in the specified directory. If a printer name is
- * passed, the printer will be run.
+ * Tries to run slither via python installation in the specified directory.
  * @dev If you have nix/dapptools installed, you'll need to make sure the path to your python
  * executables (find this with `which solc-select`) comes before the path to your nix executables.
  * This may require editing your $PATH variable prior to running this check. If you don't do this,
- * the nix version of solc will take precedence over the solc-select version, and slither will fail
- * @dev The list of available printers can be found here: https://github.com/crytic/slither/wiki/Printer-documentation
+ * the nix version of solc will take precedence over the solc-select version, and slither will fail.
  */
-async function runSlither(address: string, printer: string | undefined = undefined): Promise<ExecOutput | null> {
+async function runSlither(address: string): Promise<ExecOutput | null> {
   try {
-    const printerCmd = printer ? ` --print ${printer}` : ''
-    return await exec(`slither ${address}${printerCmd} --etherscan-apikey ${ETHERSCAN_API_KEY}`)
+    return await exec(`slither ${address} --etherscan-apikey ${ETHERSCAN_API_KEY}`)
   } catch (e: any) {
-    if ('stderr' in e) return e // output is in stderr, but slither reports results as an exception
-    console.warn(`Error: Could not run slither${printer ? ` printer ${printer}` : ''} via Python: ${JSON.stringify(e)}`)
+    if ('stderr' in e) return e // Output is in stderr, but slither reports results as an exception.
+    console.warn(`Error: Could not run slither via Python: ${JSON.stringify(e)}`)
     return null
   }
 }
