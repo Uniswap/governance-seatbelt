@@ -15,10 +15,11 @@ type ExecOutput = {
 }
 
 /**
- * Runs slither against the verified contracts and reports the outputs. Assumes slither is already installed.
+ * Runs crytic-compile against verified contracts to obtain solc compiler warnings. Assumes crytic-compile
+ * is already installed.
  */
-export const checkSlither: ProposalCheck = {
-  name: 'Runs slither against the verified contracts',
+export const checkSolc: ProposalCheck = {
+  name: 'Runs solc against the verified contracts',
   async checkProposal(proposal, sim, deps) {
     let info = ''
     let warnings: string[] = []
@@ -44,26 +45,28 @@ export const checkSlither: ProposalCheck = {
       return { info: ['No contracts to analyze: only the timelock and governor are touched'], warnings, errors: [] }
     }
 
-    // For each unique verified contract we run slither. Slither has a mode to run it directly against a mainnet
-    // contract, which saves us from having to write files to a local temporary directory.
+    // For each unique  verified contract we run solc against it via crytic-compile. It has a mode to run it directly against
+    // a mainnet contract, which saves us from having to write files to a local temporary directory.
     for (const contract of Array.from(new Set(contracts))) {
       const addr = getAddress(contract.address)
       if (addressesToSkip.has(addr)) continue
 
-      // Run slither.
-      const slitherOutput = await runSlither(contract.address)
-      if (!slitherOutput) {
-        warnings.push(`Slither execution failed for \`${contract.contract_name}\` at \`${addr}\``)
+      // Compile the contracts.
+      const output = await runCryticCompile(contract.address)
+      if (!output) {
+        warnings.push(`crytic-compile failed for \`${contract.contract_name}\` at \`${addr}\``)
         continue
       }
 
       // Append results to report info.
-      // Note that slither supports a `--json` flag  we could use, but directly printing the formatted
-      // results in a code block is simpler and sufficient for now.
       const formatting = info === '' ? '' : '\n- '
       const contractName = getContractName(contract)
-      info += `${formatting}Slither report for ${contractName}`
-      info += `\n\n<details>\n<summary>View report for ${contractName}</summary>\n\n\`\`\`\n${slitherOutput.stderr}\`\`\`\n\n</details>\n\n`
+      if (output.stderr === '') {
+        info += `${formatting}No compiler warnings for ${contractName}`
+      } else {
+        info += `${formatting}Compiler warnings for ${contractName}`
+        info += `\n\n<details>\n<summary>View warnings for ${contractName}</summary>\n\n\`\`\`\n${output.stderr}\`\`\`\n\n</details>\n\n`
+      }
     }
 
     return { info: [info], warnings, errors: [] }
@@ -71,18 +74,19 @@ export const checkSlither: ProposalCheck = {
 }
 
 /**
- * Tries to run slither via python installation in the specified directory.
+ * Tries to run crytic-compile via python installation in the specified directory.
+ * @dev Exports a zip file which is used by the slither check.
  * @dev If you have nix/dapptools installed, you'll need to make sure the path to your python
  * executables (find this with `which solc-select`) comes before the path to your nix executables.
  * This may require editing your $PATH variable prior to running this check. If you don't do this,
- * the nix version of solc will take precedence over the solc-select version, and slither will fail.
+ * the nix version of solc will take precedence over the solc-select version, and compilation will fail.
  */
-async function runSlither(address: string): Promise<ExecOutput | null> {
+async function runCryticCompile(address: string): Promise<ExecOutput | null> {
   try {
-    return await exec(`slither ${address} --etherscan-apikey ${ETHERSCAN_API_KEY}`)
+    return await exec(`crytic-compile ${address} --etherscan-apikey ${ETHERSCAN_API_KEY}`)
   } catch (e: any) {
     if ('stderr' in e) return e // Output is in stderr, but slither reports results as an exception.
-    console.warn(`Error: Could not run slither via Python: ${JSON.stringify(e)}`)
+    console.warn(`Error: Could not run crytic-compile via Python: ${JSON.stringify(e)}`)
     return null
   }
 }
