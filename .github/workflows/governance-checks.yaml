@@ -67,3 +67,9 @@ jobs:
           TENDERLY_PROJECT_SLUG: ${{ secrets.TENDERLY_PROJECT_SLUG }}
           DAO_NAME: ${{ matrix.DAO_NAME }}
           GOVERNOR_ADDRESS: ${{ matrix.GOVERNOR_ADDRESS }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Proposal Reports
+          path: reports/${{ matrix.DAO_NAME }}/${{ matrix.GOVERNOR_ADDRESS }}/

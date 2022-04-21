@@ -114,50 +114,12 @@ async function main() {
     ])
     const report = toProposalReport({ start: startBlock, end: endBlock, current: latestBlock }, proposal, checkResults)
 
-    // Save report
+    // Save report to a file.
     const basePath = `${config.daoName}/${config.governorAddress}`
     const filename = `${proposal.id}.md`
-    if (RUNNING_LOCALLY) {
-      // Running locally, dump to file
-      const dir = `./reports/${basePath}/`
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-      fs.writeFileSync(`${dir}/${filename}`, report)
-    } else {
-      // Running in CI, save to file on REPORTS_BRANCH
-      const { github } = await import('./utils/clients/github') // lazy load to avoid errors about missing env vars when not in CI
-      const path = `${basePath}/${filename}`
-      let sha: string | undefined
-      try {
-        const { data } = await github.rest.repos.getContent({
-          owner: GITHUB_REPO_OWNER,
-          repo: GITHUB_REPO_NAME,
-          ref: REPORTS_BRANCH,
-          path,
-        })
-        if ('sha' in data) {
-          sha = data.sha
-        }
-      } catch (error) {
-        console.warn('Failed to get sha for file at path', path, error)
-      }
-
-      const currentDateTime = new Date(latestBlock.timestamp * 1000)
-      const formattedDateTime = currentDateTime.toISOString()
-      const res = await github.rest.repos.createOrUpdateFileContents({
-        owner: GITHUB_REPO_OWNER,
-        repo: GITHUB_REPO_NAME,
-        branch: REPORTS_BRANCH,
-        message: `Update ${path} as of ${formattedDateTime}`,
-        content: Buffer.from(report, 'utf-8').toString('base64'),
-        path,
-        sha,
-      })
-      if (res.status < 200 || res.status > 299) {
-        console.warn(JSON.stringify(res))
-        console.warn('createOrUpdateFileContents failed with the above response')
-      }
-      console.log(`    Report successfully generated for ${path}`)
-    }
+    const dir = `./reports/${basePath}/`
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(`${dir}/${filename}`, report)
   }
   console.log('Done!')
 }
