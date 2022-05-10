@@ -59,7 +59,6 @@ jobs:
       - name: Run checks
         run: yarn start
         env:
-          RUNNING_LOCALLY: 0
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RPC_URL: ${{ secrets.RPC_URL }}

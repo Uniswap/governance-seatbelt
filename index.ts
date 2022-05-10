@@ -4,15 +4,7 @@
 
 require('dotenv').config()
 import fs from 'fs'
-import {
-  DAO_NAME,
-  GITHUB_REPO_NAME,
-  GITHUB_REPO_OWNER,
-  GOVERNOR_ADDRESS,
-  REPORTS_BRANCH,
-  RUNNING_LOCALLY,
-  SIM_NAME,
-} from './utils/constants'
+import { DAO_NAME, GOVERNOR_ADDRESS, SIM_NAME } from './utils/constants'
 import { provider } from './utils/clients/ethers'
 import { simulate } from './utils/clients/tenderly'
 import { AllCheckResults, ProposalEvent, SimulationConfig, SimulationConfigBase, SimulationData } from './types'
