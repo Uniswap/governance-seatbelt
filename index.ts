@@ -107,8 +107,9 @@ async function main() {
     const report = toProposalReport({ start: startBlock, end: endBlock, current: latestBlock }, proposal, checkResults)
 
     // Save report to a file.
+    // GitHub artifacts are flattened (folder structure is not preserved), so we include the DAO name in the filename.
     const basePath = `${config.daoName}/${config.governorAddress}`
-    const filename = `${proposal.id}.md`
+    const filename = `${config.daoName}-${proposal.id}.md`
     const dir = `./reports/${basePath}/`
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
     fs.writeFileSync(`${dir}/${filename}`, report)
