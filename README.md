@@ -6,8 +6,13 @@ for better informed voting.
 
 ## Reports
 
-Find the reports [here](https://github.com/Uniswap/governance-seatbelt/tree/reports) when run in CI,
-or in the `reports` folder if running locally.
+Every hour a GitHub workflow is run which simulates all GovernorBravo proposals for each DAO defined in [`governance-checks.yaml`](https://github.com/Uniswap/governance-seatbelt/blob/main/.github/workflows/governance-checks.yaml).
+Reports for each proposal are saved as Markdown files associated with the workflow run.
+To view the reports, navigate to this repo's [Actions](https://github.com/Uniswap/governance-seatbelt/actions), select a workflow, and download the attached artifacts.
+This will download a zip file containing all reports, where you can find the report you're interested in and open it your favorite markdown viewer.
+Soon, alternative viewing options will be available so you don't need to download the files.
+
+If running the simulations locally, you can find the reports in the `reports` folder.
 
 Some notes on the outputs of reports:
 
