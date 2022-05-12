@@ -70,5 +70,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: Proposal Reports
+          name: ${{ matrix.DAO_NAME }}
           path: reports/${{ matrix.DAO_NAME }}/${{ matrix.GOVERNOR_ADDRESS }}/
