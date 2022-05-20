@@ -12,6 +12,7 @@ import ALL_CHECKS from './checks'
 import { toProposalReport } from './presentation/markdown'
 import { governorBravo, PROPOSAL_STATES } from './utils/contracts/governor-bravo'
 import { timelock } from './utils/contracts/timelock'
+import { createPdfReport } from './utils/report'
 
 /**
  * @notice Simulate governance proposals and run proposal checks against them
@@ -113,6 +114,17 @@ async function main() {
     const dir = `./reports/${basePath}/`
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
     fs.writeFileSync(`${dir}/${filename}`, report)
+
+    // WIP: PDF REPORT GENERATION
+    const proposalReportData = {
+      proposal,
+      blocks: {
+        lastUpdate: latestBlock,
+        start: startBlock,
+        end: endBlock,
+      },
+    }
+    await createPdfReport(proposalReportData)
   }
   console.log('Done!')
 }
