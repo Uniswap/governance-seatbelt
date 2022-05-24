@@ -3,14 +3,18 @@ import { getAddress } from '@ethersproject/address'
 import { formatUnits } from '@ethersproject/units'
 import { ProposalCheck, FluffyCall } from '../types'
 import { fetchTokenMetadata } from '../utils/contracts/erc20'
+import { Content, UnorderedListElement } from 'pdfmake/interfaces'
+
+const name = 'Decodes target calldata into a human-readable format'
 
 /**
  * Decodes proposal target calldata into a human-readable format
  */
 export const checkDecodeCalldata: ProposalCheck = {
-  name: 'Decodes target calldata into a human-readable format',
+  name,
   async checkProposal(proposal, sim, deps) {
-    let warnings: string[] = []
+    const details: Content = [{ text: 'Decoded calldata:', style: 'bold' }]
+    const warnings: Content = []
     // Generate the raw calldata for each proposal action
     const calldatas = proposal.signatures.map((sig, i) => {
       return sig ? `${selectorFromSig(sig)}${proposal.calldatas[i].slice(2)}` : proposal.calldatas[i]
@@ -24,7 +28,7 @@ export const checkDecodeCalldata: ProposalCheck = {
         let call = findMatchingCall(getAddress(deps.timelock.address), calldata, calls)
         if (!call) {
           const msg = `This transaction may have reverted: Could not find matching call for calldata ${calldata}`
-          warnings.push(msg)
+          warnings.push([{ text: 'Warning:', style: 'warning' }, msg])
           return null
         }
         // Now look for any subcalls that have the same input data, since if present these are the
@@ -36,7 +40,11 @@ export const checkDecodeCalldata: ProposalCheck = {
       })
     )
 
-    return { info: descriptions.filter((d) => d !== null) as string[], warnings, errors: [] }
+    const calldataList: UnorderedListElement[] = descriptions
+      .filter((d) => d !== null)
+      .map((d) => ({ text: d!, style: 'list' }))
+    details.push({ ul: calldataList }, warnings)
+    return { description: name, status: 'Passed', details }
   },
 }
 
@@ -105,16 +113,14 @@ function getSignature(call: FluffyCall) {
  * Given a target, signature, and call, generate a human-readable description
  */
 function getDescription(target: string, sig: string, call: FluffyCall) {
-  let description = `On contract \`${target}\`, call `
-  if (!call.decoded_input) return `${description} \`${call.input}\` (not decoded)`
+  let description = `On contract ${target}, call `
+  if (!call.decoded_input) return `${description} ${call.input} (not decoded)`
 
-  description += `\`${sig}\` with arguments `
+  description += `${sig} with arguments `
   call.decoded_input?.forEach((arg, i) => {
     if (i !== 0) description += ', '
-    description += '`'
     description += arg.soltype.name ? `${arg.soltype.name}=` : ''
     description += arg.value
-    description += '`'
   })
 
   return `${description} (generic)`
@@ -143,18 +149,18 @@ async function prettifyCalldata(call: FluffyCall, target: string) {
     case '0x095ea7b3': {
       const spender = getAddress(call.decoded_input?.[0].value as string)
       const amount = formatUnits(call.decoded_input?.[1].value as string, decimals)
-      return `\`${call.from}\` approves \`${spender}\` to spend ${amount} ${symbol} (formatted)`
+      return `${call.from} approves ${spender} to spend ${amount} ${symbol} (formatted)`
     }
     case '0xba45b0b8': {
       const receiver = getAddress(call.decoded_input?.[0].value as string)
       const amount = formatUnits(call.decoded_input?.[1].value as string, decimals)
-      return `\`${call.from}\` transfers \`${amount}\` ${symbol} to ${receiver} (formatted)`
+      return `${call.from} transfers ${amount} ${symbol} to ${receiver} (formatted)`
     }
     case '0x23b872dd': {
       const from = getAddress(call.decoded_input?.[0].value as string)
       const to = getAddress(call.decoded_input?.[1].value as string)
       const amount = formatUnits(call.decoded_input?.[2].value as string, decimals)
-      return `\`${call.from}\` transfers \`${amount}\` ${symbol} from ${from} to ${to} (formatted)`
+      return `${call.from} transfers ${amount} ${symbol} from ${from} to ${to} (formatted)`
     }
   }
 

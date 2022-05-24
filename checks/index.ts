@@ -13,7 +13,7 @@ const ALL_CHECKS: {
   [checkId: string]: ProposalCheck
 } = {
   checkStateChanges,
-  // checkDecodeCalldata,
+  checkDecodeCalldata,
   // checkLogs,
   // checkTargetsVerifiedEtherscan,
   // checkTouchedContractsVerifiedEtherscan,
