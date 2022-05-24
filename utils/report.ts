@@ -1,8 +1,8 @@
 import fs from 'fs'
 import PdfPrinter from 'pdfmake'
-import { TDocumentDefinitions } from 'pdfmake/interfaces'
+import { Content, TDocumentDefinitions } from 'pdfmake/interfaces'
 import { Block } from '@ethersproject/abstract-provider'
-import { ProposalEvent } from '../types'
+import { AllCheckResults, CheckResult, ProposalEvent } from '../types'
 
 // Raw proposal data needed to make a report.
 type ProposalData = {
@@ -12,6 +12,7 @@ type ProposalData = {
     start: Block | null
     end: Block | null
   }
+  checkResults: AllCheckResults
 }
 
 // Formatted proposal report that is converted to PDF or Markdown.
@@ -27,6 +28,7 @@ type FormattedProposalReport = {
       targets: string[]
     }
   }
+  checkResults: CheckResult[]
 }
 
 // Fonts used for the PDF report.
@@ -49,11 +51,12 @@ const printer = new PdfPrinter(fonts)
 
 export async function createPdfReport(doc: ProposalData) {
   const report = formatReport(doc)
-  const lastUpdateBlock = report.frontMatter.lastUpdateBlock
-  const startBlock = report.frontMatter.proposal.startBlock
-  const endBlock = report.frontMatter.proposal.endBlock
-  const proposer = report.frontMatter.proposal.proposer
-  const targets = report.frontMatter.proposal.targets
+  const { frontMatter, checkResults } = report
+  const lastUpdateBlock = frontMatter.lastUpdateBlock
+  const startBlock = frontMatter.proposal.startBlock
+  const endBlock = frontMatter.proposal.endBlock
+  const proposer = frontMatter.proposal.proposer
+  const targets = frontMatter.proposal.targets
 
   // --- Front Matter ---
   const lastUpdateString = [
@@ -83,7 +86,7 @@ export async function createPdfReport(doc: ProposalData) {
     }),
   ]
 
-  const frontMatterContent: TDocumentDefinitions['content'] = [
+  const frontMatterContent: Content = [
     { text: report.frontMatter.title, style: 'h1' },
     { text: lastUpdateString, style: 'italic' },
     {
@@ -99,20 +102,31 @@ export async function createPdfReport(doc: ProposalData) {
 
   // --- Table of contents ---
   // TODO
-  const tocContent: TDocumentDefinitions['content'] = []
+  const tocContent: Content = []
 
   // --- Proposal Checks ---
   // TODO
-  const proposalChecksContent: TDocumentDefinitions['content'] = []
+  const proposalChecksContent: Content = checkResults.map((checkResult) => {
+    const summaryString = [
+      { text: checkResult.status, style: getSummaryStatusStyle(checkResult.status) },
+      { text: `: ${checkResult.description}`, style: 'bold' },
+    ]
+    return [{ text: summaryString, style: 'h2' }, checkResult.details]
+  })
 
   // --- Aggregate Data ---
   const pdfData: TDocumentDefinitions = {
     content: [...frontMatterContent, ...tocContent, ...proposalChecksContent],
     styles: {
       h1: { fontSize: 20, bold: true },
+      h2: { fontSize: 16, bold: true },
       italic: { italics: true },
+      bold: { bold: true },
       list: { lineHeight: 1.5 },
       link: { color: '#007BFF' },
+      pass: { bold: true, color: '#18981D' },
+      fail: { bold: true, color: '#CF1124' },
+      warning: { bold: true, color: '#C99A2E' },
     },
     defaultStyle: { font: 'Helvetica' },
   }
@@ -140,6 +154,7 @@ function formatReport(proposalData: ProposalData): FormattedProposalReport {
         targets: proposalData.proposal.targets,
       },
     },
+    checkResults: Object.keys(proposalData.checkResults).map((checkId) => proposalData.checkResults[checkId].result),
   }
 }
 
@@ -165,4 +180,8 @@ function formatTime(blockTimestamp: number): string {
 
 function getEtherscanUrl(type: 'block' | 'tx' | 'address', id: string | number) {
   return `https://etherscan.io/${type}/${id}`
+}
+
+function getSummaryStatusStyle(status: 'Passed' | 'Failed' | 'Warning') {
+  return status === 'Passed' ? 'pass' : status === 'Failed' ? 'fail' : 'warning'
 }

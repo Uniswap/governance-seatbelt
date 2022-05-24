@@ -1,6 +1,7 @@
 import { BigNumber, BigNumberish, Block, Contract } from 'ethers'
 import { ContractTransaction } from '@ethersproject/contracts'
 import { JsonRpcProvider } from '@ethersproject/providers'
+import { Content } from 'pdfmake/interfaces'
 
 // --- Simulation configurations ---
 interface SimulationConfigBase {
@@ -78,9 +79,9 @@ export interface ProposalEvent {
 export type Message = string
 
 export type CheckResult = {
-  info: Message[]
-  warnings: Message[]
-  errors: Message[]
+  description: string
+  status: 'Passed' | 'Failed' | 'Warning'
+  details: Content // We use PDFMake's type here, as it's high-level and easy to convert to other formats.
 }
 
 export type ProposalData = {

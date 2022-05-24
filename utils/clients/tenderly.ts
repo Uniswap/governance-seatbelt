@@ -373,7 +373,7 @@ export function getContractName(contract: TenderlyContract | undefined) {
   if (contract?.token_data?.name) contractName += ` (${contract?.token_data?.name})`
 
   // Lastly, append the contract address and save it off
-  return `${contractName} at \`${getAddress(contract.address)}\``
+  return `${contractName} at ${getAddress(contract.address)}`
 }
 
 /**
