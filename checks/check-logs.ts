@@ -1,15 +1,18 @@
 import { getAddress } from '@ethersproject/address'
 import { getContractName } from '../utils/clients/tenderly'
 import { ProposalCheck, Log } from '../types'
+import { Content, UnorderedListElement } from 'pdfmake/interfaces'
+
+const name = 'Reports all events emitted from the proposal'
 
 /**
  * Reports all emitted events from the proposal
  */
 export const checkLogs: ProposalCheck = {
-  name: 'Reports all events emitted from the proposal',
+  name,
   async checkProposal(proposal, sim, deps) {
     let info = ''
-    const warnings = []
+    const details: Content = [{ text: 'Events Emitted:', style: 'bold' }]
 
     // Emitted logs in the simulation are an array, so first we organize them by address. We skip
     // recording logs for (1) the the `queuedTransactions` mapping of the timelock, and
@@ -32,12 +35,16 @@ export const checkLogs: ProposalCheck = {
     }, {} as Record<string, Log[]>)
 
     // Return if no events to show
-    if (!events || !Object.keys(events).length) return { info: ['No events emitted'], warnings: [], errors: [] }
+    if (!events || !Object.keys(events).length) {
+      return { description: name, status: 'Passed', details: 'No events emitted' }
+    }
 
     // Parse each event
     for (const [address, logs] of Object.entries(events)) {
       // Use contracts array to get contract name of address
       const contract = sim.contracts.find((c) => c.address === address)
+      const sectionHeader = { text: getContractName(contract) }
+      const eventList: UnorderedListElement[] = []
       info += `\n    - ${getContractName(contract)}`
 
       // Format log data for report
@@ -45,15 +52,16 @@ export const checkLogs: ProposalCheck = {
         if (Boolean(log.name)) {
           // Log is decoded, format data as: VotingDelaySet(oldVotingDelay: value, newVotingDelay: value)
           const parsedInputs = log.inputs.map((i) => `${i.soltype!.name}: ${i.value}`).join(', ')
-          info += `\n        - \`${log.name}(${parsedInputs})\``
+          eventList.push({ text: `${log.name}(${parsedInputs})`, style: 'list' })
         } else {
           // Log is not decoded, report the raw data
           // TODO find a transaction with undecoded logs to know how topics/data are formatted in simulation response
-          info += `\n        - Undecoded log: \`${JSON.stringify(log)}\``
+          eventList.push({ text: `Undecoded log: ${JSON.stringify(log)}`, style: 'list' })
         }
       })
+      details.push(sectionHeader, eventList)
     }
 
-    return { info: [`Events Emitted:${info}`], warnings: [], errors: [] }
+    return { description: name, status: 'Passed', details }
   },
 }

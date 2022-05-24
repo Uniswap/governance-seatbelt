@@ -14,7 +14,7 @@ const ALL_CHECKS: {
 } = {
   checkStateChanges,
   checkDecodeCalldata,
-  // checkLogs,
+  checkLogs,
   // checkTargetsVerifiedEtherscan,
   // checkTouchedContractsVerifiedEtherscan,
   // // The solc check must be run before the slither check, because the compilation exports a zip file
