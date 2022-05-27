@@ -35,9 +35,14 @@ async function checkVerificationStatuses(
   let info = '' // prepare output
   for (const addr of addresses) {
     const status = await checkVerificationStatus(sim, addr, provider)
-    if (status === 'eoa') info += `\n    - ${addr}: EOA (verification not applicable)`
-    else if (status === 'verified') info += `\n    - ${addr}: Contract (verified)`
-    else info += `\n    - ${addr}: Contract (not verified)`
+    if (status === 'eoa') {
+      info += `\n    - ${addr}: EOA (verification not applicable)`
+    } else if (status === 'verified') {
+      const contract = getContract(sim, addr)
+      info += `\n    - ${addr}: Contract (verified) (${contract?.contract_name})`
+    } else {
+      info += `\n    - ${addr}: Contract (not verified)`
+    }
   }
   return info
 }
@@ -51,9 +56,13 @@ async function checkVerificationStatus(
   provider: JsonRpcProvider
 ): Promise<'verified' | 'eoa' | 'unverified'> {
   // If an address exists in the contracts array, it's verified on Etherscan
-  const contract = sim.contracts.find((item) => item.address === addr)
+  const contract = getContract(sim, addr)
   if (contract) return 'verified'
   // Otherwise, check if there's code at the address. Addresses with code not in the contracts array are not verified
   const code = await provider.getCode(addr)
   return code === '0x' ? 'eoa' : 'unverified'
+}
+
+function getContract(sim: TenderlySimulation, addr: string) {
+  return sim.contracts.find((item) => item.address === addr)
 }

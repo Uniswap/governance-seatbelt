@@ -1,42 +1,42 @@
-# @uniswap/governance-seatbelt
+<p align="center"><img width="200" src="./seatbelt_logo.png" alt="Aave logo"></a></p>
+
+# Aave seatbelt
 
 This repository contains tools that make on-chain governance safer,
 including automated scripts that apply checks to live proposals to allow
 for better informed voting.
 
-## Reports
+[![Governance Checks](https://github.com/bgd-labs/seatbelt-for-ghosts/actions/workflows/governance-checks.yaml/badge.svg)](https://github.com/bgd-labs/seatbelt-for-ghosts/actions/workflows/governance-checks.yaml)
 
-Every hour a GitHub workflow is run which simulates all GovernorBravo proposals for each DAO defined in [`governance-checks.yaml`](https://github.com/Uniswap/governance-seatbelt/blob/main/.github/workflows/governance-checks.yaml).
-Reports for each proposal are saved as Markdown files associated with the workflow run.
-To view the reports, navigate to this repo's [Actions](https://github.com/Uniswap/governance-seatbelt/actions), select a workflow, and download the attached artifacts.
-This will download a zip file containing all reports, where you can find the report you're interested in and open it your favorite markdown viewer.
-Soon, alternative viewing options will be available so you don't need to download the files.
+## How it works
 
-If running the simulations locally, you can find the reports in the `reports` folder.
+Aave Seatbelt is a tool for executing and interpreting governance simulations: it forks Ethereum mainnet (where the Aave governance lives), it simulates the execution of a proposal, and finally generates a report containing human-readable information on what effects a proposal will have.
 
-Some notes on the outputs of reports:
+The generated report will contain:
 
-- If a transaction reverts, that will be reported in the state changes section
-- State changes and events around the proposal execution process, such as the `ExecuteTransaction` event and `queuedTransactions` state changes, are omitted from reports to reduce noise
-- Slither analysis for the timelock, governor proxy, and governor implementation is skipped to reduce noise in the output. Note that skipping analysis for the implementation on historical proposals requires an archive node, and a warning will be shown if archive data is required not available
+- All the state changes were caused by the proposal execution.
+- Events triggered.
+- Compilation report of all contracts affected, to check for potential warnings.
+- It runs Slither (static analysis tool) over all touched contracts to find potential issues.
 
-## Usage
+Some of those checks are initially generic, but in addition, we also added extra “interpretations” for particularities of the Aave ecosystem. For example, when an Aave Pool contract is affected, we can automate a deeper interpretation of the effect, making it more human-readable.
+
+![diagram](seatbelt_diagram.jpg)
+
+## Development
 
 ### Adding DAOs to CI
 
-To add a DAO to CI, submit a pull request that adds the desired `DAO_NAME` and `GOVERNOR_ADDRESS`
-to the `matrix` section of `.github/workflows/governance-checks.yaml`.
+To add a DAO to CI, submit a pull request that adds the desired `DAO_NAME` and the according governance address to the `DAOs` constant in [utils/constants](https://github.com/bgd-labs/seatbelt-for-ghosts/blob/main/utils/constants.ts) and append your `DAO_NAME`
+to the `matrix` section of [.github/workflows/governance-checks.yaml](https://github.com/bgd-labs/seatbelt-for-ghosts/blob/main/.github/workflows/governance-checks.yaml).
 
-Note that currently only `GovernorBravo` style governors are supported.
+Note that only `AaveGovernanceV2` style governance are supported.
 
 ### Running Locally
 
 First, create a file called `.env` with the following environment variables:
 
 ```sh
-# Etherscan API Key, used when running Slither.
-ETHERSCAN_API_KEY=yourEtherscanApiKey
-
 # URL to your node, e.g. Infura or Alchemy endpoint
 RPC_URL=yourNodeUrl
 
@@ -45,15 +45,46 @@ RPC_URL=yourNodeUrl
 TENDERLY_ACCESS_TOKEN=yourAccessToken
 
 # Tenderly project slug
-# Project slug can be found in the URL of your project: https://dashboard.tenderly.co/<username>/<project_slug>/transactions
+# Project slug can be found in the URL of your project: https://dashboard.tenderly.co/<account>/<project_slug>/transactions
 TENDERLY_PROJECT_SLUG=projectName
 
-# Define the DAO name and the address of its governor
-DAO_NAME=Uniswap
-GOVERNOR_ADDRESS=0x408ED6354d4973f66138C91495F2f2FCbd8724C3
+# Tenderly account
+# Project slug can be found in the URL of your project: https://dashboard.tenderly.co/<account>/<project_slug>/transactions
+TENDERLY_ACCOUNT=accountName
+
+# Set omit cache to true if you want to force rerun all proposals
+OMIT_CACHE=true
+
+# Define the DAO name
+DAO_NAME=Aave
+
+# (Optional) Only needed when you want to run specific proposals of the selected DAO
+PROPOSAL_FILTER=1_2_3
 ```
 
 There are now two modes of operation:
 
-1. Run `yarn start` to simulate and run checks on all GovernorBravo proposals
-2. Create a file called `<analysisName>.sim.ts` and run a specific simulation with `SIM_NAME=analysisName yarn start`. See the `*.sim.ts` files in the `sims` folder for examples.
+1. Run `yarn start` to simulate and run checks on all AaveGovernanceV2 proposals for the currently selected DAO
+2. Set `PROPOSAL_FILTER` to `proposalId1_proposalId2` and run `yarn start` to only run checks for the selected proposal(s).
+
+## Reports
+
+Find the reports [here](https://github.com/bgd-labs/seatbelt-for-ghosts/tree/main/reports) when run in CI,
+or in the `reports` folder if running locally.
+
+Some notes on the outputs of reports:
+
+- If a transaction reverts, that will be reported in the state changes section
+- State changes and events around the proposal execution process are omitted from reports to reduce noise
+
+### Credits
+
+_Forked of & inspired by [uniswap governance seatbelt](https://github.com/Uniswap/governance-seatbelt)_
+
+Notable changes:
+
+- adjusted for `AaveGovernanceV2` and ipfs proposal payloads
+- storing reports right on the main branch for better discoverability
+- simulations are only rerun for not previously executed & simulated proposals
+- running custom simulations is handled via `PROPOSAL_FILTER` only, no need to create sim files
+- the ci is chunking the proposals in different runs so they can partially run in parallel

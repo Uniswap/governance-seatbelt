@@ -1,6 +1,5 @@
 node_modules
 .idea
-reports/
 .env
 .env.local
 
@@ -14,3 +13,6 @@ crytic-export/
 # other
 trace*.json
 tenderly*.json
+
+# ci cache
+proposal-states.json

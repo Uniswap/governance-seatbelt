@@ -1,38 +1,29 @@
 import { BigNumber, BigNumberish, Block, Contract } from 'ethers'
-import { ContractTransaction } from '@ethersproject/contracts'
 import { JsonRpcProvider } from '@ethersproject/providers'
+import { PROPOSAL_STATES } from './utils/contracts/aave-governance-v2'
 
 // --- Simulation configurations ---
 interface SimulationConfigBase {
-  type: 'executed' | 'proposed' | 'new'
-  daoName: string // e.g. 'Compound' or 'Uniswap'
-  governorAddress: string // address of the governor
+  type: 'executed' | 'proposed'
+  daoName: string // e.g. 'Aave'
+  governanceAddress: string
+  currentProposalState: keyof typeof PROPOSAL_STATES
+  proposalId: BigNumberish // ID of the executed proposal
 }
 
 export interface SimulationConfigExecuted extends SimulationConfigBase {
   type: 'executed'
-  proposalId: BigNumberish // ID of the executed proposal
 }
 
 export interface SimulationConfigProposed extends SimulationConfigBase {
   type: 'proposed'
-  proposalId: BigNumberish // ID of the executed proposal
 }
 
-export interface SimulationConfigNew extends SimulationConfigBase {
-  type: 'new'
-  targets: string[]
-  values: BigNumberish[]
-  signatures: string[]
-  calldatas: string[]
-  description: string
-}
-
-export type SimulationConfig = SimulationConfigExecuted | SimulationConfigProposed | SimulationConfigNew
+export type SimulationConfig = SimulationConfigExecuted | SimulationConfigProposed
 
 export interface SimulationResult {
   sim: TenderlySimulation
-  proposal: ProposalEvent
+  proposal: ProposalCreatedEvent
   latestBlock: Block
 }
 
@@ -40,39 +31,39 @@ export interface SimulationData extends SimulationResult {
   config: SimulationConfig
 }
 
-// --- Proposal checks ---
-export type ProposalActions = [
-  // defined as an array instead of an object because the return data from governor.getActions()
-  // has no `values` key if all values are zero
-  string[],
-  BigNumber[],
-  string[],
-  string[]
-]
-
 export interface ProposalStruct {
   id: BigNumber
-  proposer: string
-  eta: BigNumber
-  startBlock: BigNumber
-  endBlock: BigNumber
-  forVotes: BigNumber
-  againstVotes: BigNumber
-  abstainVotes: BigNumber
-  canceled: boolean
-  executed: boolean
-}
-
-export interface ProposalEvent {
-  id: BigNumber
-  proposer: string
-  startBlock: BigNumber
-  endBlock: BigNumber
-  description: string
+  creator: string
+  executor: string
   targets: string[]
   values: BigNumber[]
   signatures: string[]
   calldatas: string[]
+  withDelegatecalls: boolean[]
+  startBlock: BigNumber
+  endBlock: BigNumber
+  executionTime: BigNumber
+  forVotes: BigNumber
+  againstVotes: BigNumber
+  executed: boolean
+  canceled: boolean
+  strategy: string
+  ipfsHash: string
+}
+
+export interface ProposalCreatedEvent {
+  id: BigNumber
+  creator: string
+  executor: string
+  targets: string[]
+  values: BigNumber[]
+  signatures: string[]
+  calldatas: string[]
+  withDelegatecalls: boolean[]
+  startBlock: BigNumber
+  endBlock: BigNumber
+  strategy: string
+  ipfsHash: string
 }
 
 export type Message = string
@@ -84,14 +75,14 @@ export type CheckResult = {
 }
 
 export type ProposalData = {
-  governor: Contract
-  timelock: Contract
+  governance: Contract
+  executor: Contract
   provider: JsonRpcProvider
 }
 
 export interface ProposalCheck {
   name: string
-  checkProposal(proposal: ProposalEvent, tx: TenderlySimulation, deps: ProposalData): Promise<CheckResult>
+  checkProposal(proposal: ProposalCreatedEvent, tx: TenderlySimulation, deps: ProposalData): Promise<CheckResult>
 }
 
 export interface AllCheckResults {
@@ -99,19 +90,6 @@ export interface AllCheckResults {
 }
 
 // --- Tenderly types, Request ---
-// Response from tenderly endpoint that encodes state data
-type StorageEncodingResponse = {
-  stateOverrides: {
-    // these keys are the contract addresses, all lower case
-    [key: string]: {
-      value: {
-        // these are the slot numbers, as 32 byte hex strings
-        [key: string]: string
-      }
-    }
-  }
-}
-
 type StateObject = {
   balance?: string
   code?: string
@@ -658,4 +636,22 @@ interface RawElement {
   key: string
   original: string
   dirty: string
+}
+
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      RPC_URL: string
+      OMIT_CACHE: string
+      TENDERLY_ACCESS_TOKEN: string
+      TENDERLY_PROJECT_SLUG: string
+      TENDERLY_ACCOUNT: string
+      IPFS_GATEWAY: string
+
+      DAO_NAME: string
+      AAVE_GOV_V2_ADDRESS?: string
+
+      PROPOSAL_FILTER?: string
+    }
+  }
 }

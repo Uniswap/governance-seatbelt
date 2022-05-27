@@ -1,48 +1,76 @@
 name: Governance Checks
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 on:
   schedule:
     - cron: '0 */2 * * *'
   push:
+    paths-ignore:
+      - 'reports/**'
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      omitCache:
+        description: 'Omit existing cache'
+        required: false
+        default: 'false'
 
 jobs:
-  check-proposals:
+  check-proposal-numbers:
     strategy:
       matrix:
         include:
-          - DAO_NAME: 'Uniswap'
-            GOVERNOR_ADDRESS: '0x408ED6354d4973f66138C91495F2f2FCbd8724C3'
-          - DAO_NAME: 'Compound'
-            GOVERNOR_ADDRESS: '0xc0Da02939E1441F497fd74F78cE7Decb17B66529'
-          - DAO_NAME: 'Idle'
-            GOVERNOR_ADDRESS: '0x3D5Fc645320be0A085A32885F078F7121e5E5375'
+          - DAO_NAME: 'Aave'
 
+    name: Check live proposal number
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.generator.outputs.matrix}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run checks
+        run: yarn number
+        id: generator
+        env:
+          RPC_URL: ${{ secrets.RPC_URL }}
+          DAO_NAME: ${{ matrix.DAO_NAME }}
+
+  check-proposals:
+    strategy:
+      matrix: ${{fromJson(needs.check-proposal-numbers.outputs.matrix)}}
+    needs:
+      - check-proposal-numbers
     name: Check all live proposals
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Set up node
-        uses: actions/setup-node@v2
+      - name: Cache Primes
+        id: cache-primes
+        uses: actions/cache@v3
+        with:
+          path: proposal-states.json
+          key: ${{ matrix.DAO_NAME }}-${{ matrix.proposals }}
+
+      - uses: actions/setup-node@v3
         with:
           node-version: 16
-          registry-url: https://registry.npmjs.org
-
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-
-      - uses: actions/cache@v2
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+          cache: 'yarn'
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -61,16 +89,28 @@ jobs:
       - name: Run checks
         run: yarn start
         env:
+          OMIT_CACHE: ${{ github.event_name == 'push' && 'true' || github.event.inputs.omitCache}}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RPC_URL: ${{ secrets.RPC_URL }}
           TENDERLY_ACCESS_TOKEN: ${{ secrets.TENDERLY_ACCESS_TOKEN }}
           TENDERLY_PROJECT_SLUG: ${{ secrets.TENDERLY_PROJECT_SLUG }}
+          TENDERLY_ACCOUNT: ${{ secrets.TENDERLY_ACCOUNT }}
+          IPFS_GATEWAY: ${{secrets.IPFS_GATEWAY}}
           DAO_NAME: ${{ matrix.DAO_NAME }}
-          GOVERNOR_ADDRESS: ${{ matrix.GOVERNOR_ADDRESS }}
+          PROPOSAL_FILTER: ${{ matrix.proposals }}
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.DAO_NAME }}
-          path: reports/${{ matrix.DAO_NAME }}/${{ matrix.GOVERNOR_ADDRESS }}/
+      - name: check diff
+        run: |
+          if [[ -z $(git status -s) ]]
+          then
+            echo "tree is clean"
+          else
+            git config --global user.name 'Cache bot'
+            git config --global user.email 'cache-bot@bgdlabs.com'
+            git pull origin main
+            git add reports
+            git commit -am "fix(cache): automated cache update"
+            git push
+          exit
+          fi

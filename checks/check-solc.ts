@@ -24,25 +24,17 @@ export const checkSolc: ProposalCheck = {
     let info = ''
     let warnings: string[] = []
 
-    // Skip existing timelock and governor contracts to reduce noise. These contracts are already
+    // Skip existing executor and governance contracts to reduce noise. These contracts are already
     // deployed and in use, and if they are being updated, the new contract will be one of the
     // touched contracts that get's analyzed.
-    // NOTE: This requires an archive node since we need to query for the governor implementation
+    // NOTE: This requires an archive node since we need to query for the governance implementation
     // at the simulation block number, since the implementation may have changed since.
-    const addressesToSkip = new Set([deps.timelock.address, deps.governor.address])
-    try {
-      addressesToSkip.add(await deps.governor.implementation({ blockTag: sim.transaction.block_number }))
-    } catch (e) {
-      const msg = `Could not read address of governor implementation at block \`${sim.transaction.block_number}\`. Make sure the \`RPC_URL\` is an archive node. As a result the Slither check will show warnings on the governor's implementation contract.`
-      console.warn(`WARNING: ${msg}. Details:`)
-      console.warn(e)
-      warnings.push(msg)
-    }
+    const addressesToSkip = new Set([deps.executor.address, deps.governance.address])
 
-    // Return early if the only contracts touched are the timelock and governor.
+    // Return early if the only contracts touched are the executor and governance.
     const contracts = sim.contracts.filter((contract) => !addressesToSkip.has(getAddress(contract.address)))
     if (contracts.length === 0) {
-      return { info: ['No contracts to analyze: only the timelock and governor are touched'], warnings, errors: [] }
+      return { info: ['No contracts to analyze: only the executor and governance are touched'], warnings, errors: [] }
     }
 
     // For each unique  verified contract we run solc against it via crytic-compile. It has a mode to run it directly against
@@ -60,7 +52,7 @@ export const checkSolc: ProposalCheck = {
 
       // Append results to report info.
       const formatting = info === '' ? '' : '\n- '
-      const contractName = getContractName(contract)
+      const contractName = getContractName(contract, contract.address)
       if (output.stderr === '') {
         info += `${formatting}No compiler warnings for ${contractName}`
       } else {
@@ -69,7 +61,7 @@ export const checkSolc: ProposalCheck = {
       }
     }
 
-    return { info: [info], warnings, errors: [] }
+    return { info: [`\n\n<details>\n<summary>View Details</summary>\n${info}</details>\n\n`], warnings, errors: [] }
   },
 }
 

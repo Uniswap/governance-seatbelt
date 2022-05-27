@@ -1,6 +1,8 @@
-import { AllCheckResults, ProposalEvent } from '../types'
+import { AllCheckResults, ProposalCreatedEvent, TenderlySimulation } from '../types'
 import { Block } from '@ethersproject/abstract-provider'
 import { BigNumber } from 'ethers'
+import { getProposalMetadata } from '../utils/clients/ipfs'
+import { IPFS_GATEWAY } from '../utils/constants'
 
 function toMessageList(header: string, errors: string[]): string {
   return errors.length > 0 ? `${header}:\n` + errors.map((msg) => `- ${msg}`).join('\n') : ''
@@ -23,16 +25,6 @@ ${toMessageList('Warnings', warnings)}
 
 ${toMessageList('Info', info)}
 `
-}
-
-/**
- * Pulls the title out of the markdown description, from the first markdown h1 line
- * @param description the proposal description
- */
-function getProposalTitle(description: string) {
-  const match = description.match(/^\s*#\s*(.*)\s*\n/)
-  if (!match || match.length < 2) return 'Title not found'
-  return match[1]
 }
 
 /**
@@ -75,27 +67,35 @@ function estimateTime(current: Block, block: BigNumber): number {
   return block.sub(current.number).mul(13).add(current.timestamp).toNumber()
 }
 
+function humanReadableExecutor(executor: string) {
+  if (executor === '0xEE56e2B3D491590B5b31738cC34d5232F378a8D5') return 'Short executor'
+  if (executor === '0x61910EcD7e8e942136CE7Fe7943f956cea1CC2f7') return 'Long executor'
+  return 'unknown executor'
+}
+
 /**
  * Produce a markdown report summarizing the result of all the checks for a given proposal
  * @param blocks the relevant blocks for the proposal
  * @param proposal
  * @param checks
  */
-export function toProposalReport(
+export async function toProposalReport(
   blocks: { current: Block; start: Block | null; end: Block | null },
-  proposal: ProposalEvent,
-  checks: AllCheckResults
-): string {
-  const { id, proposer, targets, endBlock, startBlock, description } = proposal
+  proposal: ProposalCreatedEvent,
+  checks: AllCheckResults,
+  sim: TenderlySimulation
+): Promise<string> {
+  const { id, creator, targets, endBlock, startBlock, ipfsHash, executor } = proposal
+  const ipfsMeta = await getProposalMetadata(ipfsHash, IPFS_GATEWAY)
 
-  return `## ${getProposalTitle(description)}
+  return `## ${ipfsMeta.title}
 
 _Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blocks.current.number}) at ${formatTime(
     blocks.current.timestamp
   )}_
 
 - ID: ${id}
-- Proposer: ${toAddressLink(proposer)}
+- Proposer: ${toAddressLink(creator)}
 - Start Block: ${startBlock} (${
     blocks.start ? formatTime(blocks.start.timestamp) : formatTime(estimateTime(blocks.current, startBlock))
   })
@@ -103,11 +103,15 @@ _Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blo
     blocks.end ? formatTime(blocks.end.timestamp) : formatTime(estimateTime(blocks.current, endBlock))
   })
 - Targets: ${targets.map((target) => toAddressLink(target, true)).join('; ')}
+- Executor:  ${toAddressLink(executor)} (${humanReadableExecutor(executor)})
+- Simulation: [https://dashboard.tenderly.co/me/simulator/${
+    sim.simulation.id
+  }](https://dashboard.tenderly.co/me/simulator/${sim.simulation.id})
 
 <details>
   <summary>Proposal text</summary>
 
-${blockQuote(description)}
+${ipfsMeta.description}
 </details>
 
 ### Checks
