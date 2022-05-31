@@ -1,4 +1,5 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
+import { Content, UnorderedListElement } from 'pdfmake/interfaces'
 import { ProposalCheck, TenderlySimulation } from '../types'
 
 /**
@@ -8,8 +9,9 @@ export const checkTargetsVerifiedEtherscan: ProposalCheck = {
   name: 'Check all targets are verified on Etherscan',
   async checkProposal(proposal, sim, deps) {
     const uniqueTargets = proposal.targets.filter((addr, i, targets) => targets.indexOf(addr) === i)
-    const info = await checkVerificationStatuses(sim, uniqueTargets, deps.provider)
-    return { info: [`Targets:${info}`], warnings: [], errors: [] }
+    const statuses = await checkVerificationStatuses(sim, uniqueTargets, deps.provider)
+    const details: Content = [{ text: 'Targets:', style: 'bold' }, { ul: statuses }]
+    return { description: 'Check all targets are verified on Etherscan', status: 'Passed', details }
   },
 }
 
@@ -19,8 +21,9 @@ export const checkTargetsVerifiedEtherscan: ProposalCheck = {
 export const checkTouchedContractsVerifiedEtherscan: ProposalCheck = {
   name: 'Check all touched contracts are verified on Etherscan',
   async checkProposal(proposal, sim, deps) {
-    const info = await checkVerificationStatuses(sim, sim.transaction.addresses, deps.provider)
-    return { info: [`Touched address:${info}`], warnings: [], errors: [] }
+    const statuses = await checkVerificationStatuses(sim, sim.transaction.addresses, deps.provider)
+    const details: Content = [{ text: 'Touched contracts:', style: 'bold' }, { ul: statuses }]
+    return { description: 'Check all touched contracts are verified on Etherscan', status: 'Passed', details }
   },
 }
 
@@ -31,15 +34,15 @@ async function checkVerificationStatuses(
   sim: TenderlySimulation,
   addresses: string[],
   provider: JsonRpcProvider
-): Promise<string> {
-  let info = '' // prepare output
+): Promise<UnorderedListElement[]> {
+  const statuses: UnorderedListElement[] = []
   for (const addr of addresses) {
     const status = await checkVerificationStatus(sim, addr, provider)
-    if (status === 'eoa') info += `\n    - ${addr}: EOA (verification not applicable)`
-    else if (status === 'verified') info += `\n    - ${addr}: Contract (verified)`
-    else info += `\n    - ${addr}: Contract (not verified)`
+    if (status === 'eoa') statuses.push({ text: `${addr}: EOA (verification not applicable)`, style: 'list' })
+    else if (status === 'verified') statuses.push({ text: `${addr}: Contract (verified)`, style: 'list' })
+    else statuses.push({ text: `${addr}: Contract (not verified)`, style: 'list' })
   }
-  return info
+  return statuses
 }
 
 /**
