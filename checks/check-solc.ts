@@ -1,9 +1,12 @@
 import util from 'util'
 import { exec as execCallback } from 'child_process'
 import { getAddress } from '@ethersproject/address'
+import { Content } from 'pdfmake/interfaces'
 import { getContractName } from '../utils/clients/tenderly'
 import { ETHERSCAN_API_KEY } from '../utils/constants'
-import { ProposalCheck } from '../types'
+import { CheckResult, ProposalCheck } from '../types'
+
+const name = 'Runs solc against the verified contracts'
 
 // Convert exec method from a callback to a promise.
 const exec = util.promisify(execCallback)
@@ -19,7 +22,7 @@ type ExecOutput = {
  * is already installed.
  */
 export const checkSolc: ProposalCheck = {
-  name: 'Runs solc against the verified contracts',
+  name,
   async checkProposal(proposal, sim, deps) {
     let info = ''
     let warnings: string[] = []
@@ -42,11 +45,14 @@ export const checkSolc: ProposalCheck = {
     // Return early if the only contracts touched are the timelock and governor.
     const contracts = sim.contracts.filter((contract) => !addressesToSkip.has(getAddress(contract.address)))
     if (contracts.length === 0) {
-      return { info: ['No contracts to analyze: only the timelock and governor are touched'], warnings, errors: [] }
+      const details: Content = [{ text: 'No contracts to analyze: only the timelock and governor are touched' }]
+      return { description: name, status: 'Passed', details }
     }
 
     // For each unique  verified contract we run solc against it via crytic-compile. It has a mode to run it directly against
     // a mainnet contract, which saves us from having to write files to a local temporary directory.
+    const details: Content = []
+    let status: CheckResult['status'] = 'Passed'
     for (const contract of Array.from(new Set(contracts))) {
       const addr = getAddress(contract.address)
       if (addressesToSkip.has(addr)) continue
@@ -54,22 +60,22 @@ export const checkSolc: ProposalCheck = {
       // Compile the contracts.
       const output = await runCryticCompile(contract.address)
       if (!output) {
-        warnings.push(`crytic-compile failed for \`${contract.contract_name}\` at \`${addr}\``)
+        status = 'Warning'
+        details.push({ text: `crytic-compile failed for ${contract.contract_name} at ${addr}`, style: 'warning' })
         continue
       }
 
       // Append results to report info.
-      const formatting = info === '' ? '' : '\n- '
       const contractName = getContractName(contract)
       if (output.stderr === '') {
-        info += `${formatting}No compiler warnings for ${contractName}`
+        details.push({ text: `No compiler warnings for ${contractName}` })
       } else {
-        info += `${formatting}Compiler warnings for ${contractName}`
-        info += `\n\n<details>\n<summary>View warnings for ${contractName}</summary>\n\n\`\`\`\n${output.stderr}\`\`\`\n\n</details>\n\n`
+        details.push({ text: `Compiler warnings for ${contractName}`, style: 'bold' })
+        details.push({ text: output.stderr })
       }
     }
 
-    return { info: [info], warnings, errors: [] }
+    return { description: name, status, details }
   },
 }
 

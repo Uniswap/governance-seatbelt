@@ -1,9 +1,12 @@
 import util from 'util'
 import { exec as execCallback } from 'child_process'
 import { getAddress } from '@ethersproject/address'
+import { Content } from 'pdfmake/interfaces'
 import { getContractName } from '../utils/clients/tenderly'
 import { ETHERSCAN_API_KEY } from '../utils/constants'
-import { ProposalCheck } from '../types'
+import { CheckResult, ProposalCheck } from '../types'
+
+const name = 'Runs slither against the verified contracts'
 
 // Convert exec method from a callback to a promise.
 const exec = util.promisify(execCallback)
@@ -18,7 +21,7 @@ type ExecOutput = {
  * Runs slither against the verified contracts and reports the outputs. Assumes slither is already installed.
  */
 export const checkSlither: ProposalCheck = {
-  name: 'Runs slither against the verified contracts',
+  name,
   async checkProposal(proposal, sim, deps) {
     let info = ''
     let warnings: string[] = []
@@ -41,11 +44,14 @@ export const checkSlither: ProposalCheck = {
     // Return early if the only contracts touched are the timelock and governor.
     const contracts = sim.contracts.filter((contract) => !addressesToSkip.has(getAddress(contract.address)))
     if (contracts.length === 0) {
-      return { info: ['No contracts to analyze: only the timelock and governor are touched'], warnings, errors: [] }
+      const details: Content = [{ text: 'No contracts to analyze: only the timelock and governor are touched' }]
+      return { description: name, status: 'Passed', details }
     }
 
     // For each unique verified contract we run slither. Slither has a mode to run it directly against a mainnet
     // contract, which saves us from having to write files to a local temporary directory.
+    const details: Content = []
+    let status: CheckResult['status'] = 'Passed'
     for (const contract of Array.from(new Set(contracts))) {
       const addr = getAddress(contract.address)
       if (addressesToSkip.has(addr)) continue
@@ -53,20 +59,20 @@ export const checkSlither: ProposalCheck = {
       // Run slither.
       const slitherOutput = await runSlither(contract.address)
       if (!slitherOutput) {
-        warnings.push(`Slither execution failed for \`${contract.contract_name}\` at \`${addr}\``)
+        status = 'Warning'
+        details.push({ text: `Slither execution failed for ${contract.contract_name} at ${addr}`, style: 'warning' })
         continue
       }
 
       // Append results to report info.
       // Note that slither supports a `--json` flag  we could use, but directly printing the formatted
       // results in a code block is simpler and sufficient for now.
-      const formatting = info === '' ? '' : '\n- '
       const contractName = getContractName(contract)
-      info += `${formatting}Slither report for ${contractName}`
-      info += `\n\n<details>\n<summary>View report for ${contractName}</summary>\n\n\`\`\`\n${slitherOutput.stderr}\`\`\`\n\n</details>\n\n`
+      details.push({ text: `Slither report for ${contractName}` })
+      details.push({ text: slitherOutput.stderr })
     }
 
-    return { info: [info], warnings, errors: [] }
+    return { description: name, status, details }
   },
 }
 
