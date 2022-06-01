@@ -71,7 +71,7 @@ export const checkSolc: ProposalCheck = {
         details.push({ text: `No compiler warnings for ${contractName}` })
       } else {
         details.push({ text: `Compiler warnings for ${contractName}`, style: 'bold' })
-        details.push({ text: output.stderr })
+        details.push({ text: output.stderr.trim() })
       }
     }
 

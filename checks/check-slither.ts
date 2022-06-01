@@ -69,7 +69,7 @@ export const checkSlither: ProposalCheck = {
       // results in a code block is simpler and sufficient for now.
       const contractName = getContractName(contract)
       details.push({ text: `Slither report for ${contractName}` })
-      details.push({ text: slitherOutput.stderr })
+      details.push({ text: slitherOutput.stderr.trim() })
     }
 
     return { description: name, status, details }

@@ -105,7 +105,6 @@ export async function createPdfReport(doc: ProposalData) {
   const tocContent: Content = []
 
   // --- Proposal Checks ---
-  // TODO
   const proposalChecksContent: Content = checkResults.map((checkResult) => {
     const summaryString = [
       { text: checkResult.status, style: getSummaryStatusStyle(checkResult.status) },
@@ -114,21 +113,24 @@ export async function createPdfReport(doc: ProposalData) {
     return [{ text: summaryString, style: 'h2' }, checkResult.details]
   })
 
-  // --- Aggregate Data ---
+  // --- Content formatting ---
+  const content = [...frontMatterContent, ...tocContent, ...proposalChecksContent]
+
+  // --- Aggregate everything ---
   const pdfData: TDocumentDefinitions = {
-    content: [...frontMatterContent, ...tocContent, ...proposalChecksContent],
+    content,
     styles: {
       h1: { fontSize: 20, bold: true },
       h2: { fontSize: 16, bold: true },
       italic: { italics: true },
       bold: { bold: true },
-      list: { lineHeight: 1.5 },
+      list: {},
       link: { color: '#007BFF' },
       pass: { bold: true, color: '#18981D' },
       fail: { bold: true, color: '#CF1124' },
       warning: { bold: true, color: '#C99A2E' },
     },
-    defaultStyle: { font: 'Helvetica' },
+    defaultStyle: { font: 'Helvetica', lineHeight: 1.5 },
   }
 
   // --- Generate Report ---
