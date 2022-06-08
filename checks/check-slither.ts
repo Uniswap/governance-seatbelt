@@ -3,6 +3,7 @@ import { exec as execCallback } from 'child_process'
 import { getAddress } from '@ethersproject/address'
 import { getContractName } from '../utils/clients/tenderly'
 import { ETHERSCAN_API_KEY } from '../utils/constants'
+import { codeBlock, detailsBlock } from '../presentation/markdown'
 import { ProposalCheck } from '../types'
 
 // Convert exec method from a callback to a promise.
@@ -61,10 +62,7 @@ export const checkSlither: ProposalCheck = {
       // Note that slither supports a `--json` flag  we could use, but directly printing the formatted
       // results in a code block is simpler and sufficient for now.
       const contractName = getContractName(contract)
-      info.push(`Slither report for ${contractName}`)
-      info.push(
-        `\n\n<details>\n<summary>View report for ${contractName}</summary>\n\n\`\`\`\n${slitherOutput.stderr}\`\`\`\n\n</details>\n\n`
-      )
+      info.push(detailsBlock(`Slither report for ${contractName}`, codeBlock(slitherOutput.stderr.trim())))
     }
 
     return { info, warnings, errors: [] }

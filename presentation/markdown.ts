@@ -2,8 +2,41 @@ import { AllCheckResults, ProposalEvent } from '../types'
 import { Block } from '@ethersproject/abstract-provider'
 import { BigNumber } from 'ethers'
 
+// --- Markdown helpers ---
+
+export function bold(text: string): string {
+  return `**${text}**`
+}
+
+export function codeBlock(text: string): string {
+  // Line break, three backticks, line break, the text, line break, three backticks, line break
+  return `\n\`\`\`\n${text}\n\`\`\`\n`
+}
+
+export function detailsBlock(summary: string, content: string): string {
+  return `
+<details>
+<summary>${summary}</summary>
+${content}
+</details>
+`
+}
+
+/**
+ * Block quotes a string in markdown
+ * @param str string to block quote
+ */
+export function blockQuote(str: string): string {
+  return str
+    .split('\n')
+    .map((s) => '> ' + s)
+    .join('\n')
+}
+
+// -- Report formatters ---
+
 function toMessageList(header: string, text: string[]): string {
-  return text.length > 0 ? `${header}:\n` + text.map((msg) => `${msg}`).join('\n') : ''
+  return text.length > 0 ? `${bold(header)}:\n` + text.map((msg) => `${msg}`).join('\n') : ''
 }
 
 /**
@@ -15,8 +48,8 @@ function toMessageList(header: string, text: string[]): string {
 function toCheckSummary({ result: { errors, warnings, info }, name }: AllCheckResults[string]): string {
   const status = errors.length === 0 ? (warnings.length === 0 ? '✅ Passed' : '⚠️ Passed with warnings') : '❌ Failed'
 
-  return `#### ${name} ${status}
-  
+  return `### ${name} ${status}
+
 ${toMessageList('Errors', errors)}
 
 ${toMessageList('Warnings', warnings)}
@@ -42,17 +75,6 @@ function getProposalTitle(description: string) {
  */
 function toAddressLink(address: string, code: boolean = false): string {
   return `[${address}](https://etherscan.io/address/${address}${code ? '#code' : ''})`
-}
-
-/**
- * Block quotes a string in markdown
- * @param str string to block quote
- */
-function blockQuote(str: string): string {
-  return str
-    .split('\n')
-    .map((s) => '> ' + s)
-    .join('\n')
 }
 
 /**
@@ -88,7 +110,7 @@ export function toProposalReport(
 ): string {
   const { id, proposer, targets, endBlock, startBlock, description } = proposal
 
-  return `## ${getProposalTitle(description)}
+  return `# ${getProposalTitle(description)}
 
 _Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blocks.current.number}) at ${formatTime(
     blocks.current.timestamp
@@ -110,7 +132,7 @@ _Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blo
 ${blockQuote(description)}
 </details>
 
-### Checks
+## Checks
 ${Object.keys(checks)
   .map((checkId) => toCheckSummary(checks[checkId]))
   .join('\n')}`

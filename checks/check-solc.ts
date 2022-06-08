@@ -3,6 +3,7 @@ import { exec as execCallback } from 'child_process'
 import { getAddress } from '@ethersproject/address'
 import { getContractName } from '../utils/clients/tenderly'
 import { ETHERSCAN_API_KEY } from '../utils/constants'
+import { codeBlock, detailsBlock } from '../presentation/markdown'
 import { ProposalCheck } from '../types'
 
 // Convert exec method from a callback to a promise.
@@ -63,10 +64,7 @@ export const checkSolc: ProposalCheck = {
       if (output.stderr === '') {
         info.push(`No compiler warnings for ${contractName}`)
       } else {
-        info.push(`Compiler warnings for ${contractName}`)
-        info.push(
-          `\n\n<details>\n<summary>View warnings for ${contractName}</summary>\n\n\`\`\`\n${output.stderr}\`\`\`\n\n</details>\n\n`
-        )
+        info.push(detailsBlock(`View compiler warnings for ${contractName}`, codeBlock(output.stderr.trim())))
       }
     }
 
