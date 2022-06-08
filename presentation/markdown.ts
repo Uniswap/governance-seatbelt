@@ -2,8 +2,8 @@ import { AllCheckResults, ProposalEvent } from '../types'
 import { Block } from '@ethersproject/abstract-provider'
 import { BigNumber } from 'ethers'
 
-function toMessageList(header: string, errors: string[]): string {
-  return errors.length > 0 ? `${header}:\n` + errors.map((msg) => `- ${msg}`).join('\n') : ''
+function toMessageList(header: string, text: string[]): string {
+  return text.length > 0 ? `${header}:\n` + text.map((msg) => `${msg}`).join('\n') : ''
 }
 
 /**

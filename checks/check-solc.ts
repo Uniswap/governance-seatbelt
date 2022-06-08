@@ -21,8 +21,8 @@ type ExecOutput = {
 export const checkSolc: ProposalCheck = {
   name: 'Runs solc against the verified contracts',
   async checkProposal(proposal, sim, deps) {
-    let info = ''
-    let warnings: string[] = []
+    const info: string[] = []
+    const warnings: string[] = []
 
     // Skip existing timelock and governor contracts to reduce noise. These contracts are already
     // deployed and in use, and if they are being updated, the new contract will be one of the
@@ -59,17 +59,18 @@ export const checkSolc: ProposalCheck = {
       }
 
       // Append results to report info.
-      const formatting = info === '' ? '' : '\n- '
       const contractName = getContractName(contract)
       if (output.stderr === '') {
-        info += `${formatting}No compiler warnings for ${contractName}`
+        info.push(`No compiler warnings for ${contractName}`)
       } else {
-        info += `${formatting}Compiler warnings for ${contractName}`
-        info += `\n\n<details>\n<summary>View warnings for ${contractName}</summary>\n\n\`\`\`\n${output.stderr}\`\`\`\n\n</details>\n\n`
+        info.push(`Compiler warnings for ${contractName}`)
+        info.push(
+          `\n\n<details>\n<summary>View warnings for ${contractName}</summary>\n\n\`\`\`\n${output.stderr}\`\`\`\n\n</details>\n\n`
+        )
       }
     }
 
-    return { info: [info], warnings, errors: [] }
+    return { info, warnings, errors: [] }
   },
 }
 

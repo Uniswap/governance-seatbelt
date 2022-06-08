@@ -9,7 +9,7 @@ export const checkTargetsVerifiedEtherscan: ProposalCheck = {
   async checkProposal(proposal, sim, deps) {
     const uniqueTargets = proposal.targets.filter((addr, i, targets) => targets.indexOf(addr) === i)
     const info = await checkVerificationStatuses(sim, uniqueTargets, deps.provider)
-    return { info: [`Targets:${info}`], warnings: [], errors: [] }
+    return { info, warnings: [], errors: [] }
   },
 }
 
@@ -20,7 +20,7 @@ export const checkTouchedContractsVerifiedEtherscan: ProposalCheck = {
   name: 'Check all touched contracts are verified on Etherscan',
   async checkProposal(proposal, sim, deps) {
     const info = await checkVerificationStatuses(sim, sim.transaction.addresses, deps.provider)
-    return { info: [`Touched address:${info}`], warnings: [], errors: [] }
+    return { info, warnings: [], errors: [] }
   },
 }
 
@@ -31,13 +31,13 @@ async function checkVerificationStatuses(
   sim: TenderlySimulation,
   addresses: string[],
   provider: JsonRpcProvider
-): Promise<string> {
-  let info = '' // prepare output
+): Promise<string[]> {
+  const info: string[] = []
   for (const addr of addresses) {
     const status = await checkVerificationStatus(sim, addr, provider)
-    if (status === 'eoa') info += `\n    - ${addr}: EOA (verification not applicable)`
-    else if (status === 'verified') info += `\n    - ${addr}: Contract (verified)`
-    else info += `\n    - ${addr}: Contract (not verified)`
+    if (status === 'eoa') info.push(`- ${addr}: EOA (verification not applicable)`)
+    else if (status === 'verified') info.push(`- ${addr}: Contract (verified)`)
+    else info.push(`- ${addr}: Contract (not verified)`)
   }
   return info
 }

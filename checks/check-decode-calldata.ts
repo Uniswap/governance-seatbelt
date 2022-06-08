@@ -36,7 +36,8 @@ export const checkDecodeCalldata: ProposalCheck = {
       })
     )
 
-    return { info: descriptions.filter((d) => d !== null) as string[], warnings, errors: [] }
+    const info = descriptions.filter((d) => d !== null).map((d) => `- ${d}`)
+    return { info, warnings, errors: [] }
   },
 }
 
