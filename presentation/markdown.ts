@@ -4,6 +4,10 @@ import { BigNumber } from 'ethers'
 
 // --- Markdown helpers ---
 
+export function bullet(text: string, level: number = 0): string {
+  return `${' '.repeat(level * 4)}- ${text}`
+}
+
 export function bold(text: string): string {
   return `**${text}**`
 }

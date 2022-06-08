@@ -1,5 +1,6 @@
 import { getAddress } from '@ethersproject/address'
 import { getContractName } from '../utils/clients/tenderly'
+import { bullet } from '../presentation/markdown'
 import { ProposalCheck, Log } from '../types'
 
 /**
@@ -37,18 +38,18 @@ export const checkLogs: ProposalCheck = {
     for (const [address, logs] of Object.entries(events)) {
       // Use contracts array to get contract name of address
       const contract = sim.contracts.find((c) => c.address === address)
-      info.push(`- ${getContractName(contract)}`)
+      info.push(bullet(getContractName(contract)))
 
       // Format log data for report
       logs.forEach((log) => {
         if (Boolean(log.name)) {
           // Log is decoded, format data as: VotingDelaySet(oldVotingDelay: value, newVotingDelay: value)
           const parsedInputs = log.inputs.map((i) => `${i.soltype!.name}: ${i.value}`).join(', ')
-          info.push(`    - \`${log.name}(${parsedInputs})\``)
+          info.push(bullet(`\`${log.name}(${parsedInputs})\``, 1))
         } else {
           // Log is not decoded, report the raw data
           // TODO find a transaction with undecoded logs to know how topics/data are formatted in simulation response
-          info.push(`    - Undecoded log: \`${JSON.stringify(log)}\``)
+          info.push(bullet(`Undecoded log: \`${JSON.stringify(log)}\``, 1))
         }
       })
     }
