@@ -36,7 +36,7 @@ export function blockQuote(str: string): string {
 // -- Report formatters ---
 
 function toMessageList(header: string, text: string[]): string {
-  return text.length > 0 ? `${bold(header)}:\n` + text.map((msg) => `${msg}`).join('\n') : ''
+  return text.length > 0 ? `${bold(header)}:\n\n` + text.map((msg) => `${msg}`).join('\n') : ''
 }
 
 /**
@@ -110,7 +110,9 @@ export function toProposalReport(
 ): string {
   const { id, proposer, targets, endBlock, startBlock, description } = proposal
 
-  return `# ${getProposalTitle(description)}
+  // Generate the report
+  const report = `
+# ${getProposalTitle(description.trim())}
 
 _Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blocks.current.number}) at ${formatTime(
     blocks.current.timestamp
@@ -129,11 +131,16 @@ _Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blo
 <details>
   <summary>Proposal text</summary>
 
-${blockQuote(description)}
+${blockQuote(description.trim())}
 </details>
 
-## Checks
+## Checks\n
 ${Object.keys(checks)
   .map((checkId) => toCheckSummary(checks[checkId]))
-  .join('\n')}`
+  .join('\n')}
+`
+
+  // Remove superfluous white space. The regex replaces every three line breaks that only have whitespace in between
+  // with two line breaks that have no whitespace in between.
+  return report.replace(/\n\s*\n\s*\n/g, '\n\n').trim()
 }
