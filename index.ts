@@ -4,6 +4,7 @@
 
 require('dotenv').config()
 import fs from 'fs'
+import mdToPdf from 'md-to-pdf'
 import { DAO_NAME, GOVERNOR_ADDRESS, SIM_NAME } from './utils/constants'
 import { provider } from './utils/clients/ethers'
 import { simulate } from './utils/clients/tenderly'
@@ -99,20 +100,23 @@ async function main() {
       )
     )
 
-    // Generate report
+    // Generate markdown report.
     const [startBlock, endBlock] = await Promise.all([
       proposal.startBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.startBlock.toNumber()) : null,
       proposal.endBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.endBlock.toNumber()) : null,
     ])
     const report = toProposalReport({ start: startBlock, end: endBlock, current: latestBlock }, proposal, checkResults)
 
-    // Save report to a file.
+    // Save markdown report to a file.
     // GitHub artifacts are flattened (folder structure is not preserved), so we include the DAO name in the filename.
     const basePath = `${config.daoName}/${config.governorAddress}`
-    const filename = `${proposal.id}.md`
+    const filename = `${proposal.id}`
     const dir = `./reports/${basePath}/`
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-    fs.writeFileSync(`${dir}/${filename}`, report)
+    fs.writeFileSync(`${dir}/${filename}.md`, report)
+
+    // Generate and save a PDF version.
+    await mdToPdf({ content: report }, { dest: `${dir}/${filename}.pdf` }); 
   }
   console.log('Done!')
 }
