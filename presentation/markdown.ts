@@ -37,6 +37,15 @@ export function blockQuote(str: string): string {
     .join('\n')
 }
 
+/**
+ * Turns a plaintext address into a link to etherscan page of that address
+ * @param address to be linked
+ * @param code whether to link to the code tab
+ */
+export function toAddressLink(address: string, code: boolean = false): string {
+  return `[\`${address}\`](https://etherscan.io/address/${address}${code ? '#code' : ''})`
+}
+
 // -- Report formatters ---
 
 function toMessageList(header: string, text: string[]): string {
@@ -70,15 +79,6 @@ function getProposalTitle(description: string) {
   const match = description.match(/^\s*#\s*(.*)\s*\n/)
   if (!match || match.length < 2) return 'Title not found'
   return match[1]
-}
-
-/**
- * Turns a plaintext address into a link to etherscan page of that address
- * @param address to be linked
- * @param code whether to link to the code tab
- */
-function toAddressLink(address: string, code: boolean = false): string {
-  return `[${address}](https://etherscan.io/address/${address}${code ? '#code' : ''})`
 }
 
 /**

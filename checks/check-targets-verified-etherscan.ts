@@ -1,5 +1,5 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
-import { bullet } from '../presentation/markdown'
+import { bullet, toAddressLink } from '../presentation/markdown'
 import { ProposalCheck, TenderlySimulation } from '../types'
 
 /**
@@ -36,9 +36,10 @@ async function checkVerificationStatuses(
   const info: string[] = []
   for (const addr of addresses) {
     const status = await checkVerificationStatus(sim, addr, provider)
-    if (status === 'eoa') info.push(bullet(`${addr}: EOA (verification not applicable)`))
-    else if (status === 'verified') info.push(bullet(`${addr}: Contract (verified)`))
-    else info.push(bullet(`${addr}: Contract (not verified)`))
+    const address = toAddressLink(addr)
+    if (status === 'eoa') info.push(bullet(`${address}: EOA (verification not applicable)`))
+    else if (status === 'verified') info.push(bullet(`${address}: Contract (verified)`))
+    else info.push(bullet(`${address}: Contract (not verified)`))
   }
   return info
 }
