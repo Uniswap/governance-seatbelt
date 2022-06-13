@@ -4,15 +4,15 @@
 
 require('dotenv').config()
 import fs from 'fs'
-import mdToPdf from 'md-to-pdf'
-import { DAO_NAME, GOVERNOR_ADDRESS, SIM_NAME } from './utils/constants'
-import { provider } from './utils/clients/ethers'
-import { simulate } from './utils/clients/tenderly'
-import { AllCheckResults, ProposalEvent, SimulationConfig, SimulationConfigBase, SimulationData } from './types'
-import ALL_CHECKS from './checks'
-import { toProposalReport } from './presentation/markdown'
-import { governorBravo, PROPOSAL_STATES } from './utils/contracts/governor-bravo'
-import { timelock } from './utils/contracts/timelock'
+import {mdToPdf} from 'md-to-pdf'
+import { DAO_NAME, GOVERNOR_ADDRESS, SIM_NAME } from './utils/constants.js'
+import { provider } from './utils/clients/ethers.js'
+import { simulate } from './utils/clients/tenderly.js'
+import { AllCheckResults, ProposalEvent, SimulationConfig, SimulationConfigBase, SimulationData } from './types.js'
+import ALL_CHECKS from './checks/index.js'
+import { toProposalReport } from './presentation/markdown.js'
+import { governorBravo, PROPOSAL_STATES } from './utils/contracts/governor-bravo.js'
+import { timelock } from './utils/contracts/timelock.js'
 
 /**
  * @notice Simulate governance proposals and run proposal checks against them
@@ -105,7 +105,7 @@ async function main() {
       proposal.startBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.startBlock.toNumber()) : null,
       proposal.endBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.endBlock.toNumber()) : null,
     ])
-    const report = toProposalReport({ start: startBlock, end: endBlock, current: latestBlock }, proposal, checkResults)
+    const report = await toProposalReport({ start: startBlock, end: endBlock, current: latestBlock }, proposal, checkResults)
 
     // Save markdown report to a file.
     // GitHub artifacts are flattened (folder structure is not preserved), so we include the DAO name in the filename.
@@ -116,6 +116,7 @@ async function main() {
     fs.writeFileSync(`${dir}/${filename}.md`, report)
 
     // Generate and save a PDF version.
+    // TODO replace collapsible `details` blocks with a table of contents + appendices
     await mdToPdf({ content: report }, { dest: `${dir}/${filename}.pdf` }); 
   }
   console.log('Done!')

@@ -1,8 +1,10 @@
 {
   "name": "@uniswap/governance-seatbelt",
   "version": "1.0.0-alpha.0",
+  "type": "module",
+  "exports": "./index.js",
   "engines": {
-    "node": ">=14.x"
+    "node": ">=14.16"
   },
   "description": "Make governance safer",
   "scripts": {
@@ -31,8 +33,8 @@
     "ethers": "^5.4.6",
     "md-to-pdf": "^5.1.0",
     "micro-ftch": "^0.3.1",
-    "ts-node": "^10.2.1",
-    "typescript": "^4.4.2"
+    "ts-node": "^10.8.1",
+    "typescript": "^4.7.3"
   },
   "devDependencies": {
     "prettier": "^2.3.2"

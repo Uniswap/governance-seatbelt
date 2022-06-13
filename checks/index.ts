@@ -1,13 +1,13 @@
 import {
   checkTargetsVerifiedEtherscan,
   checkTouchedContractsVerifiedEtherscan,
-} from './check-targets-verified-etherscan'
-import { checkDecodeCalldata } from './check-decode-calldata'
-import { checkLogs } from './check-logs'
-import { checkSlither } from './check-slither'
-import { checkSolc } from './check-solc'
-import { checkStateChanges } from './check-state-changes'
-import { ProposalCheck } from '../types'
+} from './check-targets-verified-etherscan.js'
+import { checkDecodeCalldata } from './check-decode-calldata.js'
+import { checkLogs } from './check-logs.js'
+import { checkSlither } from './check-slither.js'
+import { checkSolc } from './check-solc.js'
+import { checkStateChanges } from './check-state-changes.js'
+import { ProposalCheck } from '../types.js'
 
 const ALL_CHECKS: {
   [checkId: string]: ProposalCheck
