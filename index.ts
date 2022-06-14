@@ -2,9 +2,12 @@
  * @notice Entry point for executing a single proposal against a forked mainnet
  */
 
-require('dotenv').config()
-import fs from 'fs'
-import mdToPdf from 'md-to-pdf'
+import * as dotenv from 'dotenv'
+dotenv.config()
+import * as fs from 'fs'
+import { mdToPdf } from 'md-to-pdf'
+import { remark } from 'remark'
+import remarkToc from 'remark-toc'
 import { DAO_NAME, GOVERNOR_ADDRESS, SIM_NAME } from './utils/constants'
 import { provider } from './utils/clients/ethers'
 import { simulate } from './utils/clients/tenderly'
@@ -26,8 +29,10 @@ async function main() {
   if (SIM_NAME) {
     // If a SIM_NAME is provided, we run that simulation
     const configPath = `./sims/${SIM_NAME}.sim.ts`
-    const config: SimulationConfig = require(configPath).config // dynamic path `import` statements not allowed
+    const config: SimulationConfig = await import(configPath).then((d) => d.config) // dynamic path `import` statements not allowed
+
     const { sim, proposal, latestBlock } = await simulate(config)
+    console.log('WE GOOD')
     simOutputs.push({ sim, proposal, latestBlock, config })
   } else {
     // If no SIM_NAME is provided, we get proposals to simulate from the chain
@@ -105,8 +110,14 @@ async function main() {
       proposal.startBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.startBlock.toNumber()) : null,
       proposal.endBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.endBlock.toNumber()) : null,
     ])
-    const report = toProposalReport({ start: startBlock, end: endBlock, current: latestBlock }, proposal, checkResults)
+    const rawReport = toProposalReport(
+      { start: startBlock, end: endBlock, current: latestBlock },
+      proposal,
+      checkResults
+    )
 
+    const report = await (await remark().use(remarkToc).process(rawReport)).toString()
+    console.log(report)
     // Save markdown report to a file.
     // GitHub artifacts are flattened (folder structure is not preserved), so we include the DAO name in the filename.
     const basePath = `${config.daoName}/${config.governorAddress}`
@@ -116,7 +127,7 @@ async function main() {
     fs.writeFileSync(`${dir}/${filename}.md`, report)
 
     // Generate and save a PDF version.
-    await mdToPdf({ content: report }, { dest: `${dir}/${filename}.pdf` }); 
+    await mdToPdf({ content: report }, { dest: `${dir}/${filename}.pdf` })
   }
   console.log('Done!')
 }

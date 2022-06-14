@@ -118,6 +118,8 @@ export function toProposalReport(
   const report = `
 # ${getProposalTitle(description.trim())}
 
+## Table of contents
+
 _Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blocks.current.number}) at ${formatTime(
     blocks.current.timestamp
   )}_
