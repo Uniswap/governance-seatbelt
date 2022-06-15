@@ -7,7 +7,9 @@ import { keccak256 } from '@ethersproject/keccak256'
 import { toUtf8Bytes } from '@ethersproject/strings'
 import { parseEther } from '@ethersproject/units'
 import { provider } from './ethers'
-import { fetchUrl, FETCH_OPT } from 'micro-ftch'
+import mftch, { FETCH_OPT } from 'micro-ftch'
+// @ts-ignore
+const fetchUrl = mftch.default
 import { governorBravo } from '../contracts/governor-bravo'
 import {
   BLOCK_GAS_LIMIT,
@@ -196,7 +198,6 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
 
   // --- Get details about the proposal we're simulating ---
   const network = await provider.getNetwork()
-  console.log('HEYYY')
   const blockNumberToUse = (await getLatestBlock(network.chainId)) - 3 // subtracting a few blocks to ensure tenderly has the block
   const latestBlock = await provider.getBlock(blockNumberToUse)
   const blockRange = [0, latestBlock.number]
