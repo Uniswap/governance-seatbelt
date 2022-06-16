@@ -6,8 +6,6 @@ import dotenv from 'dotenv'
 dotenv.config()
 import fs from 'fs'
 import { mdToPdf } from 'md-to-pdf'
-import { remark } from 'remark'
-import remarkToc from 'remark-toc'
 import { DAO_NAME, GOVERNOR_ADDRESS, SIM_NAME } from './utils/constants'
 import { provider } from './utils/clients/ethers'
 import { simulate } from './utils/clients/tenderly'
@@ -109,13 +107,12 @@ async function main() {
       proposal.startBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.startBlock.toNumber()) : null,
       proposal.endBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.endBlock.toNumber()) : null,
     ])
-    const rawReport = toProposalReport(
+    const report = await toProposalReport(
       { start: startBlock, end: endBlock, current: latestBlock },
       proposal,
       checkResults
     )
 
-    const report = await (await remark().use(remarkToc).process(rawReport)).toString()
     // Save markdown report to a file.
     // GitHub artifacts are flattened (folder structure is not preserved), so we include the DAO name in the filename.
     const basePath = `${config.daoName}/${config.governorAddress}`

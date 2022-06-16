@@ -1,6 +1,8 @@
 import { AllCheckResults, ProposalEvent } from '../types'
 import { Block } from '@ethersproject/abstract-provider'
 import { BigNumber } from 'ethers'
+import { remark } from 'remark'
+import remarkToc from 'remark-toc'
 
 // --- Markdown helpers ---
 
@@ -107,14 +109,14 @@ function estimateTime(current: Block, block: BigNumber): number {
  * @param proposal
  * @param checks
  */
-export function toProposalReport(
+export async function toProposalReport(
   blocks: { current: Block; start: Block | null; end: Block | null },
   proposal: ProposalEvent,
   checks: AllCheckResults
-): string {
+): Promise<string> {
   const { id, proposer, targets, endBlock, startBlock, description } = proposal
 
-  // Generate the report
+  // Generate the report. We insert an empty table of contents header which is populated later using remark-toc.
   const report = `
 # ${getProposalTitle(description.trim())}
 
@@ -146,7 +148,6 @@ ${Object.keys(checks)
   .join('\n')}
 `
 
-  // Remove superfluous white space. The regex replaces every three line breaks that only have whitespace in between
-  // with two line breaks that have no whitespace in between.
-  return report.replace(/\n\s*\n\s*\n/g, '\n\n').trim()
+  // Format report and add table of contents
+  return await (await remark().use(remarkToc).process(report)).toString()
 }
