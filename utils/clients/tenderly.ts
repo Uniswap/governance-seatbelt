@@ -6,17 +6,18 @@ import { Contract } from '@ethersproject/contracts'
 import { keccak256 } from '@ethersproject/keccak256'
 import { toUtf8Bytes } from '@ethersproject/strings'
 import { parseEther } from '@ethersproject/units'
-import { provider } from './ethers.js'
-
-import fetchUrl from 'micro-ftch'
-import { governorBravo } from '../contracts/governor-bravo.js'
+import { provider } from './ethers'
+import mftch, { FETCH_OPT } from 'micro-ftch'
+// @ts-ignore
+const fetchUrl = mftch.default
+import { governorBravo } from '../contracts/governor-bravo'
 import {
   BLOCK_GAS_LIMIT,
   TENDERLY_ACCESS_TOKEN,
   TENDERLY_BASE_URL,
   TENDERLY_ENCODE_URL,
   TENDERLY_SIM_URL,
-} from '../constants.js'
+} from '../constants'
 import {
   ProposalActions,
   ProposalEvent,
@@ -30,7 +31,7 @@ import {
   TenderlyContract,
   TenderlyPayload,
   TenderlySimulation,
-} from '../../types.js'
+} from '../../types'
 import { writeFileSync } from 'fs'
 
 const TENDERLY_FETCH_OPTIONS = { type: 'json', headers: { 'X-Access-Key': TENDERLY_ACCESS_TOKEN } }
