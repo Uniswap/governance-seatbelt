@@ -3,6 +3,7 @@ import { Block } from '@ethersproject/abstract-provider'
 import { BigNumber } from 'ethers'
 import { remark } from 'remark'
 import remarkToc from 'remark-toc'
+import { visit } from 'unist-util-visit'
 
 // --- Markdown helpers ---
 
@@ -148,6 +149,29 @@ ${Object.keys(checks)
   .join('\n')}
 `
 
-  // Format report and add table of contents
-  return await (await remark().use(remarkToc).process(report)).toString()
+  // Format report, add table of contents, and fix links.
+  return (await remark().use(remarkToc).use(remarkFixEmojiLinks).process(report)).toString()
+}
+
+// Intra-doc links are broken if the header has emojis, so we fix that here.
+function remarkFixEmojiLinks() {
+  return (tree: any) => {
+    visit(tree, (node) => {
+      if (node.type === 'link') {
+        // @ts-ignore node.url does exist, the typings just aren't correct
+        const url: string = node.url
+        const isInternalLink = url.startsWith('#')
+        if (isInternalLink && url.endsWith('--passed-with-warnings')) {
+          // @ts-ignore node.url does exist, the typings just aren't correct
+          node.url = node.url.replace('--passed-with-warnings', '-⚠️-passed-with-warnings')
+        } else if (isInternalLink && url.endsWith('--passed')) {
+          // @ts-ignore node.url does exist, the typings just aren't correct
+          node.url = node.url.replace('--passed', '-✅-passed')
+        } else if (isInternalLink && url.endsWith('--failed')) {
+          // @ts-ignore node.url does exist, the typings just aren't correct
+          node.url = node.url.replace('--failed', '-❌-failed')
+        }
+      }
+    })
+  }
 }
