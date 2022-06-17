@@ -27,15 +27,6 @@ export function codeBlock(text: string): string {
   return `\n\`\`\`\n${text}\n\`\`\`\n`
 }
 
-export function detailsBlock(summary: string, content: string): string {
-  return `
-<details>
-<summary>${summary}</summary>
-${content}
-</details>
-`
-}
-
 /**
  * Block quotes a string in markdown
  * @param str string to block quote
