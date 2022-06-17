@@ -1,6 +1,6 @@
 import { getAddress } from '@ethersproject/address'
 import { getContractName, getGovernorBravoSlots } from '../utils/clients/tenderly'
-import { bullet } from '../presentation/markdown'
+import { bullet } from '../presentation/report'
 import { ProposalCheck, StateDiff } from '../types'
 
 /**

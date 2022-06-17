@@ -1,5 +1,5 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
-import { bullet, toAddressLink } from '../presentation/markdown'
+import { bullet, toAddressLink } from '../presentation/report'
 import { ProposalCheck, TenderlySimulation } from '../types'
 
 /**

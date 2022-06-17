@@ -4,13 +4,12 @@
 
 import dotenv from 'dotenv'
 dotenv.config()
-import fs from 'fs'
 import { DAO_NAME, GOVERNOR_ADDRESS, SIM_NAME } from './utils/constants'
 import { provider } from './utils/clients/ethers'
 import { simulate } from './utils/clients/tenderly'
 import { AllCheckResults, ProposalEvent, SimulationConfig, SimulationConfigBase, SimulationData } from './types'
 import ALL_CHECKS from './checks'
-import { generateAndSaveReports } from './presentation/markdown'
+import { generateAndSaveReports } from './presentation/report'
 import { governorBravo, PROPOSAL_STATES } from './utils/contracts/governor-bravo'
 import { timelock } from './utils/contracts/timelock'
 

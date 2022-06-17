@@ -3,7 +3,7 @@ import { exec as execCallback } from 'child_process'
 import { getAddress } from '@ethersproject/address'
 import { getContractName } from '../utils/clients/tenderly'
 import { ETHERSCAN_API_KEY } from '../utils/constants'
-import { codeBlock } from '../presentation/markdown'
+import { codeBlock } from '../presentation/report'
 import { ProposalCheck } from '../types'
 
 // Convert exec method from a callback to a promise.
