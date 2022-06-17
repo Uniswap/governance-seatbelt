@@ -1,9 +1,16 @@
-import { AllCheckResults, ProposalEvent } from '../types'
+import fs from 'fs'
 import { Block } from '@ethersproject/abstract-provider'
 import { BigNumber } from 'ethers'
 import { remark } from 'remark'
 import remarkToc from 'remark-toc'
+import remarkParse from 'remark-parse'
+import remarkRehype from 'remark-rehype'
+import rehypeSanitize from 'rehype-sanitize'
+import rehypeStringify from 'rehype-stringify'
 import { visit } from 'unist-util-visit'
+import { unified } from 'unified'
+import { mdToPdf } from 'md-to-pdf'
+import { AllCheckResults, ProposalEvent } from '../types'
 
 // --- Markdown helpers ---
 
@@ -105,12 +112,48 @@ function estimateTime(current: Block, block: BigNumber): number {
 }
 
 /**
- * Produce a markdown report summarizing the result of all the checks for a given proposal
- * @param blocks the relevant blocks for the proposal
- * @param proposal
- * @param checks
+ * Generates the proposal report and saves Markdown, PDF, and HTML versions of it.
+ * @param blocks the relevant blocks for the proposal.
+ * @param proposal The proposal details.
+ * @param checks The checks results.
+ * @param dir The directory where the file should be saved. It will be created if it doesn't exist.
+ * @param filename The name of the file. All report formats will have the same filename with different extensions.
  */
-export async function toProposalReport(
+export async function generateAndSaveReports(
+  blocks: { current: Block; start: Block | null; end: Block | null },
+  proposal: ProposalEvent,
+  checks: AllCheckResults,
+  dir: string,
+  filename: string
+) {
+  // Prepare the output folder and filename.
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+  const path = `${dir}/${filename}`
+
+  // Generate and save the markdown proposal report. This is the base report which is translated into other file types.
+  const markdownReport = await toMarkdownProposalReport(blocks, proposal, checks)
+  fs.writeFileSync(`${dir}/${filename}.md`, `${path}.md`)
+
+  // Generate and save the HTML report.
+  const htmlReport = await unified()
+    .use(remarkParse)
+    .use(remarkRehype)
+    .use(rehypeSanitize)
+    .use(rehypeStringify)
+    .process(markdownReport)
+  fs.writeFileSync(`${path}.html`, String(htmlReport))
+
+  // Now we save a PDF.
+  return mdToPdf({ content: markdownReport }, { dest: `${path}.pdf` })
+}
+
+/**
+ * Produce a markdown report summarizing the result of all the checks for a given proposal.
+ * @param blocks the relevant blocks for the proposal.
+ * @param proposal The proposal details.
+ * @param checks The checks results.
+ */
+async function toMarkdownProposalReport(
   blocks: { current: Block; start: Block | null; end: Block | null },
   proposal: ProposalEvent,
   checks: AllCheckResults
@@ -149,11 +192,14 @@ ${Object.keys(checks)
   .join('\n')}
 `
 
-  // Format report, add table of contents, and fix links.
+  // Add table of contents and return report.
   return (await remark().use(remarkToc).use(remarkFixEmojiLinks).process(report)).toString()
 }
 
-// Intra-doc links are broken if the header has emojis, so we fix that here.
+/**
+ * Intra-doc links are broken if the header has emojis, so we fix that here.
+ * @dev This is a remark plugin, see the remark docs for more info on how it works.
+ */
 function remarkFixEmojiLinks() {
   return (tree: any) => {
     visit(tree, (node) => {
