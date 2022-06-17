@@ -15,10 +15,10 @@ jobs:
         include:
           - DAO_NAME: 'Uniswap'
             GOVERNOR_ADDRESS: '0x408ED6354d4973f66138C91495F2f2FCbd8724C3'
-          # - DAO_NAME: 'Compound'
-          #   GOVERNOR_ADDRESS: '0xc0Da02939E1441F497fd74F78cE7Decb17B66529'
-          # - DAO_NAME: 'Idle'
-          #   GOVERNOR_ADDRESS: '0x3D5Fc645320be0A085A32885F078F7121e5E5375'
+          - DAO_NAME: 'Compound'
+            GOVERNOR_ADDRESS: '0xc0Da02939E1441F497fd74F78cE7Decb17B66529'
+          - DAO_NAME: 'Idle'
+            GOVERNOR_ADDRESS: '0x3D5Fc645320be0A085A32885F078F7121e5E5375'
 
     name: Check all live proposals
     runs-on: ubuntu-latest
