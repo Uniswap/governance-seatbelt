@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs, { promises as fsp } from 'fs'
 import { Block } from '@ethersproject/abstract-provider'
 import { BigNumber } from 'ethers'
 import { remark } from 'remark'
@@ -121,21 +121,20 @@ export async function generateAndSaveReports(
   const id = proposal.id
   const path = `${dir}/${id}`
 
-  // Generate and save the markdown proposal report. This is the base report which is translated into other file types.
+  // Generate the markdown proposal report. This is the base report which is translated into other file types.
   const markdownReport = await toMarkdownProposalReport(blocks, proposal, checks)
-  fs.writeFileSync(`${path}.md`, markdownReport)
 
-  // Generate and save the HTML report.
-  const htmlReport = await unified()
-    .use(remarkParse)
-    .use(remarkRehype)
-    .use(rehypeSanitize)
-    .use(rehypeStringify)
-    .process(markdownReport)
-  fs.writeFileSync(`${path}.html`, String(htmlReport))
+  // Generate the HTML report.
+  const htmlReport = String(
+    await unified().use(remarkParse).use(remarkRehype).use(rehypeSanitize).use(rehypeStringify).process(markdownReport)
+  )
 
-  // Now we save a PDF.
-  return mdToPdf({ content: markdownReport }, { dest: `${path}.pdf` })
+  // Save off all reports
+  await Promise.all([
+    fsp.writeFile(`${path}.md`, markdownReport),
+    fsp.writeFile(`${path}.html`, htmlReport),
+    mdToPdf({ content: markdownReport }, { dest: `${path}.pdf` }),
+  ])
 }
 
 /**
