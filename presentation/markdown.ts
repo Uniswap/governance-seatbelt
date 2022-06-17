@@ -155,8 +155,6 @@ async function toMarkdownProposalReport(
   const report = `
 # ${getProposalTitle(description.trim())}
 
-## Table of contents
-
 _Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blocks.current.number}) at ${formatTime(
     blocks.current.timestamp
   )}_
@@ -171,11 +169,13 @@ _Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blo
   })
 - Targets: ${targets.map((target) => toAddressLink(target, true)).join('; ')}
 
-<details>
-  <summary>Proposal text</summary>
+## Table of contents
+
+This is filled in by remark-toc and this sentence will be removed.
+
+## Proposal Text
 
 ${blockQuote(description.trim())}
-</details>
 
 ## Checks\n
 ${Object.keys(checks)
@@ -184,7 +184,7 @@ ${Object.keys(checks)
 `
 
   // Add table of contents and return report.
-  return (await remark().use(remarkToc).use(remarkFixEmojiLinks).process(report)).toString()
+  return (await remark().use(remarkToc, { tight: true }).use(remarkFixEmojiLinks).process(report)).toString()
 }
 
 /**
