@@ -123,16 +123,16 @@ export async function generateAndSaveReports(
   blocks: { current: Block; start: Block | null; end: Block | null },
   proposal: ProposalEvent,
   checks: AllCheckResults,
-  dir: string,
-  filename: string
+  dir: string
 ) {
   // Prepare the output folder and filename.
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-  const path = `${dir}/${filename}`
+  const id = proposal.id
+  const path = `${dir}/${id}`
 
   // Generate and save the markdown proposal report. This is the base report which is translated into other file types.
   const markdownReport = await toMarkdownProposalReport(blocks, proposal, checks)
-  fs.writeFileSync(`${dir}/${filename}.md`, `${path}.md`)
+  fs.writeFileSync(`${path}.md`, markdownReport)
 
   // Generate and save the HTML report.
   const htmlReport = await unified()

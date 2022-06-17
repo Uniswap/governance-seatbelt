@@ -109,15 +109,12 @@ async function main() {
 
     // Save markdown report to a file.
     // GitHub artifacts are flattened (folder structure is not preserved), so we include the DAO name in the filename.
-    const basePath = `${config.daoName}/${config.governorAddress}`
-    const filename = `${proposal.id}`
-    const dir = `./reports/${basePath}/`
+    const dir = `./reports/${config.daoName}/${config.governorAddress}`
     await generateAndSaveReports(
       { start: startBlock, end: endBlock, current: latestBlock },
       proposal,
       checkResults,
-      `${dir}/${filename}`,
-      filename
+      dir
     )
   }
   console.log('Done!')
