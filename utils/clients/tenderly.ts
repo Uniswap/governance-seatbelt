@@ -7,8 +7,9 @@ import { keccak256 } from '@ethersproject/keccak256'
 import { toUtf8Bytes } from '@ethersproject/strings'
 import { parseEther } from '@ethersproject/units'
 import { provider } from './ethers'
-
-import fetchUrl, { FETCH_OPT } from 'micro-ftch'
+import mftch, { FETCH_OPT } from 'micro-ftch'
+// @ts-ignore
+const fetchUrl = mftch.default
 import { governorBravo } from '../contracts/governor-bravo'
 import {
   BLOCK_GAS_LIMIT,

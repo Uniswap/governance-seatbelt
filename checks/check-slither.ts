@@ -3,6 +3,7 @@ import { exec as execCallback } from 'child_process'
 import { getAddress } from '@ethersproject/address'
 import { getContractName } from '../utils/clients/tenderly'
 import { ETHERSCAN_API_KEY } from '../utils/constants'
+import { codeBlock } from '../presentation/report'
 import { ProposalCheck } from '../types'
 
 // Convert exec method from a callback to a promise.
@@ -20,8 +21,8 @@ type ExecOutput = {
 export const checkSlither: ProposalCheck = {
   name: 'Runs slither against the verified contracts',
   async checkProposal(proposal, sim, deps) {
-    let info = ''
-    let warnings: string[] = []
+    const info: string[] = []
+    const warnings: string[] = []
 
     // Skip existing timelock and governor contracts to reduce noise. These contracts are already
     // deployed and in use, and if they are being updated, the new contract will be one of the
@@ -60,13 +61,12 @@ export const checkSlither: ProposalCheck = {
       // Append results to report info.
       // Note that slither supports a `--json` flag  we could use, but directly printing the formatted
       // results in a code block is simpler and sufficient for now.
-      const formatting = info === '' ? '' : '\n- '
       const contractName = getContractName(contract)
-      info += `${formatting}Slither report for ${contractName}`
-      info += `\n\n<details>\n<summary>View report for ${contractName}</summary>\n\n\`\`\`\n${slitherOutput.stderr}\`\`\`\n\n</details>\n\n`
+      info.push(`Slither report for ${contractName}`)
+      info.push(codeBlock(slitherOutput.stderr.trim()))
     }
 
-    return { info: [info], warnings, errors: [] }
+    return { info, warnings, errors: [] }
   },
 }
 

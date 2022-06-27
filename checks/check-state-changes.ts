@@ -1,5 +1,6 @@
 import { getAddress } from '@ethersproject/address'
 import { getContractName, getGovernorBravoSlots } from '../utils/clients/tenderly'
+import { bullet } from '../presentation/report'
 import { ProposalCheck, StateDiff } from '../types'
 
 /**
@@ -8,7 +9,7 @@ import { ProposalCheck, StateDiff } from '../types'
 export const checkStateChanges: ProposalCheck = {
   name: 'Reports all state changes from the proposal',
   async checkProposal(proposal, sim, deps) {
-    let info = ''
+    const info: string[] = []
     const warnings = []
     // Check if the transaction reverted, and if so return revert reason
     if (!sim.transaction.status) {
@@ -45,7 +46,7 @@ export const checkStateChanges: ProposalCheck = {
     for (const [address, diffs] of Object.entries(stateDiffs)) {
       // Use contracts array to get contract name of address
       const contract = sim.contracts.find((c) => c.address === address)
-      info += `\n    - ${getContractName(contract)}`
+      info.push(bullet(getContractName(contract)))
 
       // Parse each diff. A single diff may involve multiple storage changes, e.g. a proposal that
       // executes three transactions will show three state changes to the `queuedTransactions`
@@ -58,13 +59,13 @@ export const checkStateChanges: ProposalCheck = {
           diff.raw.forEach((w) => {
             const oldVal = JSON.stringify(w.original)
             const newVal = JSON.stringify(w.dirty)
-            info += `\n        - Slot \`${w.key}\` changed from \`${oldVal}\` to \`${newVal}\``
+            info.push(bullet(`Slot \`${w.key}\` changed from \`${oldVal}\` to \`${newVal}\``, 1))
           })
         } else if (diff.soltype.simple_type) {
           // This is a simple type with a single changed value
           const oldVal = JSON.parse(JSON.stringify(diff.original))
           const newVal = JSON.parse(JSON.stringify(diff.dirty))
-          info += `\n        - \`${diff.soltype.name}\` changed from \`${oldVal}\` to \`${newVal}\``
+          info.push(bullet(`\`${diff.soltype.name}\` changed from \`${oldVal}\` to \`${newVal}\``, 1))
         } else if (diff.soltype.type.startsWith('mapping')) {
           // This is a complex type like a mapping, which may have multiple changes. The diff.original
           // and diff.dirty fields can be strings or objects, and for complex types they are objects,
@@ -75,7 +76,7 @@ export const checkStateChanges: ProposalCheck = {
           keys.forEach((k) => {
             const oldVal = JSON.stringify(original[k])
             const newVal = JSON.stringify(dirty[k])
-            info += `\n        - \`${diff.soltype?.name}\` key \`${k}\` changed from \`${oldVal}\` to \`${newVal}\``
+            info.push(bullet(`\`${diff.soltype?.name}\` key \`${k}\` changed from \`${oldVal}\` to \`${newVal}\``, 1))
           })
         } else {
           // TODO arrays and nested mapping are currently not well supported -- find a transaction
@@ -85,7 +86,7 @@ export const checkStateChanges: ProposalCheck = {
           diff.raw.forEach((w) => {
             const oldVal = JSON.stringify(w.original)
             const newVal = JSON.stringify(w.dirty)
-            info += `\n        - Slot \`${w.key}\` changed from \`${oldVal}\` to \`${newVal}\``
+            info.push(bullet(`Slot \`${w.key}\` changed from \`${oldVal}\` to \`${newVal}\``, 1))
             warnings.push(
               `Could not parse state: add support for formatting type ${diff.soltype?.type} (slot ${w.key})`
             )
@@ -93,6 +94,7 @@ export const checkStateChanges: ProposalCheck = {
         }
       })
     }
-    return { info: [`State changes:${info}`], warnings: [], errors: [] }
+
+    return { info, warnings: [], errors: [] }
   },
 }

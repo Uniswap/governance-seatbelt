@@ -3,6 +3,7 @@ import { getAddress } from '@ethersproject/address'
 import { formatUnits } from '@ethersproject/units'
 import { ProposalCheck, FluffyCall } from '../types'
 import { fetchTokenMetadata } from '../utils/contracts/erc20'
+import { bullet } from '../presentation/report'
 
 /**
  * Decodes proposal target calldata into a human-readable format
@@ -36,7 +37,8 @@ export const checkDecodeCalldata: ProposalCheck = {
       })
     )
 
-    return { info: descriptions.filter((d) => d !== null) as string[], warnings, errors: [] }
+    const info = descriptions.filter((d) => d !== null).map((d) => bullet(d as string))
+    return { info, warnings, errors: [] }
   },
 }
 
