@@ -7,6 +7,7 @@ import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import rehypeSanitize from 'rehype-sanitize'
 import rehypeStringify from 'rehype-stringify'
+import rehypeSlug from 'rehype-slug'
 import { visit } from 'unist-util-visit'
 import { unified } from 'unified'
 import { mdToPdf } from 'md-to-pdf'
@@ -122,18 +123,28 @@ export async function generateAndSaveReports(
   const path = `${dir}/${id}`
 
   // Generate the markdown proposal report. This is the base report which is translated into other file types.
-  const markdownReport = await toMarkdownProposalReport(blocks, proposal, checks)
+  const baseReport = await toMarkdownProposalReport(blocks, proposal, checks)
+
+  const markdownReport = String(await remark().use(remarkFixEmojiLinks).process(baseReport))
 
   // Generate the HTML report.
   const htmlReport = String(
-    await unified().use(remarkParse).use(remarkRehype).use(rehypeSanitize).use(rehypeStringify).process(markdownReport)
+    await unified()
+      .use(remarkParse)
+      .use(remarkRehype)
+      .use(rehypeSanitize)
+      .use(rehypeStringify)
+      .use(rehypeSlug)
+      .process(baseReport)
   )
+
+  const pdfReport = markdownReport
 
   // Save off all reports
   await Promise.all([
     fsp.writeFile(`${path}.md`, markdownReport),
     fsp.writeFile(`${path}.html`, htmlReport),
-    mdToPdf({ content: markdownReport }, { dest: `${path}.pdf` }),
+    mdToPdf({ content: pdfReport }, { dest: `${path}.pdf` }),
   ])
 }
 
@@ -183,7 +194,7 @@ ${Object.keys(checks)
 `
 
   // Add table of contents and return report.
-  return (await remark().use(remarkToc, { tight: true }).use(remarkFixEmojiLinks).process(report)).toString()
+  return (await remark().use(remarkToc, { tight: true }).process(report)).toString()
 }
 
 /**
