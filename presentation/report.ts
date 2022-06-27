@@ -122,12 +122,15 @@ export async function generateAndSaveReports(
   const id = proposal.id
   const path = `${dir}/${id}`
 
-  // Generate the markdown proposal report. This is the base report which is translated into other file types.
+  // Generate the base markdown proposal report. This is the markdown report which is translated into other file types.
   const baseReport = await toMarkdownProposalReport(blocks, proposal, checks)
 
+  // The table of contents' links in the baseReport work when converted to HTML, but do not work as Markdown
+  // or PDF links, since the emojis in the header titles cause issues. We apply the remarkFixEmojiLinks plugin
+  // to fix this, and use this updated version when generating the Markdown and PDF reports.
   const markdownReport = String(await remark().use(remarkFixEmojiLinks).process(baseReport))
 
-  // Generate the HTML report.
+  // Generate the HTML report string using the `baseReport`.
   const htmlReport = String(
     await unified()
       .use(remarkParse)
@@ -138,13 +141,11 @@ export async function generateAndSaveReports(
       .process(baseReport)
   )
 
-  const pdfReport = markdownReport
-
-  // Save off all reports
+  // Save off all reports. The Markdown and PDF reports use the `markdownReport`.
   await Promise.all([
-    fsp.writeFile(`${path}.md`, markdownReport),
     fsp.writeFile(`${path}.html`, htmlReport),
-    mdToPdf({ content: pdfReport }, { dest: `${path}.pdf` }),
+    fsp.writeFile(`${path}.md`, markdownReport),
+    mdToPdf({ content: markdownReport }, { dest: `${path}.pdf` }),
   ])
 }
 
