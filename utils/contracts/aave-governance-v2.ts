@@ -1,7 +1,8 @@
 import { Contract } from 'ethers'
 import { provider } from '../clients/ethers'
+import { AAVE_GOV_V2_ADDRESS } from '../constants'
 
-const AAVE_GOVERNANCE_V2_ABI = [
+export const AAVE_GOVERNANCE_V2_ABI = [
   'event ExecutorAuthorized(address)',
   'event ExecutorUnauthorized(address)',
   'event GovernanceStrategyChanged(address indexed,address indexed)',
@@ -39,7 +40,7 @@ const AAVE_GOVERNANCE_V2_ABI = [
   'function unauthorizeExecutors(address[])',
 ]
 
-export const aaveGovV2 = (address: string) => new Contract(address, AAVE_GOVERNANCE_V2_ABI, provider)
+export const aaveGovernanceContract = new Contract(AAVE_GOV_V2_ADDRESS, AAVE_GOVERNANCE_V2_ABI, provider)
 
 // All possible states a proposal might be in.
 // These are defined by the `ProposalState` enum so when we fetch the state of a proposal ID

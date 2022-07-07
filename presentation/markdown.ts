@@ -83,7 +83,8 @@ export async function toProposalReport(
   blocks: { current: Block; start: Block | null; end: Block | null },
   proposal: ProposalCreatedEvent,
   checks: AllCheckResults,
-  sim: TenderlySimulation
+  sim: TenderlySimulation,
+  subReports: { name: string; link: string }[] = []
 ): Promise<string> {
   const { id, creator, targets, endBlock, startBlock, ipfsHash, executor } = proposal
   const ipfsMeta = await getProposalMetadata(ipfsHash, IPFS_GATEWAY)
@@ -108,11 +109,42 @@ _Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blo
     sim.simulation.id
   }](https://dashboard.tenderly.co/me/simulator/${sim.simulation.id})
 
+
+${subReports.length && `### Subreports`}
+${subReports.map((report) => `-[${report.name}](${report.link})\n`)}
+
 <details>
   <summary>Proposal text</summary>
 
 ${ipfsMeta.description}
 </details>
+
+### Checks
+${Object.keys(checks)
+  .map((checkId) => toCheckSummary(checks[checkId]))
+  .join('\n')}`
+}
+
+/**
+ * Produce a markdown report summarizing the result of all the checks for a given proposal
+ * @param blocks the relevant blocks for the proposal
+ * @param proposal
+ * @param checks
+ */
+export async function toArcReport(
+  blocks: { current: Block; start: Block | null; end: Block | null },
+  checks: AllCheckResults,
+  sim: TenderlySimulation,
+  title: string
+): Promise<string> {
+  return `## ${title}
+
+_Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blocks.current.number}) at ${formatTime(
+    blocks.current.timestamp
+  )}_
+- Simulation: [https://dashboard.tenderly.co/me/simulator/${
+    sim.simulation.id
+  }](https://dashboard.tenderly.co/me/simulator/${sim.simulation.id})
 
 ### Checks
 ${Object.keys(checks)

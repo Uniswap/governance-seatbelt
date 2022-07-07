@@ -5,8 +5,6 @@ import { PROPOSAL_STATES } from './utils/contracts/aave-governance-v2'
 // --- Simulation configurations ---
 interface SimulationConfigBase {
   type: 'executed' | 'proposed'
-  daoName: string // e.g. 'Aave'
-  governanceAddress: string
   currentProposalState: keyof typeof PROPOSAL_STATES
   proposalId: BigNumberish // ID of the executed proposal
 }
@@ -23,12 +21,9 @@ export type SimulationConfig = SimulationConfigExecuted | SimulationConfigPropos
 
 export interface SimulationResult {
   sim: TenderlySimulation
-  proposal: ProposalCreatedEvent
+  proposal: ProposalStruct & { state: '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' }
   latestBlock: Block
-}
-
-export interface SimulationData extends SimulationResult {
-  config: SimulationConfig
+  arc?: TenderlySimulation
 }
 
 export interface ProposalStruct {
@@ -135,6 +130,7 @@ export type TenderlyPayload = {
     timestamp?: string
   }
   generate_access_list?: boolean
+  root?: string
 }
 
 // --- Tenderly types, Response ---

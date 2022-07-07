@@ -19,6 +19,6 @@ const ALL_CHECKS: {
   // which is consumed by slither. This prevents us from having to compile the contracts twice.
   checkSolc,
   checkSlither,
-}
+} as const
 
 export default ALL_CHECKS

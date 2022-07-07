@@ -1,7 +1,8 @@
 import { getAddress } from '@ethersproject/address'
-import { getContractName, getAaveGovernanceV2Slots } from '../utils/clients/tenderly'
+import { getContractName } from '../utils/clients/tenderly'
 import { ProposalCheck, StateDiff } from '../types'
 import { deepDiff, interpretStateChange } from '../presentation/state-change-interpreter'
+import { getAaveGovernanceV2Slots } from '../utils/simulations/proposal'
 
 /**
  * Reports all state changes from the proposal
