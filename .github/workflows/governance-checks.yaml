@@ -25,6 +25,7 @@ jobs:
       matrix:
         include:
           - DAO_NAME: 'Aave'
+      fail-fast: false
 
     name: Check live proposal number
     runs-on: ubuntu-latest
