@@ -111,7 +111,7 @@ jobs:
             git config --global user.email 'cache-bot@bgdlabs.com'
             git pull origin main
             git add reports
-            git commit -am "fix(cache): automated cache update"
+            git commit -am "fix(cache): ${{ matrix.proposals }} [:robot:]"
             git push
           exit
           fi

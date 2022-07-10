@@ -16,10 +16,11 @@ export async function simulateProposal(proposalId: BigNumberish): Promise<Simula
   if (PROPOSAL_STATES[proposalState] === ProposalState.Executed) {
     // --- Get details about the proposal we're analyzing ---
     const blockRange = [0, latestBlock.number]
-    const [createProposalLogs, proposalExecutedLogs] = await Promise.all([
-      aaveGovernanceContract.queryFilter(aaveGovernanceContract.filters.ProposalCreated(), ...blockRange),
-      aaveGovernanceContract.queryFilter(aaveGovernanceContract.filters.ProposalExecuted(), ...blockRange),
-    ])
+    const proposalExecutedLogs = await aaveGovernanceContract.queryFilter(
+      aaveGovernanceContract.filters.ProposalExecuted(),
+      ...blockRange
+    )
+
     const proposalExecutedEvent = proposalExecutedLogs.filter((log) => log.args?.id.toNumber() === proposalId)[0]
     if (!proposalExecutedEvent)
       throw new Error(`Proposal execution log for #${proposalId} not found in governance logs`)
