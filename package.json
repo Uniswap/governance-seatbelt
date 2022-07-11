@@ -9,7 +9,7 @@
     "compile": "hardhat compile",
     "start": "ts-node index.ts",
     "ci:matrix": "ts-node scripts/generate-matrix.ts",
-    "ci:readme": "ts-node scripts/generate-readme.ts",
+    "ci:readme": "ts-node scripts/generate-readme.ts && prettier --write README.md",
     "build:build-matrix-script": "npx esbuild scripts/generate-matrix.ts --tsconfig=./tsconfig.json --bundle --outfile=.github/actions/generate-matrix/index.js --platform=node --target=es6",
     "lint:fix": "prettier --write .",
     "test": "jest .",
