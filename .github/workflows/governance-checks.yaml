@@ -6,10 +6,11 @@ concurrency:
 
 on:
   schedule:
-    - cron: '0 */2 * * *'
+    - cron: '0 * * * *'
   push:
     paths-ignore:
       - 'reports/**'
+      - 'README.md'
     branches:
       - main
   workflow_dispatch:
@@ -20,7 +21,7 @@ on:
         default: 'false'
 
 jobs:
-  check-proposal-numbers:
+  generate-matrix:
     strategy:
       matrix:
         include:
@@ -35,26 +36,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-          cache: 'yarn'
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: Run checks
-        run: yarn number
+      - name: Build Matrix
+        uses: ./.github/actions/generate-matrix
         id: generator
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
           DAO_NAME: ${{ matrix.DAO_NAME }}
+          OMIT_CACHE: ${{ github.event.inputs.omitCache }}
 
-  check-proposals:
+  generate-reports:
     strategy:
-      matrix: ${{fromJson(needs.check-proposal-numbers.outputs.matrix)}}
+      matrix: ${{fromJson(needs.generate-matrix.outputs.matrix)}}
     needs:
-      - check-proposal-numbers
+      - generate-matrix
     name: Check all live proposals
     runs-on: ubuntu-latest
     steps:
@@ -90,7 +84,7 @@ jobs:
       - name: Run checks
         run: yarn start
         env:
-          OMIT_CACHE: ${{ github.event_name == 'push' && 'true' || github.event.inputs.omitCache}}
+          OMIT_CACHE: ${{ github.event.inputs.omitCache }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RPC_URL: ${{ secrets.RPC_URL }}
@@ -109,9 +103,44 @@ jobs:
           else
             git config --global user.name 'Cache bot'
             git config --global user.email 'cache-bot@bgdlabs.com'
-            git pull origin main
+            git config --global pull.rebase true
             git add reports
-            git commit -am "fix(cache): ${{ matrix.proposals }} [:robot:]"
+            git commit -am "fix(cache): ${{ matrix.proposals }} :robot:"
+            git pull origin main
+            git push
+          exit
+          fi
+
+  update-readme:
+    needs:
+      - generate-reports
+
+    name: Check all live proposals
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'yarn'
+
+      - name: Update readme
+        run: yarn ci:readme
+
+      - name: check diff
+        run: |
+          if [[ -z $(git status -s) ]]
+          then
+            echo "tree is clean"
+          else
+            git config --global user.name 'Cache bot'
+            git config --global user.email 'cache-bot@bgdlabs.com'
+            git config --global pull.rebase true
+            git add reports
+            git commit -am "fix(cache): update readme :robot:"
+            git pull origin main
             git push
           exit
           fi

@@ -1,0 +1,5 @@
+name: Matrix generator
+description: Generates proposal matrix
+runs:
+  using: 'node16'
+  main: 'index.js'

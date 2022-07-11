@@ -9,7 +9,7 @@ on:
 
 jobs:
   ensure-proposals-not-committed:
-    name: Check that proposals are not committed
+    name: No committed proposals
     runs-on: ubuntu-latest
 
     steps:

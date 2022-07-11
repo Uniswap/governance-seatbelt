@@ -47,6 +47,7 @@ async function runSimulation() {
   console.log(`Simulating ${allProposalIds.length} ${DAO_NAME} proposals: IDs of ${JSON.stringify(allProposalIds)}`)
 
   const errors: any[] = []
+  console.log(`\n### cacheConfig ###\ncache:${JSON.stringify(cache)}\nOMIT_CACHE:${OMIT_CACHE}\n`)
   const { results: _results } = await PromisePool.for(allProposalIds)
     .withConcurrency(5)
     .handleError(async (error, proposalId) => {
