@@ -98162,7 +98162,7 @@ var require_cache = __commonJS({
 // proposal-states.json
 var require_proposal_states = __commonJS({
   "proposal-states.json"(exports, module2) {
-    module2.exports = { "0": 7, "10": 7, "11": 7, "12": 7, "13": 7, "14": 7, "15": 7, "16": 7, "17": 7, "18": 7, "19": 7, "30": 7, "72": 7, "79": 7, "80": 2, "81": 2, "86": 2 };
+    module2.exports = {};
   }
 });
 
@@ -98230,7 +98230,7 @@ var AAVE_GOVERNANCE_V2_ABI = [
   "function unauthorizeExecutors(address[])"
 ];
 var aaveGovernanceContract = new import_ethers2.Contract(AAVE_GOV_V2_ADDRESS, AAVE_GOVERNANCE_V2_ABI, provider);
-var isProposalStateImmutable = (state) => !["0", "2", "4", "5"].includes(state);
+var isProposalStateImmutable = (state) => ![0, 2, 4, 5].includes(state);
 
 // scripts/generate-matrix.ts
 var import_cache = __toESM(require_cache());
@@ -98245,7 +98245,9 @@ function generateMatrix() {
       let chunk = proposals.slice(i, i + chunkSize);
       const cacheKey = [...Array(Number(chunkSize)).keys()].map((n) => n + i).toString().replace(/,/g, "_");
       if (!OMIT_CACHE) {
-        const key = yield (0, import_cache.restoreCache)(["proposal-states.json"], `${DAO_NAME}-${cacheKey}`);
+        const key = yield (0, import_cache.restoreCache)(["proposal-states.json"], `${DAO_NAME}-${cacheKey}-${process.env.GITHUB_SHA}`, [
+          `${DAO_NAME}-${cacheKey}-`
+        ]);
         if (key) {
           const cache = require_proposal_states();
           let tempChunk = [];
