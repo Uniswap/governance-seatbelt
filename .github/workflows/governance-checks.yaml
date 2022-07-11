@@ -43,6 +43,7 @@ jobs:
           RPC_URL: ${{ secrets.RPC_URL }}
           DAO_NAME: ${{ matrix.DAO_NAME }}
           OMIT_CACHE: ${{ github.event.inputs.omitCache }}
+          GITHUB_SHA: ${{ github.sha }}
 
   generate-reports:
     strategy:
@@ -60,7 +61,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: proposal-states.json
-          key: ${{ matrix.DAO_NAME }}-${{ matrix.cacheKey }}
+          key: ${{ matrix.DAO_NAME }}-${{ matrix.cacheKey }}-${{ github.sha }} # this will always be a miss, so new cache will be stored
+          restore-keys: ${{ matrix.DAO_NAME }}-${{ matrix.cacheKey }}- # this will partial match the last stored cache
 
       - uses: actions/setup-node@v3
         with:
