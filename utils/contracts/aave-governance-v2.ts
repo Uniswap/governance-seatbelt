@@ -46,14 +46,14 @@ export const aaveGovernanceContract = new Contract(AAVE_GOV_V2_ADDRESS, AAVE_GOV
 // These are defined by the `ProposalState` enum so when we fetch the state of a proposal ID
 // we receive an integer response, and use this to map that integer to the state
 export const PROPOSAL_STATES = {
-  '0': 'Pending',
-  '1': 'Canceled',
-  '2': 'Active',
-  '3': 'Failed',
-  '4': 'Succeeded',
-  '5': 'Queued',
-  '6': 'Expired',
-  '7': 'Executed',
+  0: 'Pending',
+  1: 'Canceled',
+  2: 'Active',
+  3: 'Failed',
+  4: 'Succeeded',
+  5: 'Queued',
+  6: 'Expired',
+  7: 'Executed',
 }
 
-export const isProposalStateImmutable = (state: keyof typeof PROPOSAL_STATES) => !['0', '2', '4', '5'].includes(state)
+export const isProposalStateImmutable = (state: keyof typeof PROPOSAL_STATES) => ![0, 2, 4, 5].includes(state)

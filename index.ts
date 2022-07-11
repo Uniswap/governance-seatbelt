@@ -17,7 +17,7 @@ import { getArcPayload, simulateArc, targetsArc } from './utils/simulations/arc'
 
 // load cache
 const proposalStateCachePath = './proposal-states.json'
-let cache: { [key: string]: string } = {}
+let cache: { [key: string]: number } = {}
 if (fs.existsSync(proposalStateCachePath)) cache = require(proposalStateCachePath)
 
 function getProposalFileName(proposalId: number, simulationFileSuffix?: string) {
