@@ -98159,13 +98159,6 @@ var require_cache = __commonJS({
   }
 });
 
-// proposal-states.json
-var require_proposal_states = __commonJS({
-  "proposal-states.json"(exports, module2) {
-    module2.exports = {};
-  }
-});
-
 // utils/constants.ts
 var RPC_URL = process.env.RPC_URL;
 var TENDERLY_ACCESS_TOKEN = process.env.TENDERLY_ACCESS_TOKEN;
@@ -98249,7 +98242,9 @@ function generateMatrix() {
           `${DAO_NAME}-${cacheKey}-`
         ]);
         if (key) {
-          const cache = require_proposal_states();
+          const path = "./proposal-states.json";
+          const cache = (0, import_node_fs.existsSync)(path) ? JSON.parse((0, import_node_fs.readFileSync)(path).toString()) : {};
+          console.log(cache);
           let tempChunk = [];
           for (const proposalId of chunk) {
             const proposalState = yield aaveGovernanceContract.getProposalState(proposalId);
@@ -98258,7 +98253,7 @@ function generateMatrix() {
               tempChunk.push(proposalId);
           }
           chunk = tempChunk;
-          (0, import_node_fs.unlinkSync)("proposal-states.json");
+          (0, import_node_fs.unlinkSync)(path);
         }
       }
       if (chunk.length != 0) {

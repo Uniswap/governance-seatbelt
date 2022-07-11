@@ -5,7 +5,7 @@ import {
   PROPOSAL_STATES,
 } from '../utils/contracts/aave-governance-v2'
 import { restoreCache } from '@actions/cache'
-import { unlinkSync } from 'node:fs'
+import { unlinkSync, readFileSync, existsSync } from 'node:fs'
 
 /**
  * We only want to re-simulate proposals that:
@@ -36,7 +36,9 @@ async function generateMatrix() {
         `${DAO_NAME}-${cacheKey}-`,
       ])
       if (key) {
-        const cache = require('../proposal-states.json')
+        const path = './proposal-states.json'
+        const cache = existsSync(path) ? JSON.parse(readFileSync(path).toString()) : {}
+        console.log(cache)
         let tempChunk = []
         for (const proposalId of chunk) {
           const proposalState = (await aaveGovernanceContract.getProposalState(
@@ -46,7 +48,7 @@ async function generateMatrix() {
           if (!skip) tempChunk.push(proposalId)
         }
         chunk = tempChunk
-        unlinkSync('proposal-states.json')
+        unlinkSync(path)
       }
     }
     // we need to use _ instead of, so we can use it as a cache identifier

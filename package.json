@@ -14,7 +14,7 @@
     "lint:fix": "prettier --write .",
     "test": "jest .",
     "prepare": "husky install",
-    "pre-commit": "lint-staged"
+    "pre-commit": "yarn build:build-matrix-script && lint-staged"
   },
   "repository": {
     "type": "git",
