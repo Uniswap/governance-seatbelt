@@ -110,8 +110,8 @@ _Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blo
   }](https://dashboard.tenderly.co/me/simulator/${sim.simulation.id})
 
 
-${subReports.length && `### Subreports`}
-${subReports.map((report) => `-[${report.name}](${report.link})\n`)}
+${subReports.length !== 0 && `### Subreports`}
+${subReports.map((report) => `- [${report.name}](${report.link})\n`)}
 
 <details>
   <summary>Proposal text</summary>

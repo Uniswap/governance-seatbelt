@@ -80,12 +80,14 @@ export async function simulateProposal(proposalId: BigNumberish): Promise<Simula
     const duration = await executorContract.VOTING_DURATION()
     const quorum = await executorContract.MINIMUM_QUORUM()
 
-    const SNAPSHOT_BLOCK_NUMBER = proposal.startBlock.add(1).toNumber()
+    const CREATION_BLOCK_NUMBER = proposal.startBlock.add(1).toNumber()
     const VOTING_DURATION = duration.toNumber() + 1 // block number voting duration
     const VOTING_DELAY = delay.toNumber() + 1 // 1 sec margin in seconds
-    const EVM_BLOCK_NUMBER = SNAPSHOT_BLOCK_NUMBER + VOTING_DURATION
-    const EVM_EXECUTION_TIME = (await provider.getBlock(SNAPSHOT_BLOCK_NUMBER)).timestamp + VOTING_DURATION * 13
+    const EVM_BLOCK_NUMBER = CREATION_BLOCK_NUMBER + VOTING_DURATION
+    const EVM_EXECUTION_TIME = (await provider.getBlock(CREATION_BLOCK_NUMBER)).timestamp + VOTING_DURATION * 13
     const FORCED_EXECUTION_TIME = EVM_EXECUTION_TIME + VOTING_DELAY
+    // if a proposal is not yet finished instead of simulating at creation it makes sense to fork of the current block
+    const SNAPSHOT_BLOCK_NUMBER = EVM_BLOCK_NUMBER > latestBlock.number ? latestBlock.number : EVM_BLOCK_NUMBER - 1
 
     // Compute the approximate earliest possible execution time based on governance parameters. This
     // can only be approximate because voting period is defined in blocks, not as a timestamp. We
