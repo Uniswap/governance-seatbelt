@@ -177,6 +177,7 @@ Some notes on the outputs of reports:
 | Aave <> Starknet - Phase I (Part 2)                                            | [085.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/085.md)         | [app](https://app.aave.com/governance/proposal/?proposalId=85) |
 | Bounty to Hacxyk for fallback oracle misconfiguration                          | [086.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/086.md)         | [app](https://app.aave.com/governance/proposal/?proposalId=86) |
 | Strategic Investment Part 1 - BAL <> AAVE Token Swap                           | [087.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/087.md)         | [app](https://app.aave.com/governance/proposal/?proposalId=87) |
+| Sigma Prime - Security Assessment Services for Aave                            | [088.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/088.md)         | [app](https://app.aave.com/governance/proposal/?proposalId=88) |
 
 <!-- ### Reports table end ### -->
 
