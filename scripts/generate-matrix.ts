@@ -1,9 +1,5 @@
 import { DAO_NAME, OMIT_CACHE } from '../utils/constants'
-import {
-  aaveGovernanceContract,
-  isProposalStateImmutable,
-  PROPOSAL_STATES,
-} from '../utils/contracts/aave-governance-v2'
+import { aaveGovernanceContract, isProposalStateImmutable } from '../utils/contracts/aave-governance-v2'
 import { restoreCache } from '@actions/cache'
 import { unlinkSync, readFileSync, existsSync } from 'node:fs'
 
@@ -41,11 +37,8 @@ async function generateMatrix() {
         console.log(cache)
         let tempChunk = []
         for (const proposalId of chunk) {
-          const proposalState = (await aaveGovernanceContract.getProposalState(
-            proposalId
-          )) as keyof typeof PROPOSAL_STATES
-          const skip = isProposalStateImmutable(proposalState) && cache[proposalId] === proposalState
-          if (!skip) tempChunk.push(proposalId)
+          // id not cached
+          if (!cache[proposalId] || !isProposalStateImmutable(cache[proposalId])) tempChunk.push(proposalId)
         }
         chunk = tempChunk
         unlinkSync(path)

@@ -58,7 +58,7 @@ export const checkStateChanges: ProposalCheck = {
       // executes three transactions will show three state changes to the `queuedTransactions`
       // mapping within a single `diff` element. We always JSON.stringify the values so structs
       // (i.e. tuples) don't print as [object Object]
-      diffs.forEach((diff) => {
+      for (const diff of diffs) {
         if (!diff.soltype) {
           // In this branch, state change is not decoded, so return raw data of each storage write
           // (all other branches have decoded state changes)
@@ -81,12 +81,12 @@ export const checkStateChanges: ProposalCheck = {
           const keys = Object.keys(diff.original)
           const original = diff.original as Record<string, any>
           const dirty = diff.dirty as Record<string, any>
-          keys.forEach((k) => {
+          for (const k of keys) {
             info += deepDiff(original[k], dirty[k], `\`${diff.soltype?.name}\` key \`${k}\``)
-            const interpretation = interpretStateChange(diff.soltype?.name, original[k], dirty[k])
-            if (interpretation) info += `${interpretation}`
+            const interpretation = await interpretStateChange(diff.soltype?.name, original[k], dirty[k], k)
+            if (interpretation) info += `\n${interpretation}`
             info += '\n'
-          })
+          }
         } else {
           // TODO arrays and nested mapping are currently not well supported -- find a transaction
           // that changes state of these types to inspect the Tenderly simulation response and
@@ -102,7 +102,7 @@ export const checkStateChanges: ProposalCheck = {
             )
           })
         }
-      })
+      }
       info += '```\n'
     }
     return { info: [`State changes:${info}`], warnings: [], errors: [] }

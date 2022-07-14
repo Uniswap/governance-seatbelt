@@ -32,7 +32,7 @@ ${toMessageList('Info', info)}
  * @param address to be linked
  * @param code whether to link to the code tab
  */
-function toAddressLink(address: string, code: boolean = false): string {
+export function toAddressLink(address: string, code: boolean = false): string {
   return `[${address}](https://etherscan.io/address/${address}${code ? '#code' : ''})`
 }
 

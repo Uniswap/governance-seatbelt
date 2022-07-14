@@ -98247,9 +98247,7 @@ function generateMatrix() {
           console.log(cache);
           let tempChunk = [];
           for (const proposalId of chunk) {
-            const proposalState = yield aaveGovernanceContract.getProposalState(proposalId);
-            const skip = isProposalStateImmutable(proposalState) && cache[proposalId] === proposalState;
-            if (!skip)
+            if (!cache[proposalId] || !isProposalStateImmutable(cache[proposalId]))
               tempChunk.push(proposalId);
           }
           chunk = tempChunk;
