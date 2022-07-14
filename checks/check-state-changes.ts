@@ -24,27 +24,25 @@ export const checkStateChanges: ProposalCheck = {
     // recording state changes for (1) the the `queuedTransactions` mapping of the executor, and
     // (2) the `proposal.executed` change of the governance, because this will be consistent across
     // all proposals and mainly add noise to the output
-    const stateDiffs = sim.transaction.transaction_info.state_diff
-      .sort((a, b) => a.raw?.[0]?.address.localeCompare(b.raw?.[0]?.address, 'un-us'))
-      .reduce((diffs, diff) => {
-        // TODO: double check if that's safe to skip
-        if (!diff.raw?.[0]) return diffs
-        const addr = getAddress(diff.raw[0].address)
-        // Check if this is a diff that should be filtered out
-        const isGovernance = getAddress(addr) == deps.governance.address
-        const isExecutor = getAddress(addr) == deps.executor.address
-        const isGovernanceExecutedSlot = diff.raw[0].key === getAaveGovernanceV2Slots(proposal.id).canceled // canceled and executed are in same slot
-        const isProposalSlot = diff.raw[0].key === getAaveGovernanceV2Slots(proposal.id).proposal
-        const isQueuedTx = diff.soltype?.name.includes('queuedTransactions')
+    const stateDiffs = sim.transaction.transaction_info.state_diff.reduce((diffs, diff) => {
+      // TODO: double check if that's safe to skip
+      if (!diff.raw?.[0]) return diffs
+      const addr = getAddress(diff.raw[0].address)
+      // Check if this is a diff that should be filtered out
+      const isGovernance = getAddress(addr) == deps.governance.address
+      const isExecutor = getAddress(addr) == deps.executor.address
+      const isGovernanceExecutedSlot = diff.raw[0].key === getAaveGovernanceV2Slots(proposal.id).canceled // canceled and executed are in same slot
+      const isProposalSlot = diff.raw[0].key === getAaveGovernanceV2Slots(proposal.id).proposal
+      const isQueuedTx = diff.soltype?.name.includes('queuedTransactions')
 
-        const shouldSkipDiff =
-          (isGovernance && (isGovernanceExecutedSlot || isProposalSlot)) || (isExecutor && isQueuedTx)
-        // Skip diffs as required and add the rest to our diffs object
-        if (shouldSkipDiff) return diffs
-        else if (!diffs[addr]) diffs[addr] = [diff]
-        else diffs[addr].push(diff)
-        return diffs
-      }, {} as Record<string, StateDiff[]>)
+      const shouldSkipDiff =
+        (isGovernance && (isGovernanceExecutedSlot || isProposalSlot)) || (isExecutor && isQueuedTx)
+      // Skip diffs as required and add the rest to our diffs object
+      if (shouldSkipDiff) return diffs
+      else if (!diffs[addr]) diffs[addr] = [diff]
+      else diffs[addr].push(diff)
+      return diffs
+    }, {} as Record<string, StateDiff[]>)
 
     // Return if no state diffs to show
     if (!Object.keys(stateDiffs).length) return { info: ['No state changes'], warnings: [], errors: [] }
@@ -64,14 +62,12 @@ export const checkStateChanges: ProposalCheck = {
         if (!diff.soltype) {
           // In this branch, state change is not decoded, so return raw data of each storage write
           // (all other branches have decoded state changes)
-          diff.raw
-            .sort((a, b) => a.key.localeCompare(b.key, 'en-us'))
-            .forEach((w) => {
-              const oldVal = JSON.stringify(w.original)
-              const newVal = JSON.stringify(w.dirty)
-              // info += `\n        - Slot \`${w.key}\` changed from \`${oldVal}\` to \`${newVal}\``
-              info += deepDiff(oldVal, newVal, `Slot \`${w.key}\``)
-            })
+          diff.raw.forEach((w) => {
+            const oldVal = JSON.stringify(w.original)
+            const newVal = JSON.stringify(w.dirty)
+            // info += `\n        - Slot \`${w.key}\` changed from \`${oldVal}\` to \`${newVal}\``
+            info += deepDiff(oldVal, newVal, `Slot \`${w.key}\``)
+          })
         } else if (diff.soltype.simple_type) {
           // This is a simple type with a single changed value
           // const oldVal = JSON.parse(JSON.stringify(diff.original))
@@ -82,7 +78,7 @@ export const checkStateChanges: ProposalCheck = {
           // This is a complex type like a mapping, which may have multiple changes. The diff.original
           // and diff.dirty fields can be strings or objects, and for complex types they are objects,
           // so we cast them as such
-          const keys = Object.keys(diff.original).sort((a, b) => a.localeCompare(b, 'en-us'))
+          const keys = Object.keys(diff.original)
           const original = diff.original as Record<string, any>
           const dirty = diff.dirty as Record<string, any>
           keys.forEach((k) => {
@@ -96,17 +92,15 @@ export const checkStateChanges: ProposalCheck = {
           // that changes state of these types to inspect the Tenderly simulation response and
           // handle it accordingly. In the meantime we show the raw state changes and print a
           // warning about decoding the data
-          diff.raw
-            .sort((a, b) => a.key.localeCompare(b.key, 'en-us'))
-            .forEach((w) => {
-              const oldVal = JSON.stringify(w.original)
-              const newVal = JSON.stringify(w.dirty)
-              // info += `\n        - Slot \`${w.key}\` changed from \`${oldVal}\` to \`${newVal}\``
-              info += deepDiff(oldVal, newVal, `Slot \`${w.key}\``)
-              warnings.push(
-                `Could not parse state: add support for formatting type ${diff.soltype?.type} (slot ${w.key})`
-              )
-            })
+          diff.raw.forEach((w) => {
+            const oldVal = JSON.stringify(w.original)
+            const newVal = JSON.stringify(w.dirty)
+            // info += `\n        - Slot \`${w.key}\` changed from \`${oldVal}\` to \`${newVal}\``
+            info += deepDiff(oldVal, newVal, `Slot \`${w.key}\``)
+            warnings.push(
+              `Could not parse state: add support for formatting type ${diff.soltype?.type} (slot ${w.key})`
+            )
+          })
         }
       })
       info += '```\n'
