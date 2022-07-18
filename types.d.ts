@@ -174,6 +174,7 @@ interface TenderlyContract {
   standard?: string
   standards?: string[]
   token_data?: TokenData
+  child_contracts?: { id: string; address: string; network_id: string }[]
 }
 
 interface Data {

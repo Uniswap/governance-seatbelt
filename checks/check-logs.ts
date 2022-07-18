@@ -37,8 +37,7 @@ export const checkLogs: ProposalCheck = {
     // Parse each event
     for (const [address, logs] of Object.entries(events)) {
       // Use contracts array to get contract name of address
-      const contract = sim.contracts.find((c) => c.address === address)
-      info += `\n    - ${getContractName(contract, address)}`
+      info += `\n    - ${getContractName(sim.contracts, address)}`
 
       // Format log data for report
       logs.forEach((log) => {

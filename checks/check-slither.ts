@@ -53,7 +53,7 @@ export const checkSlither: ProposalCheck = {
       // Note that slither supports a `--json` flag  we could use, but directly printing the formatted
       // results in a code block is simpler and sufficient for now.
       const formatting = info === '' ? '' : '\n- '
-      const contractName = getContractName(contract, contract.address)
+      const contractName = getContractName(sim.contracts, contract.address)
       info += `${formatting}Slither report for ${contractName}`
       info += `\n\n<details>\n<summary>View report for ${contractName}</summary>\n\n\`\`\`\n${slitherOutput.stderr}\`\`\`\n\n</details>\n\n`
     }

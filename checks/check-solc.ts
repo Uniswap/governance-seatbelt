@@ -52,7 +52,7 @@ export const checkSolc: ProposalCheck = {
 
       // Append results to report info.
       const formatting = info === '' ? '' : '\n- '
-      const contractName = getContractName(contract, contract.address)
+      const contractName = getContractName(sim.contracts, contract.address)
       if (output.stderr === '') {
         info += `${formatting}No compiler warnings for ${contractName}`
       } else {

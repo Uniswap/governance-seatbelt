@@ -51,8 +51,7 @@ export const checkStateChanges: ProposalCheck = {
     // TODO support ETH state changes once tenderly adds support for that in the simulation response
     for (const [address, diffs] of Object.entries(stateDiffs)) {
       // Use contracts array to get contract name of address
-      const contract = sim.contracts.find((c) => c.address === address)
-      info += `\n\`\`\`diff\n# ${getContractName(contract, address)}\n`
+      info += `\n\`\`\`diff\n# ${getContractName(sim.contracts, address)}\n`
 
       // Parse each diff. A single diff may involve multiple storage changes, e.g. a proposal that
       // executes three transactions will show three state changes to the `queuedTransactions`
