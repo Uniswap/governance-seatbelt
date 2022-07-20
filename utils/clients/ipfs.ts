@@ -15,7 +15,7 @@ export async function getProposalMetadata(hash: string, gateway: string): Promis
     },
   })
   try {
-    const { content, data } = matter(response.description)
+    const { content, data } = matter(typeof response === 'object' ? response.description : response)
 
     return {
       ...response,
