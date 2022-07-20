@@ -46,6 +46,7 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
 
   generate-reports:
+    if: ${{needs.generate-matrix.outputs.matrix != '[]'}}
     strategy:
       matrix: ${{fromJson(needs.generate-matrix.outputs.matrix)}}
     needs:
@@ -114,6 +115,7 @@ jobs:
           fi
 
   update-readme:
+    if: ${{needs.generate-matrix.outputs.matrix != '[]'}}
     needs:
       - generate-reports
 
