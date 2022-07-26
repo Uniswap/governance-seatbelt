@@ -31,7 +31,8 @@ jobs:
     name: Check live proposal number
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.generator.outputs.matrix}}
+      matrix: ${{ steps.generator.outputs.matrix }}
+      shouldRun: ${{ steps.generator.outputs.shouldRun }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -46,7 +47,7 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
 
   generate-reports:
-    if: ${{needs.generate-matrix.outputs.matrix != '[]'}}
+    if: ${{needs.generate-matrix.outputs.shouldRun == 'true'}}
     strategy:
       matrix: ${{fromJson(needs.generate-matrix.outputs.matrix)}}
     needs:

@@ -17,6 +17,7 @@ async function generateMatrix() {
   const proposals = [...Array(Number(proposalsCount)).keys()]
   const json = { include: [] as { DAO_NAME: string; proposals: string; cacheKey: string }[] }
   const chunkSize = 10
+  let shouldRun = OMIT_CACHE
   for (let i = 0; i < proposals.length; i += chunkSize) {
     let chunk = proposals.slice(i, i + chunkSize)
     const cacheKey = [...Array(Number(chunkSize)).keys()]
@@ -38,7 +39,10 @@ async function generateMatrix() {
         let tempChunk = []
         for (const proposalId of chunk) {
           // id not cached
-          if (!cache[proposalId] || !isProposalStateImmutable(cache[proposalId])) tempChunk.push(proposalId)
+          if (!cache[proposalId] || !isProposalStateImmutable(cache[proposalId])) {
+            tempChunk.push(proposalId)
+            shouldRun = true
+          }
         }
         chunk = tempChunk
         unlinkSync(path)
@@ -54,6 +58,7 @@ async function generateMatrix() {
     }
   }
   console.log(`::set-output name=matrix::${JSON.stringify(json)}`)
+  console.log(`::set-output name=shouldRun::${shouldRun ? 'true' : 'false'}`)
 }
 
 generateMatrix()
