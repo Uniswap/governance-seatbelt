@@ -179,6 +179,9 @@ Some notes on the outputs of reports:
 | Strategic Investment Part 1 - BAL <> AAVE Token Swap                           | [087.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/087.md)         | [app](https://app.aave.com/governance/proposal/?proposalId=87) |
 | Sigma Prime - Security Assessment Services for Aave                            | [088.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/088.md)         | [app](https://app.aave.com/governance/proposal/?proposalId=88) |
 | Add 1INCH to Aave v2 market                                                    | [089.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/089.md)         | [app](https://app.aave.com/governance/proposal/?proposalId=89) |
+| Add 1INCH to Aave v2 market                                                    | [090.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/090.md)         | [app](https://app.aave.com/governance/proposal/?proposalId=90) |
+| Appoint Securitize as a Whitelister to Aave Arc                                | [091.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/091.md)         | [app](https://app.aave.com/governance/proposal/?proposalId=91) |
+| 4 arc proposal                                                                 | [091_arc.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/091_arc.md) | [app](https://app.aave.com/governance/proposal/?proposalId=91) |
 
 <!-- ### Reports table end ### -->
 
