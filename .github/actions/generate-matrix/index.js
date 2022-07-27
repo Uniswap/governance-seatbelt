@@ -98519,7 +98519,6 @@ function generateMatrix() {
     const proposals = [...Array(Number(proposalsCount)).keys()];
     const json = { include: [] };
     const chunkSize = 10;
-    let shouldRun = OMIT_CACHE;
     for (let i = 0; i < proposals.length; i += chunkSize) {
       let chunk = proposals.slice(i, i + chunkSize);
       const cacheKey = [...Array(Number(chunkSize)).keys()].map((n) => n + i).toString().replace(/,/g, "_");
@@ -98530,12 +98529,10 @@ function generateMatrix() {
         if (key) {
           const path = "./proposal-states.json";
           const cache = (0, import_node_fs.existsSync)(path) ? JSON.parse((0, import_node_fs.readFileSync)(path).toString()) : {};
-          console.log(cache);
           let tempChunk = [];
           for (const proposalId of chunk) {
             if (!cache[proposalId] || !isProposalStateImmutable(cache[proposalId])) {
               tempChunk.push(proposalId);
-              shouldRun = true;
             }
           }
           chunk = tempChunk;
@@ -98551,7 +98548,7 @@ function generateMatrix() {
       }
     }
     console.log(`::set-output name=matrix::${JSON.stringify(json)}`);
-    console.log(`::set-output name=shouldRun::${shouldRun ? "true" : "false"}`);
+    console.log(`::set-output name=shouldRun::${json.include.length ? "true" : "false"}`);
   });
 }
 generateMatrix();
