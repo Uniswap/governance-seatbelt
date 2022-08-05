@@ -26,7 +26,7 @@ function getProposalFileName(proposalId: number, simulationFileSuffix?: string) 
   const filename = `${proposalId.toString().padStart(3, '0')}${
     simulationFileSuffix ? `_${simulationFileSuffix}` : ''
   }.md`
-  const dir = `./reports/${basePath}/`
+  const dir = `./reports/${basePath}`
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
   return `${dir}/${filename}`
 }
@@ -137,7 +137,8 @@ async function generateReports(simOutputs: SimulationResult[]) {
         const filename = getProposalFileName(proposal.id.toNumber(), 'arc')
         fs.writeFileSync(filename, arcReport)
         cache[proposal.id.toString()] = proposal.state
-        subReports.push({ link: filename, name: 'arc' })
+        // will be rendered in another markdown so the path cannot be relative to the file
+        subReports.push({ link: filename.replace('./', '/'), name: 'arc' })
       }
 
       const report = await toProposalReport(
