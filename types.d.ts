@@ -19,11 +19,17 @@ export interface SimulationConfigProposed extends SimulationConfigBase {
 
 export type SimulationConfig = SimulationConfigExecuted | SimulationConfigProposed
 
+export interface SubSimulation {
+  simulation: TenderlySimulation
+  name: string
+  type: 'arc'
+  id: string
+}
 export interface SimulationResult {
   sim: TenderlySimulation
   proposal: ProposalStruct & { state: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 }
   latestBlock: Block
-  arc?: TenderlySimulation
+  subSimulations?: SubSimulation[]
 }
 
 export interface ProposalStruct {
