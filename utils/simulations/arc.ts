@@ -16,7 +16,7 @@ const STATES = {
 const ARC_ADDRESS = '0xAce1d11d836cb3F51Ef658FD4D353fFb3c301218'
 
 export function getArcPayloads(simulation: TenderlySimulation) {
-  const arc = simulation.transaction.transaction_info.state_diff.find(
+  const arc = simulation.transaction.transaction_info.state_diff?.find(
     (diff) =>
       diff.raw?.[0]?.address.toLowerCase() === ARC_ADDRESS.toLowerCase() && diff.soltype?.name === '_actionsSets'
   )
