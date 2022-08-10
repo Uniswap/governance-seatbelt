@@ -182,6 +182,7 @@ Some notes on the outputs of reports:
 | Add 1INCH to Aave v2 market                                                    | [090.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/090.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=90) |
 | Appoint Securitize as a Whitelister to Aave Arc                                | [091.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/091.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=91) |
 | Arc actionSet(4)                                                               | [091_arc_4.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/091_arc_4.md) | [app](https://app.aave.com/governance/proposal/?proposalId=91) |
+| Risk Parameter Updates for Aave V2 (2022-08-03)                                | [092.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/092.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=92) |
 
 <!-- ### Reports table end ### -->
 
