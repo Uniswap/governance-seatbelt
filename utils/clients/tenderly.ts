@@ -11,6 +11,7 @@ import mftch, { FETCH_OPT } from 'micro-ftch'
 // @ts-ignore
 const fetchUrl = mftch.default
 import { governorBravo } from '../contracts/governor-bravo'
+import { getProposalId } from '../contracts/governor'
 import {
   BLOCK_GAS_LIMIT,
   TENDERLY_ACCESS_TOKEN,
@@ -82,7 +83,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
   }
 
   // --- Storage slots and offsets for GovernorBravo ---
-  const govSlots = getGovernorBravoSlots(proposal.id)
+  const govSlots = getGovernorBravoSlots(getProposalId(proposal))
   const queuedTxsSlot = '0x3' // timelock mapping from tx hash to bool about it's queue status
 
   // --- Prepare simulation configuration ---
@@ -121,7 +122,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
       [governor.address]: {
         value: {
           proposalCount: proposalId.toString(),
-          [`${proposalKey}.id`]: proposal.id.toString(),
+          [`${proposalKey}.id`]: getProposalId(proposal).toString(),
           [`${proposalKey}.proposer`]: DEFAULT_FROM,
           [`${proposalKey}.eta`]: eta.toString(),
           [`${proposalKey}.startBlock`]: proposal.startBlock.toString(),
@@ -164,7 +165,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
     block_number: latestBlock.number,
     from: DEFAULT_FROM,
     to: governor.address,
-    input: governor.interface.encodeFunctionData('execute', [proposal.id]),
+    input: governor.interface.encodeFunctionData('execute', [getProposalId(proposal)]),
     gas: BLOCK_GAS_LIMIT,
     gas_price: '0',
     value,
@@ -212,7 +213,9 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const proposal = <ProposalStruct>_proposal
   const [targets, values, sigs, calldatas] = <ProposalActions>_actions
 
-  const proposalCreatedEvent = proposalCreatedLogs.filter((log) => log.args?.id.toNumber() === proposalId)[0]
+  const proposalCreatedEvent = proposalCreatedLogs.filter((log) => {
+    return getProposalId(log.args as unknown as ProposalEvent) === BigNumber.from(proposalId).toBigInt()
+  })[0]
   if (!proposalCreatedEvent) throw new Error(`Proposal creation log for #${proposalId} not found in governor logs`)
 
   // --- Storage slots and offsets for GovernorBravo ---
@@ -327,11 +330,15 @@ async function simulateExecuted(config: SimulationConfigExecuted): Promise<Simul
     governor.queryFilter(governor.filters.ProposalExecuted(), ...blockRange),
   ])
 
-  const proposalCreatedEvent = createProposalLogs.filter((log) => log.args?.id.toNumber() === proposalId)[0]
+  const proposalCreatedEvent = createProposalLogs.filter((log) => {
+    return getProposalId(log.args as unknown as ProposalEvent) === BigNumber.from(proposalId).toBigInt()
+  })[0]
   if (!proposalCreatedEvent) throw new Error(`Proposal creation log for #${proposalId} not found in governor logs`)
   const proposal = proposalCreatedEvent.args as unknown as ProposalEvent
 
-  const proposalExecutedEvent = proposalExecutedLogs.filter((log) => log.args?.id.toNumber() === proposalId)[0]
+  const proposalExecutedEvent = proposalExecutedLogs.filter((log) => {
+    return getProposalId(log.args as unknown as ProposalEvent) === BigNumber.from(proposalId).toBigInt()
+  })[0]
   if (!proposalExecutedEvent) throw new Error(`Proposal execution log for #${proposalId} not found in governor logs`)
 
   // --- Simulate it ---

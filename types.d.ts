@@ -41,6 +41,8 @@ export interface SimulationData extends SimulationResult {
 }
 
 // --- Proposal checks ---
+type GovernorType = 'oz' | 'compound'
+
 export type ProposalActions = [
   // defined as an array instead of an object because the return data from governor.getActions()
   // has no `values` key if all values are zero
@@ -64,7 +66,8 @@ export interface ProposalStruct {
 }
 
 export interface ProposalEvent {
-  id: BigNumber
+  id?: BigNumber // Compound governor
+  proposalId?: BigNumber // OZ governor
   proposer: string
   startBlock: BigNumber
   endBlock: BigNumber
