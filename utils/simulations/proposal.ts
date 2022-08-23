@@ -2,9 +2,9 @@ import { ProposalState } from '@aave/contract-helpers'
 import { BigNumber, BigNumberish } from 'ethers'
 import { defaultAbiCoder, getAddress, hexStripZeros, hexZeroPad, keccak256, parseEther } from 'ethers/lib/utils'
 import { ProposalStruct, SimulationResult, TenderlyPayload } from '../../types'
-import { provider } from '../clients/ethers'
+import { getPastLogs, provider } from '../clients/ethers'
 import { sendSimulation } from '../clients/tenderly'
-import { AAVE_GOV_V2_ADDRESS, BLOCK_GAS_LIMIT, FROM } from '../constants'
+import { AAVE_GOV_V2_ADDRESS, BLOCK_GAS_LIMIT, FORCE_SIMULATION, FROM, RPC_URL, TENDERLY_ROOT } from '../constants'
 import { aaveGovernanceContract, PROPOSAL_STATES } from '../contracts/aave-governance-v2'
 import { executor } from '../contracts/executor'
 import { votingStrategy } from '../contracts/voting-strategy'
@@ -13,21 +13,29 @@ export async function simulateProposal(proposalId: BigNumberish): Promise<Simula
   const proposalState = (await aaveGovernanceContract.getProposalState(proposalId)) as keyof typeof PROPOSAL_STATES
   const proposal = (await aaveGovernanceContract.getProposalById(proposalId)) as ProposalStruct
   const latestBlock = await provider.getBlock('latest')
-  if (PROPOSAL_STATES[proposalState] === ProposalState.Executed) {
+  const executorContract = executor(proposal.executor)
+  let simulationPayload: TenderlyPayload
+  if (!FORCE_SIMULATION && PROPOSAL_STATES[proposalState] === ProposalState.Executed) {
+    const gracePeriod = await executorContract.GRACE_PERIOD()
     // --- Get details about the proposal we're analyzing ---
-    const blockRange = [0, latestBlock.number]
-    const proposalExecutedLogs = await aaveGovernanceContract.queryFilter(
+    const proposalExecutedLogs = await getPastLogs(
+      proposal.endBlock.toNumber(),
+      // assuming a 11s blocktime should give us enough margin to cover the endTime
+      proposal.endBlock.toNumber() + Math.floor(gracePeriod / 11),
       aaveGovernanceContract.filters.ProposalExecuted(),
-      ...blockRange
+      aaveGovernanceContract
     )
 
-    const proposalExecutedEvent = proposalExecutedLogs.filter((log) => log.args?.id.toNumber() === proposalId)[0]
+    const proposalExecutedEvent = proposalExecutedLogs.filter(
+      // lte check necessary to work around a bug in tenderly TODO: remove once resolved
+      (log) => log.args?.id.lte(1000) && log.args?.id.toNumber() === proposalId
+    )[0]
     if (!proposalExecutedEvent)
       throw new Error(`Proposal execution log for #${proposalId} not found in governance logs`)
     // --- Simulate it ---
     // Prepare tenderly payload. Since this proposal was already executed, we directly use that transaction data
     const tx = await provider.getTransaction(proposalExecutedEvent.transactionHash)
-    const simulationPayload: TenderlyPayload = {
+    simulationPayload = {
       network_id: String(tx.chainId) as TenderlyPayload['network_id'],
       block_number: tx.blockNumber,
       from: tx.from,
@@ -38,11 +46,6 @@ export async function simulateProposal(proposalId: BigNumberish): Promise<Simula
       value: tx.value.toString(),
       save: true,
       generate_access_list: true,
-    }
-    return {
-      sim: await sendSimulation(simulationPayload),
-      latestBlock,
-      proposal: { ...proposal, state: proposalState },
     }
   } else {
     const { targets, signatures: sigs, calldatas, executor: executorAddress } = proposal
@@ -74,11 +77,9 @@ export async function simulateProposal(proposalId: BigNumberish): Promise<Simula
     )
     const FAKE_IPFS_HASH = `0000`
     const value = (values as BigNumber[]).reduce((sum, cur) => sum.add(cur), BigNumber.from(0)).toString()
-
-    const executorContract = executor(executorAddress)
+    const quorum = await executorContract.MINIMUM_QUORUM()
     const delay = await executorContract.getDelay()
     const duration = await executorContract.VOTING_DURATION()
-    const quorum = await executorContract.MINIMUM_QUORUM()
 
     const CREATION_BLOCK_NUMBER = proposal.startBlock.add(1).toNumber()
     const VOTING_DURATION = duration.toNumber() + 1 // block number voting duration
@@ -118,7 +119,7 @@ export async function simulateProposal(proposalId: BigNumberish): Promise<Simula
     // Note: The Tenderly API is sensitive to the input types, so all formatting below (e.g. stripping
     // leading zeroes, padding with zeros, strings vs. hex, etc.) are all intentional decisions to
     // ensure Tenderly properly parses the simulation payload
-    const simulationPayload: TenderlyPayload = {
+    simulationPayload = {
       network_id: '1',
       // this field represents the block state to simulate against, so we use the latest block number
       block_number: SNAPSHOT_BLOCK_NUMBER,
@@ -155,11 +156,17 @@ export async function simulateProposal(proposalId: BigNumberish): Promise<Simula
         },
       },
     }
-    return {
-      sim: await sendSimulation(simulationPayload),
-      latestBlock,
-      proposal: { ...proposal, state: proposalState },
-    }
+  }
+
+  if (TENDERLY_ROOT) {
+    simulationPayload.root = TENDERLY_ROOT
+  }
+
+  return {
+    sim: await sendSimulation(simulationPayload, 1000, RPC_URL),
+    latestBlock,
+    proposal: { ...proposal, state: proposalState },
+    subSimulations: [],
   }
 }
 

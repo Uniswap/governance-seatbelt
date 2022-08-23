@@ -7,11 +7,13 @@ import { checkLogs } from './check-logs'
 import { checkSlither } from './check-slither'
 import { ProposalCheck } from '../types'
 import { checkSolc } from './check-solc'
+import { checkTrace } from './check-trace'
 
 const ALL_CHECKS: {
   [checkId: string]: ProposalCheck
 } = {
   checkStateChanges,
+  checkTrace,
   checkLogs,
   checkTargetsVerifiedEtherscan,
   checkTouchedContractsVerifiedEtherscan,

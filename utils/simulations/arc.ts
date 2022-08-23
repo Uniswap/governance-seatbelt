@@ -1,9 +1,9 @@
 import { BigNumber, Contract } from 'ethers'
 import { hexStripZeros } from 'ethers/lib/utils'
 import { TenderlyPayload, TenderlySimulation } from '../../types'
-import { provider } from '../clients/ethers'
+import { getPastLogs, provider } from '../clients/ethers'
 import { sendSimulation } from '../clients/tenderly'
-import { BLOCK_GAS_LIMIT, FROM } from '../constants'
+import { BLOCK_GAS_LIMIT, FORCE_SIMULATION, FROM, RPC_URL } from '../constants'
 import { abi as ARC_TIMELOCK_ABI } from '../contracts/arc-timelock'
 
 const STATES = {
@@ -30,11 +30,21 @@ export function getArcPayloads(simulation: TenderlySimulation) {
 
 export async function simulateArc(simulation: TenderlySimulation, actionSet: string, timestamp: string) {
   const arcContract = new Contract(ARC_ADDRESS, ARC_TIMELOCK_ABI, provider)
-  const actionSetExecutedLogs = await arcContract.queryFilter(arcContract.filters.ActionsSetExecuted())
-  const actionSetExecutedEvent = actionSetExecutedLogs.find((log) => log.args?.id.eq(actionSet))
-  if (actionSetExecutedEvent) {
+  const gracePeriod = await arcContract.getGracePeriod()
+  const actionSetExecutedLogs = await getPastLogs(
+    simulation.transaction.block_number,
+    simulation.transaction.block_number + Math.floor(gracePeriod / 11),
+    arcContract.filters.ActionsSetExecuted(),
+    arcContract
+  )
+  const actionSetExecutedEvent = actionSetExecutedLogs.find(
+    // lte check necessary to work around a bug in tenderly TODO: remove once resolved
+    (log) => log.args?.id.lte(1000) && log.args?.id.eq(actionSet)
+  )
+  let simulationPayload: TenderlyPayload
+  if (!FORCE_SIMULATION && actionSetExecutedEvent) {
     const tx = await provider.getTransaction(actionSetExecutedEvent.transactionHash)
-    const simulationPayload: TenderlyPayload = {
+    simulationPayload = {
       network_id: String(tx.chainId) as TenderlyPayload['network_id'],
       block_number: tx.blockNumber,
       from: tx.from,
@@ -46,7 +56,6 @@ export async function simulateArc(simulation: TenderlySimulation, actionSet: str
       save: true,
       generate_access_list: true,
     }
-    return await sendSimulation(simulationPayload)
   } else {
     const arcContract = new Contract(ARC_ADDRESS, ARC_TIMELOCK_ABI, provider)
     const state = simulation.transaction.transaction_info.state_diff.reduce((acc, diff) => {
@@ -56,9 +65,9 @@ export async function simulateArc(simulation: TenderlySimulation, actionSet: str
       })
       return acc
     }, {} as { [key: string]: { storage: { [key: string]: string } } })
-    const simulationPayload: TenderlyPayload = {
+    simulationPayload = {
       network_id: '1',
-      block_number: simulation.simulation.block_number + 1,
+      block_number: simulation.simulation.block_number,
       from: FROM,
       to: ARC_ADDRESS,
       input: arcContract.interface.encodeFunctionData('execute', [Number(actionSet)]),
@@ -67,13 +76,13 @@ export async function simulateArc(simulation: TenderlySimulation, actionSet: str
       gas_price: '0',
       generate_access_list: true,
       block_header: {
-        // number: hexStripZeros(BigNumber.from(simulation.simulation.block_number + 1).toHexString()),
+        number: hexStripZeros(BigNumber.from(simulation.simulation.block_number).toHexString()),
         timestamp: hexStripZeros(BigNumber.from(timestamp).toHexString()),
       },
       root: simulation.simulation.id,
       state_objects: state,
     }
-
-    return await sendSimulation(simulationPayload)
   }
+
+  return await sendSimulation(simulationPayload, 1000, RPC_URL)
 }

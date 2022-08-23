@@ -61,13 +61,21 @@ export async function getLatestBlock(chainId: BigNumberish): Promise<number> {
  *   - We double delay each time and throw an error if delay is over 8 seconds
  * @param payload Transaction simulation parameters
  * @param delay How long to wait until next simulation request after failure, in milliseconds
+ * @param rpcURL The underlying rpc
  */
-export async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<TenderlySimulation> {
+export async function sendSimulation(
+  payload: TenderlyPayload,
+  delay = 1000,
+  rpcURL: string
+): Promise<TenderlySimulation> {
   try {
+    let simURL = TENDERLY_SIM_URL
+    if (rpcURL && /rpc\.tenderly\.co\/fork/.test(rpcURL)) {
+      simURL = simURL.replace('/simulate', `${(rpcURL.match(/(\/fork\/.*)/) as string[])[1]}/simulate`)
+    }
     // Send simulation request
     const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
-    const sim = <TenderlySimulation>await fetchUrl(TENDERLY_SIM_URL, fetchOptions)
-
+    const sim = <TenderlySimulation>await fetchUrl(simURL, fetchOptions)
     // Post-processing to ensure addresses we use are checksummed (since ethers returns checksummed addresses)
     sim.transaction.addresses = sim.transaction.addresses.map(getAddress)
     sim.contracts.forEach((contract) => (contract.address = getAddress(contract.address)))
@@ -85,6 +93,6 @@ export async function sendSimulation(payload: TenderlyPayload, delay = 1000): Pr
     )
     console.log(JSON.stringify(payload))
     await sleep(delay + randomInt(0, 1000))
-    return await sendSimulation(payload, delay * 2)
+    return await sendSimulation(payload, delay * 2, rpcURL)
   }
 }

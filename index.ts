@@ -14,6 +14,9 @@ import { executor } from './utils/contracts/executor'
 import { PromisePool } from '@supercharge/promise-pool'
 import { simulateProposal } from './utils/simulations/proposal'
 import { getArcPayloads, simulateArc } from './utils/simulations/arc'
+import { getFxChildPayloads, simulateFxPortal } from './utils/simulations/fxPortal'
+
+Error.stackTraceLimit = Infinity
 
 // load cache
 const proposalStateCachePath = './proposal-states.json'
@@ -76,6 +79,17 @@ async function runSimulation() {
             })
           }
         }
+        const fxPayloads = getFxChildPayloads(sim)
+        if (fxPayloads.length) {
+          for (const fxPayload of fxPayloads) {
+            subSimulations.push({
+              id: '0',
+              type: 'fxPortal',
+              name: `FxPortal actionSet(?)`,
+              simulation: await simulateFxPortal(sim, fxPayload.event),
+            })
+          }
+        }
         return { sim, proposal, latestBlock, subSimulations }
       }
     })
@@ -86,6 +100,7 @@ async function runSimulation() {
 async function generateReports(simOutputs: SimulationResult[]) {
   console.log('Starting proposal checks and report generation...')
   const errors: any[] = []
+
   await PromisePool.for(simOutputs)
     .withConcurrency(2)
     .handleError(async (error, simOutput) => {
@@ -124,7 +139,7 @@ async function generateReports(simOutputs: SimulationResult[]) {
       const subReports: { name: string; link: string }[] = []
       if (subSimulations?.length) {
         for (const subSimulation of subSimulations) {
-          console.log(`  Running for proposal ${proposal.id} arc ...`)
+          console.log(`  Running for sub-proposal ${proposal.id} ...`)
           const checkResults: AllCheckResults = Object.fromEntries(
             await Promise.all(
               Object.keys(ALL_CHECKS).map(async (checkId) => [
@@ -137,16 +152,31 @@ async function generateReports(simOutputs: SimulationResult[]) {
             )
           )
 
-          const arcReport = await toArcReport(
-            { start: startBlock, end: endBlock, current: latestBlock },
-            checkResults,
-            subSimulation.simulation,
-            subSimulation.name
-          )
-          const filename = getProposalFileName(proposal.id.toNumber(), `arc_${subSimulation.id}`)
-          fs.writeFileSync(filename, arcReport)
-          // will be rendered in another markdown so the path cannot be relative to the file
-          subReports.push({ link: filename.replace('./', '/'), name: 'arc' })
+          if (subSimulation.type === 'arc') {
+            const arcReport = await toArcReport(
+              { start: startBlock, end: endBlock, current: latestBlock },
+              checkResults,
+              subSimulation.simulation,
+              subSimulation.name
+            )
+            const filename = getProposalFileName(proposal.id.toNumber(), `arc_${subSimulation.id}`)
+            fs.writeFileSync(filename, arcReport)
+            // will be rendered in another markdown so the path cannot be relative to the file
+            subReports.push({ link: filename.replace('./', '/'), name: 'arc' })
+          }
+
+          if (subSimulation.type === 'fxPortal') {
+            const fxReport = await toArcReport(
+              { start: startBlock, end: endBlock, current: latestBlock },
+              checkResults,
+              subSimulation.simulation,
+              subSimulation.name
+            )
+            const filename = getProposalFileName(proposal.id.toNumber(), `fx_${subSimulation.id}`)
+            fs.writeFileSync(filename, fxReport)
+            // will be rendered in another markdown so the path cannot be relative to the file
+            subReports.push({ link: filename.replace('./', '/'), name: 'fx' })
+          }
         }
       }
 

@@ -22,14 +22,14 @@ export type SimulationConfig = SimulationConfigExecuted | SimulationConfigPropos
 export interface SubSimulation {
   simulation: TenderlySimulation
   name: string
-  type: 'arc'
+  type: 'arc' | 'fxPortal'
   id: string
 }
 export interface SimulationResult {
   sim: TenderlySimulation
   proposal: ProposalStruct & { state: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 }
   latestBlock: Block
-  subSimulations?: SubSimulation[]
+  subSimulations: SubSimulation[]
 }
 
 export interface ProposalStruct {
@@ -40,7 +40,7 @@ export interface ProposalStruct {
   values: BigNumber[]
   signatures: string[]
   calldatas: string[]
-  withDelegatecalls: boolean[]
+  withDelegateCalls: boolean[]
   startBlock: BigNumber
   endBlock: BigNumber
   executionTime: BigNumber
@@ -60,7 +60,7 @@ export interface ProposalCreatedEvent {
   values: BigNumber[]
   signatures: string[]
   calldatas: string[]
-  withDelegatecalls: boolean[]
+  withDelegateCalls: boolean[]
   startBlock: BigNumber
   endBlock: BigNumber
   strategy: string
@@ -90,6 +90,8 @@ export interface AllCheckResults {
   [checkId: string]: { name: string; result: CheckResult }
 }
 
+export type TraceCall = CallTraceCall | PurpleCall | FluffyCall | TentacledCall
+
 // --- Tenderly types, Request ---
 type StateObject = {
   balance?: string
@@ -117,7 +119,7 @@ type ContractObject = {
 }
 
 export type TenderlyPayload = {
-  network_id: '1' | '3' | '4' | '5' | '42'
+  network_id: '1' | '3' | '4' | '5' | '42' | '137'
   block_number?: number
   transaction_index?: number
   from: string
@@ -305,6 +307,9 @@ interface Simulation {
   access_list: null
   queue_origin: string
   created_at: Date
+  block_header: {
+    timestamp: string
+  }
 }
 
 interface Transaction {
@@ -645,6 +650,8 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       RPC_URL: string
+      RPC_URL_POLYGON: string
+
       OMIT_CACHE: string
       TENDERLY_ACCESS_TOKEN: string
       TENDERLY_PROJECT_SLUG: string

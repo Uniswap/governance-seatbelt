@@ -1,7 +1,6 @@
 import { BigNumber } from 'ethers'
 import { hexDataLength, hexDataSlice, hexZeroPad } from 'ethers/lib/utils'
 import { erc20Contract } from '../utils/contracts/erc-20'
-import { toAddressLink } from './markdown'
 
 export function deepDiff(
   before: Record<string, any> | string,

@@ -19854,14 +19854,14 @@ var require_lib16 = __commonJS({
       return BaseContract2;
     }();
     exports.BaseContract = BaseContract;
-    var Contract2 = function(_super) {
-      __extends(Contract3, _super);
-      function Contract3() {
+    var Contract3 = function(_super) {
+      __extends(Contract4, _super);
+      function Contract4() {
         return _super !== null && _super.apply(this, arguments) || this;
       }
-      return Contract3;
+      return Contract4;
     }(BaseContract);
-    exports.Contract = Contract2;
+    exports.Contract = Contract3;
     var ContractFactory = function() {
       function ContractFactory2(contractInterface, bytecode, signer) {
         var _newTarget = this.constructor;
@@ -19979,13 +19979,13 @@ var require_lib16 = __commonJS({
         return new this(abi, bytecode, signer);
       };
       ContractFactory2.getInterface = function(contractInterface) {
-        return Contract2.getInterface(contractInterface);
+        return Contract3.getInterface(contractInterface);
       };
       ContractFactory2.getContractAddress = function(tx) {
         return (0, address_1.getContractAddress)(tx);
       };
       ContractFactory2.getContract = function(address, contractInterface, signer) {
-        return new Contract2(address, contractInterface, signer);
+        return new Contract3(address, contractInterface, signer);
       };
       return ContractFactory2;
     }();
@@ -25258,15 +25258,15 @@ var require_base_provider = __commonJS({
       });
     }
     var PollableEvents = ["block", "network", "pending", "poll"];
-    var Event = function() {
-      function Event2(tag, listener, once) {
+    var Event2 = function() {
+      function Event3(tag, listener, once) {
         (0, properties_1.defineReadOnly)(this, "tag", tag);
         (0, properties_1.defineReadOnly)(this, "listener", listener);
         (0, properties_1.defineReadOnly)(this, "once", once);
         this._lastBlockNumber = -2;
         this._inflight = false;
       }
-      Object.defineProperty(Event2.prototype, "event", {
+      Object.defineProperty(Event3.prototype, "event", {
         get: function() {
           switch (this.type) {
             case "tx":
@@ -25279,14 +25279,14 @@ var require_base_provider = __commonJS({
         enumerable: false,
         configurable: true
       });
-      Object.defineProperty(Event2.prototype, "type", {
+      Object.defineProperty(Event3.prototype, "type", {
         get: function() {
           return this.tag.split(":")[0];
         },
         enumerable: false,
         configurable: true
       });
-      Object.defineProperty(Event2.prototype, "hash", {
+      Object.defineProperty(Event3.prototype, "hash", {
         get: function() {
           var comps = this.tag.split(":");
           if (comps[0] !== "tx") {
@@ -25297,7 +25297,7 @@ var require_base_provider = __commonJS({
         enumerable: false,
         configurable: true
       });
-      Object.defineProperty(Event2.prototype, "filter", {
+      Object.defineProperty(Event3.prototype, "filter", {
         get: function() {
           var comps = this.tag.split(":");
           if (comps[0] !== "filter") {
@@ -25317,12 +25317,12 @@ var require_base_provider = __commonJS({
         enumerable: false,
         configurable: true
       });
-      Event2.prototype.pollable = function() {
+      Event3.prototype.pollable = function() {
         return this.tag.indexOf(":") >= 0 || PollableEvents.indexOf(this.tag) >= 0;
       };
-      return Event2;
+      return Event3;
     }();
-    exports.Event = Event;
+    exports.Event = Event2;
     var coinInfos = {
       "0": { symbol: "btc", p2pkh: 0, p2sh: 5, prefix: "bc" },
       "2": { symbol: "ltc", p2pkh: 48, p2sh: 50, prefix: "ltc" },
@@ -27553,7 +27553,7 @@ var require_base_provider = __commonJS({
         }).length > 0;
       };
       BaseProvider2.prototype._addEventListener = function(eventName, listener, once) {
-        var event = new Event(getEventTag(eventName), listener, once);
+        var event = new Event2(getEventTag(eventName), listener, once);
         this._events.push(event);
         this._startEvent(event);
         return this;
@@ -29579,19 +29579,19 @@ var require_sender = __commonJS({
 var require_event_target = __commonJS({
   "node_modules/ws/lib/event-target.js"(exports, module2) {
     "use strict";
-    var Event = class {
+    var Event2 = class {
       constructor(type, target) {
         this.target = target;
         this.type = type;
       }
     };
-    var MessageEvent = class extends Event {
+    var MessageEvent = class extends Event2 {
       constructor(data, target) {
         super("message", target);
         this.data = data;
       }
     };
-    var CloseEvent = class extends Event {
+    var CloseEvent = class extends Event2 {
       constructor(code, reason, target) {
         super("close", target);
         this.wasClean = target._closeFrameReceived && target._closeFrameSent;
@@ -29599,12 +29599,12 @@ var require_event_target = __commonJS({
         this.code = code;
       }
     };
-    var OpenEvent = class extends Event {
+    var OpenEvent = class extends Event2 {
       constructor(target) {
         super("open", target);
       }
     };
-    var ErrorEvent = class extends Event {
+    var ErrorEvent = class extends Event2 {
       constructor(error, target) {
         super("error", target);
         this.message = error.message;
@@ -98446,11 +98446,14 @@ var require_cache = __commonJS({
 
 // utils/constants.ts
 var RPC_URL = process.env.RPC_URL;
+var RPC_URL_POLYGON = process.env.RPC_URL_POLYGON;
 var TENDERLY_ACCESS_TOKEN = process.env.TENDERLY_ACCESS_TOKEN;
 var TENDERLY_BASE_URL = `https://api.tenderly.co/api/v1`;
+var TENDERLY_ROOT = process.env.TENDERLY_ROOT;
 var TENDERLY_SIM_URL = `${TENDERLY_BASE_URL}/account/${process.env.TENDERLY_ACCOUNT}/project/${process.env.TENDERLY_PROJECT_SLUG}/simulate`;
 var IPFS_GATEWAY = process.env.IPFS_GATEWAY;
 var OMIT_CACHE = process.env.OMIT_CACHE === "true";
+var FORCE_SIMULATION = process.env.FORCE_SIMULATION === "true";
 var ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 var DAO_NAME = process.env.DAO_NAME;
 var PROPOSAL_FILTER = process.env.PROPOSAL_FILTER ? JSON.parse(`[${process.env.PROPOSAL_FILTER.replace(/_/g, ",")}]`) : null;
@@ -98467,7 +98470,8 @@ var import_ethers2 = __toESM(require_lib31());
 
 // utils/clients/ethers.ts
 var import_ethers = __toESM(require_lib31());
-var provider = new import_ethers.providers.JsonRpcProvider(RPC_URL);
+var provider = new import_ethers.providers.StaticJsonRpcProvider(RPC_URL);
+var polygonProvider = new import_ethers.providers.StaticJsonRpcProvider(RPC_URL_POLYGON);
 
 // utils/contracts/aave-governance-v2.ts
 var AAVE_GOVERNANCE_V2_ABI = [
