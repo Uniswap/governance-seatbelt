@@ -193,6 +193,7 @@ Some notes on the outputs of reports:
 | Risk Parameter Updates for Aave V2 (2022-08-03)                                | [092.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/092.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=92) |
 | Add MAI to Aave V3 on Polygon                                                  | [093.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/093.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=93) |
 | PolygonBridgeExecutor actionSet("1": {"executed":true})                        | [093_fx_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/093_fx_0.md)   | [app](https://app.aave.com/governance/proposal/?proposalId=93) |
+| Risk Parameter Updates for Aave V2 (2022-08-18)                                | [094.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/094.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=94) |
 
 <!-- ### Reports table end ### -->
 
