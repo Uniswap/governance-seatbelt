@@ -133,7 +133,7 @@ ${Object.keys(checks)
  * @param proposal
  * @param checks
  */
-export async function toArcReport(
+export async function toSubReport(
   blocks: { current: Block; start: Block | null; end: Block | null },
   checks: AllCheckResults,
   sim: TenderlySimulation,

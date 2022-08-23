@@ -26,6 +26,20 @@ export function getFxChildPayloads(simulation: TenderlySimulation) {
   return stateSynced
 }
 
+export function getActionSetsChanged(simulation: TenderlySimulation) {
+  const actionSetsChange = simulation.transaction.transaction_info.state_diff?.find(
+    (diff) =>
+      diff.raw?.[0]?.address.toLowerCase() === POLYGON_BRIDGE_EXECUTOR.toLowerCase() &&
+      diff.soltype?.name === '_actionsSets'
+  )
+  if (!actionSetsChange) return []
+  const newActionSets = Object.entries(actionSetsChange?.dirty as { [key: string]: string }).map(([key, value]) => ({
+    actionSet: key,
+    value: value,
+  }))
+  return newActionSets
+}
+
 export async function simulateFxPortal(simulation: TenderlySimulation, log: Log) {
   const receiver = BigNumber.from(log.raw.topics[1]).toHexString()
   const data = hexDataSlice(log.raw.data, 64)

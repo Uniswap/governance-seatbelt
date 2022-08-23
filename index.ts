@@ -8,13 +8,13 @@ import { DAO_NAME, PROPOSAL_FILTER, OMIT_CACHE, AAVE_GOV_V2_ADDRESS } from './ut
 import { provider } from './utils/clients/ethers'
 import { AllCheckResults, ProposalData, SimulationResult, SubSimulation } from './types'
 import ALL_CHECKS from './checks'
-import { toArcReport, toProposalReport } from './presentation/markdown'
+import { toSubReport, toProposalReport } from './presentation/markdown'
 import { aaveGovernanceContract, isProposalStateImmutable, PROPOSAL_STATES } from './utils/contracts/aave-governance-v2'
 import { executor } from './utils/contracts/executor'
 import { PromisePool } from '@supercharge/promise-pool'
 import { simulateProposal } from './utils/simulations/proposal'
 import { getArcPayloads, simulateArc } from './utils/simulations/arc'
-import { getFxChildPayloads, simulateFxPortal } from './utils/simulations/fxPortal'
+import { getActionSetsChanged, getFxChildPayloads, simulateFxPortal } from './utils/simulations/fxPortal'
 
 Error.stackTraceLimit = Infinity
 
@@ -82,11 +82,15 @@ async function runSimulation() {
         const fxPayloads = getFxChildPayloads(sim)
         if (fxPayloads.length) {
           for (const fxPayload of fxPayloads) {
+            const simulationResult = await simulateFxPortal(sim, fxPayload.event)
+            const actionSet = getActionSetsChanged(simulationResult)
             subSimulations.push({
               id: '0',
               type: 'fxPortal',
-              name: `FxPortal actionSet(?)`,
-              simulation: await simulateFxPortal(sim, fxPayload.event),
+              name: `PolygonBridgeExecutor actionSet(${actionSet
+                .map((set) => `${set.actionSet}: ${JSON.stringify(set.value)}`)
+                .join(',')})`,
+              simulation: simulationResult,
             })
           }
         }
@@ -153,7 +157,7 @@ async function generateReports(simOutputs: SimulationResult[]) {
           )
 
           if (subSimulation.type === 'arc') {
-            const arcReport = await toArcReport(
+            const arcReport = await toSubReport(
               { start: startBlock, end: endBlock, current: latestBlock },
               checkResults,
               subSimulation.simulation,
@@ -162,11 +166,11 @@ async function generateReports(simOutputs: SimulationResult[]) {
             const filename = getProposalFileName(proposal.id.toNumber(), `arc_${subSimulation.id}`)
             fs.writeFileSync(filename, arcReport)
             // will be rendered in another markdown so the path cannot be relative to the file
-            subReports.push({ link: filename.replace('./', '/'), name: 'arc' })
+            subReports.push({ link: filename.replace('./', '/'), name: 'ArcTimelockExecution' })
           }
 
           if (subSimulation.type === 'fxPortal') {
-            const fxReport = await toArcReport(
+            const fxReport = await toSubReport(
               { start: startBlock, end: endBlock, current: latestBlock },
               checkResults,
               subSimulation.simulation,
@@ -175,7 +179,7 @@ async function generateReports(simOutputs: SimulationResult[]) {
             const filename = getProposalFileName(proposal.id.toNumber(), `fx_${subSimulation.id}`)
             fs.writeFileSync(filename, fxReport)
             // will be rendered in another markdown so the path cannot be relative to the file
-            subReports.push({ link: filename.replace('./', '/'), name: 'fx' })
+            subReports.push({ link: filename.replace('./', '/'), name: 'PolygonBridgeExecution' })
           }
         }
       }
