@@ -3,10 +3,13 @@ import { ContractTransaction } from '@ethersproject/contracts'
 import { JsonRpcProvider } from '@ethersproject/providers'
 
 // --- Simulation configurations ---
+export type GovernorType = 'oz' | 'compound'
+
 interface SimulationConfigBase {
   type: 'executed' | 'proposed' | 'new'
   daoName: string // e.g. 'Compound' or 'Uniswap'
   governorAddress: string // address of the governor
+  governorType: GovernorType
 }
 
 export interface SimulationConfigExecuted extends SimulationConfigBase {
@@ -41,8 +44,6 @@ export interface SimulationData extends SimulationResult {
 }
 
 // --- Proposal checks ---
-type GovernorType = 'oz' | 'compound'
-
 export type ProposalActions = [
   // defined as an array instead of an object because the return data from governor.getActions()
   // has no `values` key if all values are zero
@@ -54,10 +55,12 @@ export type ProposalActions = [
 
 export interface ProposalStruct {
   id: BigNumber
-  proposer: string
+  proposer?: string
   eta: BigNumber
-  startBlock: BigNumber
-  endBlock: BigNumber
+  startBlock?: BigNumber // Compound governor
+  startTime?: BigNumber // OZ governor
+  endBlock?: BigNumber // Compound governor
+  endTime?: BigNumber // OZ governor
   forVotes: BigNumber
   againstVotes: BigNumber
   abstainVotes: BigNumber

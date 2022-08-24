@@ -27,6 +27,36 @@ export function getGovernor(governorType: GovernorType, address: string) {
   throw new Error(`Unknown governor type: ${governorType}`)
 }
 
+export async function getProposal(
+  governorType: GovernorType,
+  address: string,
+  proposalId: BigNumberish
+): Promise<ProposalStruct> {
+  const governor = getGovernor(governorType, address)
+  if (governorType === 'compound') return governor.proposals(proposalId)
+
+  // Piece together the struct for OZ Governors.
+  const [[againstVotes, forVotes, abstainVotes], state, eta, startTime, endTime] = await Promise.all([
+    governor.proposalVotes(proposalId),
+    governor.state(proposalId),
+    governor.proposalEta(proposalId),
+    governor.proposalSnapshot(proposalId),
+    governor.proposalDeadline(proposalId),
+  ])
+
+  return {
+    id: BigNumber.from(proposalId),
+    eta,
+    startTime,
+    endTime,
+    forVotes,
+    againstVotes,
+    abstainVotes,
+    canceled: state === 2,
+    executed: state === 7,
+  }
+}
+
 export async function getTimelock(governorType: GovernorType, address: string) {
   const governor = getGovernor(governorType, address)
   if (governorType === 'compound') return timelock(await governor.admin())

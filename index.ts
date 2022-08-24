@@ -85,6 +85,7 @@ async function main() {
         type: simProposal.simType,
         daoName: DAO_NAME,
         governorAddress: getAddress(GOVERNOR_ADDRESS),
+        governorType,
         proposalId: simProposal.id,
       }
       const { sim, proposal, latestBlock } = await simulate(config)

@@ -55,7 +55,7 @@ export async function simulate(config: SimulationConfig) {
  */
 async function simulateNew(config: SimulationConfigNew): Promise<SimulationResult> {
   // --- Validate config ---
-  const { governorAddress, targets, values, signatures, calldatas, description } = config
+  const { governorAddress, governorType, targets, values, signatures, calldatas, description } = config
   if (targets.length !== values.length) throw new Error('targets and values must be the same length')
   if (targets.length !== signatures.length) throw new Error('targets and signatures must be the same length')
   if (targets.length !== calldatas.length) throw new Error('targets and calldatas must be the same length')
@@ -64,10 +64,13 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
   const network = await provider.getNetwork()
   const blockNumberToUse = (await getLatestBlock(network.chainId)) - 3 // subtracting a few blocks to ensure tenderly has the block
   const latestBlock = await provider.getBlock(blockNumberToUse)
-  const governor = governorBravo(governorAddress)
+  const governor = getGovernor(governorType, governorAddress)
 
-  const [proposalCount, timelockAddress] = await Promise.all([governor.proposalCount(), governor.admin()])
-  const proposalId = (proposalCount as BigNumber).add(1)
+  const [proposalCount, timelock] = await Promise.all([
+    governor.proposalCount(),
+    getTimelock(governorType, governorAddress),
+  ])
+  const proposalId = (proposalCount as BigNumber).add(1) // TODO needs to change for OZ
 
   const startBlock = BigNumber.from(latestBlock.number - 100) // arbitrarily subtract 100
   const proposal: ProposalEvent = {
@@ -180,7 +183,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
       // Give `from` address 10 ETH to send transaction
       [from]: { balance: parseEther('10').toString() },
       // Ensure transactions are queued in the timelock
-      [timelockAddress]: { storage: timelockStorageObj },
+      [timelock.address]: { storage: timelockStorageObj },
       // Ensure governor storage is properly configured so `state(proposalId)` returns `Queued`
       [governor.address]: { storage: governorStorageObj.stateOverrides[governor.address.toLowerCase()].value },
     },
@@ -195,31 +198,30 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
  * @param config Configuration object
  */
 async function simulateProposed(config: SimulationConfigProposed): Promise<SimulationResult> {
-  const { governorAddress, proposalId } = config
+  const { governorAddress, governorType, proposalId } = config
 
   // --- Get details about the proposal we're simulating ---
   const network = await provider.getNetwork()
   const blockNumberToUse = (await getLatestBlock(network.chainId)) - 3 // subtracting a few blocks to ensure tenderly has the block
   const latestBlock = await provider.getBlock(blockNumberToUse)
   const blockRange = [0, latestBlock.number]
-  const governor = governorBravo(governorAddress)
+  const governor = getGovernor(governorType, governorAddress)
 
-  const [_proposal, _actions, proposalCreatedLogs, timelockAddress] = await Promise.all([
-    governor.proposals(proposalId),
-    governor.getActions(proposalId),
+  const [_proposal, proposalCreatedLogs, timelock] = await Promise.all([
+    getProposal(governorType, governorAddress, proposalId),
     governor.queryFilter(governor.filters.ProposalCreated(), ...blockRange),
-    governor.admin(),
+    getTimelock(governorType, governorAddress),
   ])
   const proposal = <ProposalStruct>_proposal
-  const [targets, values, sigs, calldatas] = <ProposalActions>_actions
 
   const proposalCreatedEvent = proposalCreatedLogs.filter((log) => {
     return getProposalId(log.args as unknown as ProposalEvent) === BigNumber.from(proposalId).toBigInt()
   })[0]
   if (!proposalCreatedEvent) throw new Error(`Proposal creation log for #${proposalId} not found in governor logs`)
+  const { targets, values, signatures: sigs, calldatas } = proposalCreatedEvent.args as unknown as ProposalEvent
 
   // --- Storage slots and offsets for GovernorBravo ---
-  const govSlots = getGovernorBravoSlots(proposal.id)
+  const govSlots = getBravoSlots(proposal.id)
   const queuedTxsSlot = '0x3' // timelock mapping from tx hash to bool about it's queue status
 
   // --- Prepare simulation configuration ---
@@ -239,18 +241,25 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const votingToken = getAddress(`0x${rawVotingToken.slice(26)}`)
   const votingTokenSupply = <BigNumber>await erc20(votingToken).totalSupply() // used to manipulate vote count
 
-  // Set `from` arbitrarily, and set `value` and `simBlock` based on proposal properties
+  // Set `from` arbitrarily, and set `value` based on proposal properties
   const from = DEFAULT_FROM
   const value = (values as BigNumber[]).reduce((sum, cur) => sum.add(cur), BigNumber.from(0)).toString()
-  const simBlock = proposal.endBlock.add(1)
 
+  // For compound style governance, we use the block right after the proposal ends, and for OZ
+  // governance we arbitrarily use the next block number.
+  const simBlock = governorType === 'compound' ? proposal.endBlock!.add(1) : BigNumber.from(latestBlock.number + 1)
+
+  // For OZ governance we are given the earliest possible execution time. For Compound governance, we
   // Compute the approximate earliest possible execution time based on governance parameters. This
   // can only be approximate because voting period is defined in blocks, not as a timestamp. We
   // assume 12 second block times to prefer underestimating timestamp rather than overestimating,
   // and we prefer underestimating to avoid simulations reverting in cases where governance
   // proposals call methods that pass in a start timestamp that must be lower than the current
   // block timestamp (represented by the `simTimestamp` variable below)
-  const simTimestamp = BigNumber.from(latestBlock.timestamp).add(simBlock.sub(proposal.endBlock).mul(12))
+  const simTimestamp =
+    governorType === 'compound'
+      ? BigNumber.from(latestBlock.timestamp).add(simBlock.sub(proposal.endBlock!).mul(12))
+      : proposal.endTime!.add(1)
   const eta = simTimestamp // set proposal eta to be equal to the timestamp we simulate at
 
   // Compute transaction hashes used by the Timelock
@@ -293,7 +302,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
       // Give `from` address 10 ETH to send transaction
       [from]: { balance: parseEther('10').toString() },
       // Ensure transactions are queued in the timelock
-      [timelockAddress]: { storage: timelockStorageObj },
+      [timelock.address]: { storage: timelockStorageObj },
       // Ensure governor storage is properly configured so `state(proposalId)` returns `Queued`
       [governor.address]: {
         storage: {
@@ -318,12 +327,12 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
  * @param config Configuration object
  */
 async function simulateExecuted(config: SimulationConfigExecuted): Promise<SimulationResult> {
-  const { governorAddress, proposalId } = config
+  const { governorAddress, governorType, proposalId } = config
 
   // --- Get details about the proposal we're analyzing ---
   const latestBlock = await provider.getBlock('latest')
   const blockRange = [0, latestBlock.number]
-  const governor = governorBravo(governorAddress)
+  const governor = getGovernor(governorType, governorAddress)
 
   const [createProposalLogs, proposalExecutedLogs] = await Promise.all([
     governor.queryFilter(governor.filters.ProposalCreated(), ...blockRange),
