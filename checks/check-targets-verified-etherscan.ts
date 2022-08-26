@@ -58,6 +58,8 @@ async function checkVerificationStatus(
   // If an address exists in the contracts array, it's verified on Etherscan
   const contract = getContract(sim, addr)
   if (contract) return 'verified'
+  const stateDiff = getStateDiff(sim, addr)
+  if (stateDiff) return 'unverified'
   // Otherwise, check if there's code at the address. Addresses with code not in the contracts array are not verified
   const code = await provider.getCode(addr)
   return code === '0x' ? 'eoa' : 'unverified'
@@ -65,4 +67,10 @@ async function checkVerificationStatus(
 
 function getContract(sim: TenderlySimulation, addr: string) {
   return sim.contracts.find((item) => item.address === addr)
+}
+
+function getStateDiff(sim: TenderlySimulation, addr: string) {
+  return sim.transaction.transaction_info.state_diff.find(
+    (diff) => diff.raw?.[0]?.address.toLowerCase() === addr.toLowerCase()
+  )
 }
