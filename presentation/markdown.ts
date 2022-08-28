@@ -4,6 +4,8 @@ import { BigNumber } from 'ethers'
 import { getProposalMetadata } from '../utils/clients/ipfs'
 import { IPFS_GATEWAY } from '../utils/constants'
 
+export const SHORT_EXECUTOR = '0xEE56e2B3D491590B5b31738cC34d5232F378a8D5'
+
 function toMessageList(header: string, errors: string[]): string {
   return errors.length > 0 ? `${header}:\n` + errors.map((msg) => `- ${msg}`).join('\n') : ''
 }
@@ -68,7 +70,7 @@ function estimateTime(current: Block, block: BigNumber): number {
 }
 
 function humanReadableExecutor(executor: string) {
-  if (executor === '0xEE56e2B3D491590B5b31738cC34d5232F378a8D5') return 'Short executor'
+  if (executor === SHORT_EXECUTOR) return 'Short executor'
   if (executor === '0x61910EcD7e8e942136CE7Fe7943f956cea1CC2f7') return 'Long executor'
   return 'unknown executor'
 }

@@ -23,3 +23,30 @@ export async function getPastLogs(
   }
   return []
 }
+
+export async function getCloseBlock(
+  minBlockNumber: number,
+  maxBlockNumber: number,
+  targetTimestamp: number,
+  provider: providers.StaticJsonRpcProvider
+): Promise<number> {
+  console.log(minBlockNumber, maxBlockNumber, targetTimestamp)
+  const minBlock = await provider.getBlock(minBlockNumber)
+  const minBlockTimestamp = minBlock.timestamp
+  const maxBlock = await provider.getBlock(maxBlockNumber)
+  const maxBlockTimestamp = maxBlock.timestamp
+  const blockDiff = maxBlock.number - minBlock.number
+  const blockTimeDiff = maxBlockTimestamp - minBlockTimestamp
+  const targetTimeDiff = targetTimestamp - minBlockTimestamp
+  if (targetTimeDiff <= 60 * 60 * 4) return minBlockNumber
+  const minRatio = targetTimeDiff / blockTimeDiff
+  const estimatedMinBlock = minBlockNumber + Math.floor((minRatio - 0.02) * blockDiff)
+  const estimatedMaxBlock = minBlockNumber + Math.floor((minRatio + 0.02) * blockDiff)
+
+  return getCloseBlock(
+    estimatedMinBlock,
+    estimatedMaxBlock >= maxBlockNumber ? maxBlockNumber : estimatedMaxBlock,
+    targetTimestamp,
+    provider
+  )
+}
