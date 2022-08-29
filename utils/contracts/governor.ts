@@ -1,9 +1,13 @@
 import { BigNumber, BigNumberish, Contract } from 'ethers'
+import { getAddress } from '@ethersproject/address'
+import { toUtf8Bytes } from '@ethersproject/strings'
+import { keccak256 } from '@ethersproject/keccak256'
+import { defaultAbiCoder } from '@ethersproject/abi'
 import { provider } from '../clients/ethers'
-import { governorBravo } from './governor-bravo'
-import { governorOz } from './governor-oz'
+import { governorBravo, getBravoSlots } from './governor-bravo'
+import { governorOz, getOzSlots } from './governor-oz'
 import { timelock } from './timelock'
-import { GovernorType, ProposalEvent } from '../../types'
+import { GovernorType, ProposalEvent, ProposalStruct } from '../../types'
 
 // --- Exported methods ---
 export async function inferGovernorType(address: string): Promise<'oz' | 'compound'> {
@@ -63,6 +67,24 @@ export async function getTimelock(governorType: GovernorType, address: string) {
   return timelock(await governor.timelock())
 }
 
+export async function getVotingToken(governorType: GovernorType, address: string, proposalId: BigNumberish) {
+  const governor = getGovernor(governorType, address)
+  if (governorType === 'compound') {
+    // Get voting token and total supply
+    const govSlots = getBravoSlots(proposalId)
+    const rawVotingToken = await provider.getStorageAt(governor.address, govSlots.votingToken)
+    const votingToken = getAddress(`0x${rawVotingToken.slice(26)}`)
+    return erc20(votingToken)
+  }
+
+  return erc20(await governor.token())
+}
+
+export function getGovSlots(governorType: GovernorType, proposalId: BigNumberish) {
+  if (governorType === 'compound') return getBravoSlots(proposalId)
+  return getOzSlots(proposalId)
+}
+
 export async function getProposalIds(
   governorType: GovernorType,
   address: string,
@@ -90,7 +112,60 @@ export function getProposalId(proposal: ProposalEvent): bigint {
   return id.toBigInt()
 }
 
+// Generate proposal ID, used when simulating new proposals.
+export async function generateProposalId(
+  governorType: GovernorType,
+  address: string,
+  // Below arg is only required for OZ governors.
+  {
+    targets,
+    values,
+    calldatas,
+    description,
+  }: { targets: string[]; values: BigNumberish[]; calldatas: string[]; description: string } = {
+    targets: [],
+    values: [],
+    calldatas: [],
+    description: '',
+  }
+): Promise<BigNumber> {
+  // Fetch proposal count from the contract and increment it by 1.
+  if (governorType === 'compound') {
+    const count: BigNumber = await governorBravo(address).proposalCount()
+    return count.add(1)
+  }
+
+  // Compute proposal ID from the tx data
+  return BigNumber.from(
+    keccak256(
+      defaultAbiCoder.encode(
+        ['string[]', 'uint256[]', 'string[]', 'string'],
+        [targets, values, calldatas, keccak256(toUtf8Bytes(description))]
+      )
+    )
+  )
+}
+
 export function formatProposalId(governorType: GovernorType, id: BigNumberish) {
   if (governorType === 'oz') return BigNumber.from(id).toHexString()
   return BigNumber.from(id).toString()
+}
+
+// --- Private helper methods ---
+/**
+ * @notice Returns an ERC20 instance of the specified token
+ * @param token Token address
+ */
+function erc20(token: string) {
+  // This ABI only contains view methods and events
+  const ERC20_ABI = [
+    'function name() external view returns (string)',
+    'function symbol() external view returns (string)',
+    'function decimals() external view returns (uint8)',
+    'function balanceOf(address owner) external view returns (uint256 balance)',
+    'function totalSupply() external view returns (uint256)',
+    'event Transfer(address indexed from, address indexed to, uint256 value)',
+    'event Approval(address indexed owner, address indexed spender, uint256 value)',
+  ]
+  return new Contract(token, ERC20_ABI, provider)
 }

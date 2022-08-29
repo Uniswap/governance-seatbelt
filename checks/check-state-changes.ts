@@ -1,7 +1,8 @@
 import { getAddress } from '@ethersproject/address'
-import { getContractName, getGovernorBravoSlots } from '../utils/clients/tenderly'
+import { getContractName } from '../utils/clients/tenderly'
 import { bullet } from '../presentation/report'
-import { getProposalId } from '../utils//contracts/governor'
+import { getProposalId } from '../utils/contracts/governor'
+import { getBravoSlots } from '../utils//contracts/governor-bravo'
 import { ProposalCheck, StateDiff } from '../types'
 
 /**
@@ -29,7 +30,7 @@ export const checkStateChanges: ProposalCheck = {
       // Check if this is a diff that should be filtered out
       const isGovernor = getAddress(addr) == deps.governor.address
       const isTimelock = getAddress(addr) == deps.timelock.address
-      const isGovernorExecutedSlot = diff.raw[0].key === getGovernorBravoSlots(getProposalId(proposal)).canceled // canceled and executed are in same slot
+      const isGovernorExecutedSlot = diff.raw[0].key === getBravoSlots(getProposalId(proposal)).canceled // canceled and executed are in same slot
       const isQueuedTx = diff.soltype?.name.includes('queuedTransactions')
       const shouldSkipDiff = (isGovernor && isGovernorExecutedSlot) || (isTimelock && isQueuedTx)
       // Skip diffs as required and add the rest to our diffs object

@@ -13,12 +13,12 @@ const to = '0xdead00000000000000000000000000000000dead'
 const amount = parseUnits('100', 18) // transfer 100 UNI, which has 18 decimals
 
 // Get interface to facilitate encoding the calls we want to execute.
-const uniInterface = new Interface(ERC20_ABI)
+const erc20Interface = new Interface(ERC20_ABI)
 
 // Define the parameters for the token transfer action.
 const call1 = {
   target: token,
-  calldata: uniInterface.encodeFunctionData('transfer', [to, amount]),
+  calldata: erc20Interface.encodeFunctionData('transfer', [to, amount]),
   value: 0,
   signature: '',
 }
@@ -26,6 +26,7 @@ const call1 = {
 export const config: SimulationConfigNew = {
   type: 'new',
   daoName: 'Uniswap',
+  governorType: 'compound',
   governorAddress: '0x408ED6354d4973f66138C91495F2f2FCbd8724C3',
   targets: [call1.target], // Array of targets to call.
   values: [call1.value], // Array of values with each call.

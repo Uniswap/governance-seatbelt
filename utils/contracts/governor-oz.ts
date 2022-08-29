@@ -1,5 +1,7 @@
-import { Contract } from 'ethers'
+import { BigNumber, BigNumberish, Contract } from 'ethers'
+import { hexZeroPad } from '@ethersproject/bytes'
 import { provider } from '../clients/ethers'
+import { getSolidityStorageSlotUint, to32ByteHexString } from '../utils'
 
 const GOVERNOR_OZ_ABI = [
   'event ProposalCanceled(uint256 proposalId)',
@@ -56,4 +58,56 @@ export const PROPOSAL_STATES = {
   '5': 'Queued',
   '6': 'Expired',
   '7': 'Executed',
+}
+
+/**
+ * @notice Returns an object containing various OZ Governor slots
+ * @dev The slots here are for the `GovernorCountingSimpleUpgradeable` and
+ * `TimelockControllerUpgradeable` OZ contracts, from lib/openzeppelin-contracts-upgradeable v4.7.3
+ * (commit 0a2cb9a445c365870ed7a8ab461b12acf3e27d63)
+ * @param id Proposal ID
+ */
+export function getOzSlots(proposalId: BigNumberish) {
+  // Proposal structs:
+  //     struct ProposalCore {
+  //       TimersUpgradeable.BlockNumber voteStart;  0
+  //       TimersUpgradeable.BlockNumber voteEnd;    1
+  //       bool executed;                            2
+  //       bool canceled;                            3
+  //     }
+  //     struct ProposalVote {
+  //       uint256 againstVotes;                     0
+  //       uint256 forVotes;                         1
+  //       uint256 abstainVotes;                     2
+  //       mapping(address => bool) hasVoted;        3
+  //     }
+  const etaOffset = 2
+  const targetsOffset = 3
+  const valuesOffset = 4
+  const signaturesOffset = 5
+  const calldatasOffset = 6
+  const canceledSlotOffset = 3 // this is packed with `executed`
+
+  const againstVotesOffset = 0
+  const forVotesOffset = 1
+  const abstainVotesOffset = 2
+
+  // Compute and return slot numbers
+  const proposalCoreMapSlot = '0xcc' // `_proposals` mapping
+  const proposalCoreSlot = getSolidityStorageSlotUint(proposalCoreMapSlot, proposalId)
+
+  const proposalVotesMapSlot = '0xfd' // `_proposalVotes` mapping
+  const proposalVotesSlot = getSolidityStorageSlotUint(proposalVotesMapSlot, proposalId)
+
+  return {
+    votingToken: '0x9', // slot of voting token, e.g. UNI, COMP  (getter is named after token, so can't generalize it that way),
+    canceled: hexZeroPad(BigNumber.from(proposalCoreSlot).add(canceledSlotOffset).toHexString(), 32),
+    // We don't need to set the ETA for OZ governors because they don't use it to check which state
+    // a proposal is in. Therefore we choose an arbitrary slot here for typing purposes and just
+    // set the ETA in an arbitrary slot for consistency. This slot is `keccak256("we don't need this for OZ governor")`
+    eta: '0x42a5ef1591012b6beeb9636e75b28a676a23c97ad46ae6d83e11f22f52da96cc',
+    againstVotes: hexZeroPad(BigNumber.from(proposalVotesSlot).add(againstVotesOffset).toHexString(), 32),
+    forVotes: hexZeroPad(BigNumber.from(proposalVotesSlot).add(forVotesOffset).toHexString(), 32),
+    abstainVotes: hexZeroPad(BigNumber.from(proposalVotesSlot).add(abstainVotesOffset).toHexString(), 32),
+  }
 }
