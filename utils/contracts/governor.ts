@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, Contract } from 'ethers'
+import { BigNumber, BigNumberish, Contract, ethers } from 'ethers'
 import { getAddress } from '@ethersproject/address'
 import { toUtf8Bytes } from '@ethersproject/strings'
 import { keccak256 } from '@ethersproject/keccak256'
@@ -144,6 +144,26 @@ export async function generateProposalId(
       )
     )
   )
+}
+
+export async function getImplementation(address: string, blockTag: number) {
+  // First try calling an `implementation` method.
+  const abi = ['function implementation() external view returns (address)']
+  const governor = new Contract(address, abi, provider)
+  try {
+    const implementation = await governor.implementation({ blockTag })
+    return implementation
+  } catch {}
+
+  // Next we try reading the EIP-1967 storage slot directly.
+  try {
+    const slot = '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc'
+    const rawImplementation = await provider.getStorageAt(address, slot, blockTag)
+    const implementation = getAddress(`0x${rawImplementation.slice(26)}`)
+    if (implementation !== ethers.constants.AddressZero) return implementation
+  } catch {}
+
+  return null
 }
 
 export function formatProposalId(governorType: GovernorType, id: BigNumberish) {
