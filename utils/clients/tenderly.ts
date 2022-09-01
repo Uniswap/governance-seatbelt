@@ -463,6 +463,8 @@ async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<T
   try {
     // Send simulation request
     const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
+    console.log('TENDERLY_SIM_URL: ', TENDERLY_SIM_URL);
+    console.log('fetchOptions: ', JSON.stringify(fetchOptions));
     const sim = <TenderlySimulation>await fetchUrl(TENDERLY_SIM_URL, fetchOptions)
 
     // Post-processing to ensure addresses we use are checksummed (since ethers returns checksummed addresses)
