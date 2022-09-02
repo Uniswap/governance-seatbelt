@@ -196,6 +196,7 @@ Some notes on the outputs of reports:
 | Risk Parameter Updates for Aave V2 (2022-08-18)                                | [094.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/094.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=94) |
 | Add LUSD to Aave V2                                                            | [095.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/095.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=95) |
 | FEI Risk Parameter Updates for Ethereum Aave v2 Market                         | [096.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/096.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=96) |
+| Pause ETH Borrowing                                                            | [097.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/097.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=97) |
 
 <!-- ### Reports table end ### -->
 
