@@ -197,6 +197,8 @@ Some notes on the outputs of reports:
 | Add LUSD to Aave V2                                                            | [095.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/095.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=95) |
 | FEI Risk Parameter Updates for Ethereum Aave v2 Market                         | [096.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/096.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=96) |
 | Pause ETH Borrowing                                                            | [097.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/097.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=97) |
+| V3 Retroactive Funding                                                         | [098.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/098.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=98) |
+| PolygonBridgeExecutor actionSet()                                              | [098_fx_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/098_fx_0.md)   | [app](https://app.aave.com/governance/proposal/?proposalId=98) |
 
 <!-- ### Reports table end ### -->
 
