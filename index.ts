@@ -4,7 +4,7 @@
 
 require('dotenv').config()
 import fs from 'fs'
-import { DAO_NAME, PROPOSAL_FILTER, OMIT_CACHE, AAVE_GOV_V2_ADDRESS } from './utils/constants'
+import { DAO_NAME, PROPOSAL_FILTER, OMIT_CACHE, AAVE_GOV_V2_ADDRESS, IPFS_GATEWAY } from './utils/constants'
 import { provider } from './utils/clients/ethers'
 import { AllCheckResults, ProposalData, SimulationResult, SubSimulation } from './types'
 import ALL_CHECKS from './checks'
@@ -15,6 +15,7 @@ import { PromisePool } from '@supercharge/promise-pool'
 import { simulateProposal } from './utils/simulations/proposal'
 import { getArcPayloads, simulateArc } from './utils/simulations/arc'
 import { getActionSetsChanged, getFxChildPayloads, simulateFxPortal } from './utils/simulations/fxPortal'
+import { getProposalMetadata } from './utils/clients/ipfs'
 
 Error.stackTraceLimit = Infinity
 
@@ -32,6 +33,13 @@ function getProposalFileName(proposalId: number, simulationFileSuffix?: string) 
   const dir = `./reports/${basePath}`
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
   return `${dir}/${filename}`
+}
+
+function getIpfsFileName(ipfsHash: string) {
+  const basePath = `${DAO_NAME}/${AAVE_GOV_V2_ADDRESS}/ipfs`
+  const dir = `./reports/${basePath}`
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+  return `${dir}/${ipfsHash}.md`
 }
 
 async function runSimulation() {
@@ -184,16 +192,20 @@ async function generateReports(simOutputs: SimulationResult[]) {
         }
       }
 
+      const ipfsMeta = await getProposalMetadata(proposal.ipfsHash, IPFS_GATEWAY)
+
       const report = await toProposalReport(
         { start: startBlock, end: endBlock, current: latestBlock },
         proposal,
         checkResults,
         sim,
-        subReports
+        subReports,
+        ipfsMeta
       )
 
       // save report
       fs.writeFileSync(getProposalFileName(proposal.id.toNumber()), report)
+      fs.writeFileSync(getIpfsFileName(proposal.ipfsHash), ipfsMeta.description)
       cache[proposal.id.toString()] = proposal.state
     })
   if (errors.length) throw errors

@@ -23,12 +23,14 @@ async function generateReadme() {
       reportsTable += `| Proposal | Report | App-link |\n| --- | --- | --- |\n`
       const proposals = fs.readdirSync(`${reportsFolder}/${DAO}/${governance}`)
       for (const proposal of proposals) {
-        const title = await readFirstLine(`${reportsFolder}/${DAO}/${governance}/${proposal}`)
-        const appId = parseInt(proposal.replace(/(_arc)?\.md/, ''), 10)
-        reportsTable += `| ${title.replace(
-          '## ',
-          ''
-        )} | [${proposal}](${reportsFolder}/${DAO}/${governance}/${proposal}) | [app](https://app.aave.com/governance/proposal/?proposalId=${appId}) |\n`
+        if (proposal !== 'ipfs') {
+          const title = await readFirstLine(`${reportsFolder}/${DAO}/${governance}/${proposal}`)
+          const appId = parseInt(proposal.replace(/(_arc)?\.md/, ''), 10)
+          reportsTable += `| ${title.replace(
+            '## ',
+            ''
+          )} | [${proposal}](${reportsFolder}/${DAO}/${governance}/${proposal}) | [app](https://app.aave.com/governance/proposal/?proposalId=${appId}) |\n`
+        }
       }
     }
     reportsTable += `\n`
