@@ -69,7 +69,9 @@ export const checkSlither: ProposalCheck = {
  */
 async function runSlither(address: string): Promise<ExecOutput | null> {
   try {
-    return await exec(`slither ${address} --etherscan-apikey ${ETHERSCAN_API_KEY}`)
+    return await exec(
+      `slither ${address} --etherscan-apikey ${ETHERSCAN_API_KEY} --solc-disable-warnings --disable-color --exclude locked-ether,pragma,solc-version,constable-states,external-function,too-many-digits`
+    )
   } catch (e: any) {
     if ('stderr' in e) return e // Output is in stderr, but slither reports results as an exception.
     console.warn(`Error: Could not run slither via Python: ${JSON.stringify(e)}`)

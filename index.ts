@@ -184,11 +184,6 @@ async function generateReports(simOutputs: SimulationResult[]) {
         }
       }
 
-      if (proposal.id.toNumber() === 98) {
-        const slitherReport = checkResults.checkSlither
-        delete checkResults.checkSlither
-        fs.writeFileSync(getProposalFileName(proposal.id.toNumber(), 'slither'), toCheckSummary(slitherReport))
-      }
       const report = await toProposalReport(
         { start: startBlock, end: endBlock, current: latestBlock },
         proposal,
