@@ -8,7 +8,7 @@ import { SHORT_EXECUTOR } from '../../presentation/markdown'
 import { Log, TenderlyPayload, TenderlySimulation } from '../../types'
 import { getCloseBlock, getPastLogs, polygonProvider } from '../clients/ethers'
 import { sendSimulation } from '../clients/tenderly'
-import { BLOCK_GAS_LIMIT, FROM, RPC_URL_POLYGON } from '../constants'
+import { BLOCK_GAS_LIMIT, FROM, RPC_POLYGON } from '../constants'
 import { abi as BRIDGE_EXECUTOR_ABI } from '../contracts/bridge-executor'
 import { fxChildContract, FX_CHILD } from '../contracts/fxChild'
 
@@ -116,7 +116,7 @@ export async function simulateFxPortal(simulation: TenderlySimulation, log: Log)
       root: simulation.simulation.id,
     }
 
-    const bridgeSim = await sendSimulation(bridgeSimulationPayload, 1000, RPC_URL_POLYGON)
+    const bridgeSim = await sendSimulation(bridgeSimulationPayload, 1000, RPC_POLYGON)
 
     const queueEvent = bridgeSim.transaction.transaction_info.logs?.find((e) => e.name === 'ActionsSetQueued')
     const executionTime = queueEvent?.inputs.find((e) => e.soltype?.name === 'executionTime')?.value as string
@@ -139,5 +139,5 @@ export async function simulateFxPortal(simulation: TenderlySimulation, log: Log)
     simulationPayload.input = bridgeExecutor.interface.encodeFunctionData('execute', [Number(id)])
   }
 
-  return await sendSimulation(simulationPayload, 1000, RPC_URL_POLYGON)
+  return await sendSimulation(simulationPayload, 1000, RPC_POLYGON)
 }

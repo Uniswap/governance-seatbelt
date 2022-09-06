@@ -1,9 +1,9 @@
 import { Contract, Event, EventFilter, providers } from 'ethers'
-import { RPC_URL, RPC_URL_POLYGON } from '../constants'
+import { RPC_URL, RPC_POLYGON } from '../constants'
 
 export const provider = new providers.StaticJsonRpcProvider(RPC_URL)
 
-export const polygonProvider = new providers.StaticJsonRpcProvider(RPC_URL_POLYGON)
+export const polygonProvider = new providers.StaticJsonRpcProvider(RPC_POLYGON)
 
 export async function getPastLogs(
   fromBlock: number,

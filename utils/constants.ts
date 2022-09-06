@@ -1,7 +1,7 @@
 // Always required
 export const BLOCK_GAS_LIMIT = 30_000_000
 export const RPC_URL = process.env.RPC_URL
-export const RPC_URL_POLYGON = process.env.RPC_URL_POLYGON
+export const RPC_POLYGON = process.env.RPC_POLYGON
 export const TENDERLY_ACCESS_TOKEN = process.env.TENDERLY_ACCESS_TOKEN
 export const TENDERLY_BASE_URL = `https://api.tenderly.co/api/v1`
 

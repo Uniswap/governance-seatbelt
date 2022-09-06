@@ -650,7 +650,7 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       RPC_URL: string
-      RPC_URL_POLYGON: string
+      RPC_POLYGON: string
 
       OMIT_CACHE: string
       TENDERLY_ACCESS_TOKEN: string

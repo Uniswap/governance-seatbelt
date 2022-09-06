@@ -42,6 +42,7 @@ jobs:
         id: generator
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
+          RPC_POLYGON: ${{ secrets.RPC_POLYGON }}
           DAO_NAME: ${{ matrix.DAO_NAME }}
           OMIT_CACHE: ${{ github.event.inputs.omitCache }}
           GITHUB_SHA: ${{ github.sha }}
