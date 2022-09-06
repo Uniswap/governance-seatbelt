@@ -1,7 +1,8 @@
 import { AllCheckResults, ProposalCreatedEvent, TenderlySimulation } from '../types'
 import { Block } from '@ethersproject/abstract-provider'
 import { BigNumber } from 'ethers'
-import { ProposalMetadata } from '@aave/contract-helpers'
+import { getProposalMetadata } from '../utils/clients/ipfs'
+import { IPFS_GATEWAY } from '../utils/constants'
 
 export const SHORT_EXECUTOR = '0xEE56e2B3D491590B5b31738cC34d5232F378a8D5'
 
@@ -85,10 +86,10 @@ export async function toProposalReport(
   proposal: ProposalCreatedEvent,
   checks: AllCheckResults,
   sim: TenderlySimulation,
-  subReports: { name: string; link: string }[] = [],
-  ipfsMeta: ProposalMetadata
+  subReports: { name: string; link: string }[] = []
 ): Promise<string> {
   const { id, creator, targets, endBlock, startBlock, ipfsHash, executor } = proposal
+  const ipfsMeta = await getProposalMetadata(ipfsHash, IPFS_GATEWAY)
 
   return `## ${ipfsMeta.title}
 
@@ -109,13 +110,18 @@ _Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blo
 - Simulation: [https://dashboard.tenderly.co/me/simulator/${
     sim.simulation.id
   }](https://dashboard.tenderly.co/me/simulator/${sim.simulation.id})
-- Description: [${ipfsHash}](./ipfs/${ipfsHash}.md)
 
 ${
   subReports.length !== 0
     ? `### Subreports\n\n${subReports.map((report) => `- [${report.name}](${report.link})\n`)}`
     : ''
 }
+
+<details>
+  <summary>Proposal text</summary>
+
+${ipfsMeta.description}
+</details>
 
 ### Checks
 ${Object.keys(checks)
