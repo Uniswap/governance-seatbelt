@@ -30,7 +30,6 @@ export async function getCloseBlock(
   targetTimestamp: number,
   provider: providers.StaticJsonRpcProvider
 ): Promise<number> {
-  console.log(minBlockNumber, maxBlockNumber, targetTimestamp)
   const minBlock = await provider.getBlock(minBlockNumber)
   const minBlockTimestamp = minBlock.timestamp
   const maxBlock = await provider.getBlock(maxBlockNumber)
@@ -43,6 +42,8 @@ export async function getCloseBlock(
   const estimatedMinBlock = minBlockNumber + Math.floor((minRatio - 0.02) * blockDiff)
   const estimatedMaxBlock = minBlockNumber + Math.floor((minRatio + 0.02) * blockDiff)
 
+  // if true, that means the event is not here yet
+  if (estimatedMinBlock > maxBlockNumber) return maxBlockNumber
   return getCloseBlock(
     estimatedMinBlock,
     estimatedMaxBlock >= maxBlockNumber ? maxBlockNumber : estimatedMaxBlock,

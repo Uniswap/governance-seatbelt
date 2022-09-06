@@ -70,7 +70,7 @@ function getContract(sim: TenderlySimulation, addr: string) {
 }
 
 function getStateDiff(sim: TenderlySimulation, addr: string) {
-  return sim.transaction.transaction_info.state_diff.find(
+  return sim.transaction.transaction_info.state_diff?.find(
     (diff) => diff.raw?.[0]?.address.toLowerCase() === addr.toLowerCase()
   )
 }
