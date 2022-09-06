@@ -42,7 +42,6 @@ jobs:
         id: generator
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
-          RPC_POLYGON: ${{ secrets.RPC_POLYGON }}
           DAO_NAME: ${{ matrix.DAO_NAME }}
           OMIT_CACHE: ${{ github.event.inputs.omitCache }}
           GITHUB_SHA: ${{ github.sha }}
@@ -93,6 +92,7 @@ jobs:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RPC_URL: ${{ secrets.RPC_URL }}
+          RPC_POLYGON: ${{ secrets.RPC_POLYGON }}
           TENDERLY_ACCESS_TOKEN: ${{ secrets.TENDERLY_ACCESS_TOKEN }}
           TENDERLY_PROJECT_SLUG: ${{ secrets.TENDERLY_PROJECT_SLUG }}
           TENDERLY_ACCOUNT: ${{ secrets.TENDERLY_ACCOUNT }}
