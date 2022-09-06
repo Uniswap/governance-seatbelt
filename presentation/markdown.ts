@@ -16,7 +16,7 @@ function toMessageList(header: string, errors: string[]): string {
  * @param warnings the warnings returned by the check
  * @param name the descriptive name of the check
  */
-function toCheckSummary({ result: { errors, warnings, info }, name }: AllCheckResults[string]): string {
+export function toCheckSummary({ result: { errors, warnings, info }, name }: AllCheckResults[string]): string {
   const status = errors.length === 0 ? (warnings.length === 0 ? '✅ Passed' : '⚠️ Passed with warnings') : '❌ Failed'
 
   return `#### ${name} ${status}

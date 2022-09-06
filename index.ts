@@ -8,7 +8,7 @@ import { DAO_NAME, PROPOSAL_FILTER, OMIT_CACHE, AAVE_GOV_V2_ADDRESS } from './ut
 import { provider } from './utils/clients/ethers'
 import { AllCheckResults, ProposalData, SimulationResult, SubSimulation } from './types'
 import ALL_CHECKS from './checks'
-import { toSubReport, toProposalReport } from './presentation/markdown'
+import { toSubReport, toProposalReport, toCheckSummary } from './presentation/markdown'
 import { aaveGovernanceContract, isProposalStateImmutable, PROPOSAL_STATES } from './utils/contracts/aave-governance-v2'
 import { executor } from './utils/contracts/executor'
 import { PromisePool } from '@supercharge/promise-pool'
@@ -184,6 +184,11 @@ async function generateReports(simOutputs: SimulationResult[]) {
         }
       }
 
+      if (proposal.id.toNumber() === 98) {
+        const slitherReport = checkResults.checkSlither
+        delete checkResults.checkSlither
+        fs.writeFileSync(getProposalFileName(proposal.id.toNumber(), 'slither'), toCheckSummary(slitherReport))
+      }
       const report = await toProposalReport(
         { start: startBlock, end: endBlock, current: latestBlock },
         proposal,
@@ -194,6 +199,7 @@ async function generateReports(simOutputs: SimulationResult[]) {
 
       // save report
       fs.writeFileSync(getProposalFileName(proposal.id.toNumber()), report)
+
       cache[proposal.id.toString()] = proposal.state
     })
   if (errors.length) throw errors
