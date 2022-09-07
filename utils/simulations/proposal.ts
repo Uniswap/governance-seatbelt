@@ -167,6 +167,7 @@ export async function simulateProposal(proposalId: BigNumberish): Promise<Simula
     latestBlock,
     proposal: { ...proposal, state: proposalState },
     subSimulations: [],
+    provider,
   }
 }
 

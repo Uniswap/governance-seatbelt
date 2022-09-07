@@ -1,5 +1,6 @@
-import { BigNumber } from 'ethers'
+import { BigNumber, providers } from 'ethers'
 import { hexDataLength, hexDataSlice, hexZeroPad } from 'ethers/lib/utils'
+import { ProposalData } from '../types'
 import { erc20Contract } from '../utils/contracts/erc-20'
 
 export function deepDiff(
@@ -27,10 +28,11 @@ export async function interpretStateChange(
   name: string = '',
   original: Record<string, any>,
   dirty: Record<string, any>,
-  key: string
+  key: string,
+  deps: ProposalData
 ) {
   if (name === '_reserves' && (original.configuration.data || dirty.configuration.data))
-    return await reserveConfigurationChanged(original, dirty, key)
+    return await reserveConfigurationChanged(original, dirty, key, deps)
   return undefined
 }
 
@@ -87,12 +89,17 @@ export function decodeReserveData(data: string) {
   }
 }
 
-async function reserveConfigurationChanged(original: Record<string, any>, dirty: Record<string, any>, key: string) {
+async function reserveConfigurationChanged(
+  original: Record<string, any>,
+  dirty: Record<string, any>,
+  key: string,
+  deps: ProposalData
+) {
   const configurationBefore = original.configuration.data ? decodeReserveData(original.configuration.data) : {}
   const configurationAfter = dirty.configuration.data ? decodeReserveData(dirty.configuration.data) : {}
   let symbol = 'unknown'
   try {
-    symbol = await erc20Contract(key).symbol()
+    symbol = await erc20Contract(key, deps.provider).symbol()
   } catch (e) {}
   // const symbol =
   return `# decoded configuration.data for key \`${key}\` (symbol: ${symbol})

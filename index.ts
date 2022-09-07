@@ -5,7 +5,7 @@
 require('dotenv').config()
 import fs from 'fs'
 import { DAO_NAME, PROPOSAL_FILTER, OMIT_CACHE, AAVE_GOV_V2_ADDRESS } from './utils/constants'
-import { provider } from './utils/clients/ethers'
+import { provider, polygonProvider } from './utils/clients/ethers'
 import { AllCheckResults, ProposalData, SimulationResult, SubSimulation } from './types'
 import ALL_CHECKS from './checks'
 import { toSubReport, toProposalReport, toCheckSummary } from './presentation/markdown'
@@ -76,6 +76,7 @@ async function runSimulation() {
               type: 'arc',
               name: `Arc actionSet(${arcPayload.actionSet})`,
               simulation: await simulateArc(sim, arcPayload.actionSet, arcPayload.timestamp),
+              provider,
             })
           }
         }
@@ -91,10 +92,11 @@ async function runSimulation() {
                 .map((set) => `${set.actionSet}: ${JSON.stringify(set.value)}`)
                 .join(',')})`,
               simulation: simulationResult,
+              provider: polygonProvider,
             })
           }
         }
-        return { sim, proposal, latestBlock, subSimulations }
+        return { sim, proposal, latestBlock, subSimulations, provider }
       }
     })
   if (errors.length) throw errors
@@ -115,7 +117,7 @@ async function generateReports(simOutputs: SimulationResult[]) {
     })
     .process(async (simOutput) => {
       // Run checks
-      const { sim, proposal, latestBlock, subSimulations } = simOutput
+      const { sim, proposal, latestBlock, subSimulations, provider } = simOutput
       const proposalData: ProposalData = {
         governance: aaveGovernanceContract,
         provider,
@@ -150,7 +152,10 @@ async function generateReports(simOutputs: SimulationResult[]) {
                 checkId,
                 {
                   name: ALL_CHECKS[checkId].name,
-                  result: await ALL_CHECKS[checkId].checkProposal(proposal, subSimulation.simulation, proposalData),
+                  result: await ALL_CHECKS[checkId].checkProposal(proposal, subSimulation.simulation, {
+                    ...proposalData,
+                    provider: subSimulation.provider,
+                  }),
                 },
               ])
             )

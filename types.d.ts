@@ -1,5 +1,4 @@
-import { BigNumber, BigNumberish, Block, Contract } from 'ethers'
-import { JsonRpcProvider } from '@ethersproject/providers'
+import { BigNumber, BigNumberish, Block, Contract, providers } from 'ethers'
 import { PROPOSAL_STATES } from './utils/contracts/aave-governance-v2'
 
 // --- Simulation configurations ---
@@ -24,12 +23,14 @@ export interface SubSimulation {
   name: string
   type: 'arc' | 'fxPortal'
   id: string
+  provider: providers.StaticJsonRpcProvider
 }
 export interface SimulationResult {
   sim: TenderlySimulation
   proposal: ProposalStruct & { state: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 }
   latestBlock: Block
   subSimulations: SubSimulation[]
+  provider: providers.StaticJsonRpcProvider
 }
 
 export interface ProposalStruct {
@@ -78,7 +79,7 @@ export type CheckResult = {
 export type ProposalData = {
   governance: Contract
   executor: Contract
-  provider: JsonRpcProvider
+  provider: providers.StaticJsonRpcProvider
 }
 
 export interface ProposalCheck {

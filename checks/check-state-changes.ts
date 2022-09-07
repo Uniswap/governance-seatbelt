@@ -82,7 +82,7 @@ export const checkStateChanges: ProposalCheck = {
           const dirty = diff.dirty as Record<string, any>
           for (const k of keys) {
             info += deepDiff(original[k], dirty[k], `\`${diff.soltype?.name}\` key \`${k}\``)
-            const interpretation = await interpretStateChange(diff.soltype?.name, original[k], dirty[k], k)
+            const interpretation = await interpretStateChange(diff.soltype?.name, original[k], dirty[k], k, deps)
             if (interpretation) info += `\n${interpretation}`
             info += '\n'
           }

@@ -1,5 +1,4 @@
-import { Contract } from 'ethers'
-import { provider } from '../clients/ethers'
+import { Contract, providers } from 'ethers'
 
 const abi = [
   {
@@ -18,4 +17,5 @@ const abi = [
   },
 ]
 
-export const erc20Contract = (address: string) => new Contract(address, abi, provider)
+export const erc20Contract = (address: string, provider: providers.StaticJsonRpcProvider) =>
+  new Contract(address, abi, provider)
