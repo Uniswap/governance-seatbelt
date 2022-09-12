@@ -433,12 +433,20 @@ export function getContractName(contract: TenderlyContract | undefined) {
  * @param chainId Chain ID to get block number for
  */
 async function getLatestBlock(chainId: BigNumberish): Promise<number> {
-  // Send simulation request
-  const fetchOptions = <Partial<FETCH_OPT>>{ method: 'GET', ...TENDERLY_FETCH_OPTIONS }
-  const res = <{ block_number: number }>(
-    await fetchUrl(`${TENDERLY_BASE_URL}/network/${BigNumber.from(chainId).toString()}/block-number`, fetchOptions)
-  )
-  return res.block_number
+  try {
+    // Send simulation request
+    console.log('in getLatestBlock')
+    console.log('chainId: ', chainId)
+    const url = `${TENDERLY_BASE_URL}/network/${BigNumber.from(chainId).toString()}/block-number`
+    const fetchOptions = <Partial<FETCH_OPT>>{ method: 'GET', ...TENDERLY_FETCH_OPTIONS }
+    console.log('url: ', url)
+    console.log('fetchOptions: ', JSON.stringify(fetchOptions))
+    const res = <{ block_number: number }>await fetchUrl(url, fetchOptions)
+    return res.block_number
+  } catch (err) {
+    console.log('err in getLatestBlock: ', JSON.stringify(err))
+    throw err
+  }
 }
 
 /**
@@ -446,8 +454,16 @@ async function getLatestBlock(chainId: BigNumberish): Promise<number> {
  * @param payload State overrides to send
  */
 async function sendEncodeRequest(payload: any): Promise<StorageEncodingResponse> {
-  const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
-  return <Promise<StorageEncodingResponse>>fetchUrl(TENDERLY_ENCODE_URL, fetchOptions)
+  try {
+    const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
+    console.log('in sendEncodeRequest')
+    console.log('TENDERLY_ENCODE_URL: ', TENDERLY_ENCODE_URL)
+    console.log('fetchOptions: ', JSON.stringify(fetchOptions))
+    return <Promise<StorageEncodingResponse>>fetchUrl(TENDERLY_ENCODE_URL, fetchOptions)
+  } catch (err) {
+    console.log('err in sendEncodeRequest: ', JSON.stringify(err))
+    throw err
+  }
 }
 
 /**
@@ -462,9 +478,10 @@ async function sendEncodeRequest(payload: any): Promise<StorageEncodingResponse>
 async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<TenderlySimulation> {
   try {
     // Send simulation request
+    console.log('in sendSimulation')
     const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
-    console.log('TENDERLY_SIM_URL: ', TENDERLY_SIM_URL);
-    console.log('fetchOptions: ', JSON.stringify(fetchOptions));
+    console.log('TENDERLY_SIM_URL: ', TENDERLY_SIM_URL)
+    console.log('fetchOptions: ', JSON.stringify(fetchOptions))
     const sim = <TenderlySimulation>await fetchUrl(TENDERLY_SIM_URL, fetchOptions)
 
     // Post-processing to ensure addresses we use are checksummed (since ethers returns checksummed addresses)
@@ -472,6 +489,7 @@ async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<T
     sim.contracts.forEach((contract) => (contract.address = getAddress(contract.address)))
     return sim
   } catch (err: any) {
+    console.log('err in sendSimulation: ', JSON.stringify(err))
     const is429 = typeof err === 'object' && err?.statusCode === 400
     if (delay > 8000 || !is429) {
       console.warn(`Simulation request failed with the below request payload and error`)
