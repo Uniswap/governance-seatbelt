@@ -299,6 +299,8 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
       },
       [governor.address]: {
         value: {
+          // TODO need to abstract this out to support OZ governor.
+          // TODO also need OZ overrides so `isOperationReady(id)` returns true ("operation is not ready" error)
           proposalCount: proposalId.toString(),
           [`${proposalKey}.eta`]: eta.toString(),
           [`${proposalKey}.forVotes`]: votingTokenSupply.toString(),
