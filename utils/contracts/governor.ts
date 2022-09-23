@@ -10,7 +10,7 @@ import { timelock } from './timelock'
 import { GovernorType, ProposalEvent, ProposalStruct } from '../../types'
 
 // --- Exported methods ---
-export async function inferGovernorType(address: string): Promise<'oz' | 'compound'> {
+export async function inferGovernorType(address: string): Promise<'oz' | 'bravo'> {
   const abi = ['function initialProposalId() external view returns (uint256)']
   const governor = new Contract(address, abi, provider)
 
@@ -19,14 +19,14 @@ export async function inferGovernorType(address: string): Promise<'oz' | 'compou
     // it's overwhelmingly likely this is. OZ style governors use a hash as the proposal IDs so IDs
     // will be very large numbers.
     const id = <BigNumberish>await governor.initialProposalId()
-    if (BigNumber.from(id).lte(100_000)) return 'compound'
+    if (BigNumber.from(id).lte(100_000)) return 'bravo'
   } catch (err) {}
 
   return 'oz'
 }
 
 export function getGovernor(governorType: GovernorType, address: string) {
-  if (governorType === 'compound') return governorBravo(address)
+  if (governorType === 'bravo') return governorBravo(address)
   if (governorType === 'oz') return governorOz(address)
   throw new Error(`Unknown governor type: ${governorType}`)
 }
@@ -37,7 +37,7 @@ export async function getProposal(
   proposalId: BigNumberish
 ): Promise<ProposalStruct> {
   const governor = getGovernor(governorType, address)
-  if (governorType === 'compound') return governor.proposals(proposalId)
+  if (governorType === 'bravo') return governor.proposals(proposalId)
 
   // Piece together the struct for OZ Governors.
   const [[againstVotes, forVotes, abstainVotes], state, eta, startTime, endTime] = await Promise.all([
@@ -63,13 +63,13 @@ export async function getProposal(
 
 export async function getTimelock(governorType: GovernorType, address: string) {
   const governor = getGovernor(governorType, address)
-  if (governorType === 'compound') return timelock(await governor.admin())
+  if (governorType === 'bravo') return timelock(await governor.admin())
   return timelock(await governor.timelock())
 }
 
 export async function getVotingToken(governorType: GovernorType, address: string, proposalId: BigNumberish) {
   const governor = getGovernor(governorType, address)
-  if (governorType === 'compound') {
+  if (governorType === 'bravo') {
     // Get voting token and total supply
     const govSlots = getBravoSlots(proposalId)
     const rawVotingToken = await provider.getStorageAt(governor.address, govSlots.votingToken)
@@ -81,7 +81,7 @@ export async function getVotingToken(governorType: GovernorType, address: string
 }
 
 export function getGovSlots(governorType: GovernorType, proposalId: BigNumberish) {
-  if (governorType === 'compound') return getBravoSlots(proposalId)
+  if (governorType === 'bravo') return getBravoSlots(proposalId)
   return getOzSlots(proposalId)
 }
 
@@ -90,7 +90,7 @@ export async function getProposalIds(
   address: string,
   latestBlockNum: number
 ): Promise<bigint[]> {
-  if (governorType === 'compound') {
+  if (governorType === 'bravo') {
     // Fetch all proposal IDs
     const governor = governorBravo(address)
     const proposalCreatedLogs = await governor.queryFilter(governor.filters.ProposalCreated(), 0, latestBlockNum)
@@ -130,7 +130,7 @@ export async function generateProposalId(
   }
 ): Promise<BigNumber> {
   // Fetch proposal count from the contract and increment it by 1.
-  if (governorType === 'compound') {
+  if (governorType === 'bravo') {
     const count: BigNumber = await governorBravo(address).proposalCount()
     return count.add(1)
   }

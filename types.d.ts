@@ -3,7 +3,7 @@ import { ContractTransaction } from '@ethersproject/contracts'
 import { JsonRpcProvider } from '@ethersproject/providers'
 
 // --- Simulation configurations ---
-export type GovernorType = 'oz' | 'compound'
+export type GovernorType = 'oz' | 'bravo'
 
 interface SimulationConfigBase {
   type: 'executed' | 'proposed' | 'new'

@@ -1,7 +1,7 @@
 import { getAddress } from '@ethersproject/address'
 import { defaultAbiCoder } from '@ethersproject/abi'
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
-import {  hexStripZeros } from '@ethersproject/bytes'
+import { hexStripZeros } from '@ethersproject/bytes'
 import { keccak256 } from '@ethersproject/keccak256'
 import { toUtf8Bytes } from '@ethersproject/strings'
 import { parseEther } from '@ethersproject/units'
@@ -168,7 +168,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
   //   - queuedTransactions[txHash] = true for each action in the proposal
   const descriptionHash = keccak256(toUtf8Bytes(description))
   const executeInputs =
-    governorType === 'compound' ? [proposalId.toString()] : [targets, values, calldatas, descriptionHash]
+    governorType === 'bravo' ? [proposalId.toString()] : [targets, values, calldatas, descriptionHash]
   const simulationPayload: TenderlyPayload = {
     network_id: '1',
     // this field represents the block state to simulate against, so we use the latest block number
@@ -259,7 +259,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
 
   // For compound style governance, we use the block right after the proposal ends, and for OZ
   // governance we arbitrarily use the next block number.
-  const simBlock = governorType === 'compound' ? proposal.endBlock!.add(1) : BigNumber.from(latestBlock.number + 1)
+  const simBlock = governorType === 'bravo' ? proposal.endBlock!.add(1) : BigNumber.from(latestBlock.number + 1)
 
   // For OZ governance we are given the earliest possible execution time. For Compound governance, we
   // Compute the approximate earliest possible execution time based on governance parameters. This
@@ -269,7 +269,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   // proposals call methods that pass in a start timestamp that must be lower than the current
   // block timestamp (represented by the `simTimestamp` variable below)
   const simTimestamp =
-    governorType === 'compound'
+    governorType === 'bravo'
       ? BigNumber.from(latestBlock.timestamp).add(simBlock.sub(proposal.endBlock!).mul(12))
       : proposal.endTime!.add(1)
   const eta = simTimestamp // set proposal eta to be equal to the timestamp we simulate at
@@ -321,7 +321,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const cleanedVals = typeof values === 'function' ? new Array(targets.length).fill(BigNumber.from(0)) : values
   const descriptionHash = keccak256(toUtf8Bytes(description))
   const executeInputs =
-    governorType === 'compound' ? [proposalId.toString()] : [targets, cleanedVals, calldatas, descriptionHash]
+    governorType === 'bravo' ? [proposalId.toString()] : [targets, cleanedVals, calldatas, descriptionHash]
   const simulationPayload: TenderlyPayload = {
     network_id: '1',
     // this field represents the block state to simulate against, so we use the latest block number
