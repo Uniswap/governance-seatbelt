@@ -1,8 +1,7 @@
 import { getAddress } from '@ethersproject/address'
 import { defaultAbiCoder } from '@ethersproject/abi'
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
-import { hexlify, hexDataLength, hexStripZeros, hexValue, hexZeroPad } from '@ethersproject/bytes'
-import { Contract } from '@ethersproject/contracts'
+import {  hexStripZeros } from '@ethersproject/bytes'
 import { keccak256 } from '@ethersproject/keccak256'
 import { toUtf8Bytes } from '@ethersproject/strings'
 import { parseEther } from '@ethersproject/units'
@@ -27,7 +26,6 @@ import {
   TENDERLY_SIM_URL,
 } from '../constants'
 import {
-  ProposalActions,
   ProposalEvent,
   ProposalStruct,
   SimulationConfig,

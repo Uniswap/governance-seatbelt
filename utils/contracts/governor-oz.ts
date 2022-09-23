@@ -1,7 +1,7 @@
 import { BigNumber, BigNumberish, Contract } from 'ethers'
 import { hexZeroPad } from '@ethersproject/bytes'
 import { provider } from '../clients/ethers'
-import { getSolidityStorageSlotUint, to32ByteHexString } from '../utils'
+import { getSolidityStorageSlotUint,  } from '../utils'
 
 const GOVERNOR_OZ_ABI = [
   'event ProposalCanceled(uint256 proposalId)',
