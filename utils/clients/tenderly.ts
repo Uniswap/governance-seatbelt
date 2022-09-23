@@ -119,7 +119,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
   // Use the Tenderly API to get the encoded state overrides for governor storage
   const proposalKey = `proposals[${proposalId.toString()}]`
   const stateOverrides = {
-    networkID: '1',
+    network_id: '1',
     stateOverrides: {
       [timelock.address]: {
         value: timelockStorageObj,
@@ -288,7 +288,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
 
   const proposalKey = `proposals[${proposalId.toString()}]`
   const stateOverrides = {
-    networkID: '1',
+    network_id: '1',
     stateOverrides: {
       [timelock.address]: {
         value: timelockStorageObj,
