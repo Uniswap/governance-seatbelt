@@ -222,7 +222,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const proposal = <ProposalStruct>_proposal
 
   const proposalCreatedEvent = proposalCreatedLogs.filter((log) => {
-    return getProposalId(log.args as unknown as ProposalEvent) === BigNumber.from(proposalId).toBigInt()
+    return getProposalId(log.args as unknown as ProposalEvent).eq(proposalId)
   })[0]
   if (!proposalCreatedEvent) throw new Error(`Proposal creation log for #${proposalId} not found in governor logs`)
   const {
@@ -374,13 +374,13 @@ async function simulateExecuted(config: SimulationConfigExecuted): Promise<Simul
   ])
 
   const proposalCreatedEvent = createProposalLogs.filter((log) => {
-    return getProposalId(log.args as unknown as ProposalEvent) === BigNumber.from(proposalId).toBigInt()
+    return getProposalId(log.args as unknown as ProposalEvent).eq(proposalId)
   })[0]
   if (!proposalCreatedEvent) throw new Error(`Proposal creation log for #${proposalId} not found in governor logs`)
   const proposal = proposalCreatedEvent.args as unknown as ProposalEvent
 
   const proposalExecutedEvent = proposalExecutedLogs.filter((log) => {
-    return getProposalId(log.args as unknown as ProposalEvent) === BigNumber.from(proposalId).toBigInt()
+    return getProposalId(log.args as unknown as ProposalEvent).eq(proposalId)
   })[0]
   if (!proposalExecutedEvent) throw new Error(`Proposal execution log for #${proposalId} not found in governor logs`)
 

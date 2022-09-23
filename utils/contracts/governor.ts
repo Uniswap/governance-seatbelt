@@ -89,27 +89,27 @@ export async function getProposalIds(
   governorType: GovernorType,
   address: string,
   latestBlockNum: number
-): Promise<bigint[]> {
+): Promise<BigNumber[]> {
   if (governorType === 'bravo') {
     // Fetch all proposal IDs
     const governor = governorBravo(address)
     const proposalCreatedLogs = await governor.queryFilter(governor.filters.ProposalCreated(), 0, latestBlockNum)
-    const allProposalIds = proposalCreatedLogs.map((logs) => (logs.args as unknown as ProposalEvent).id!.toBigInt())
+    const allProposalIds = proposalCreatedLogs.map((logs) => (logs.args as unknown as ProposalEvent).id!)
 
     // Remove proposals from GovernorAlpha based on the initial GovernorBravo proposal ID
     const initialProposalId = await governor.initialProposalId()
-    return allProposalIds.filter((id) => id > initialProposalId.toBigInt())
+    return allProposalIds.filter((id) => id.gt(initialProposalId))
   }
 
   const governor = governorOz(address)
   const proposalCreatedLogs = await governor.queryFilter(governor.filters.ProposalCreated(), 0, latestBlockNum)
-  return proposalCreatedLogs.map((logs) => (logs.args as unknown as ProposalEvent).proposalId!.toBigInt())
+  return proposalCreatedLogs.map((logs) => (logs.args as unknown as ProposalEvent).proposalId!)
 }
 
-export function getProposalId(proposal: ProposalEvent): bigint {
+export function getProposalId(proposal: ProposalEvent): BigNumber {
   const id = proposal.id || proposal.proposalId
   if (!id) throw new Error(`Proposal ID not found for proposal: ${JSON.stringify(proposal)}`)
-  return id.toBigInt()
+  return id
 }
 
 // Generate proposal ID, used when simulating new proposals.

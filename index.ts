@@ -57,7 +57,7 @@ async function main() {
     // If we aren't simulating all proposals, filter down to just the active ones. For now we
     // assume we're simulating all by default
     const states = await Promise.all(proposalIds.map((id) => governor.state(id)))
-    const simProposals: { id: bigint; simType: SimulationConfigBase['type'] }[] = proposalIds.map((id, i) => {
+    const simProposals: { id: BigNumber; simType: SimulationConfigBase['type'] }[] = proposalIds.map((id, i) => {
       // If state is `Executed` (state 7), we use the executed sim type and effectively just
       // simulate the real transaction. For all other states, we use the `proposed` type because
       // state overrides are required to simulate the transaction
@@ -89,7 +89,7 @@ async function main() {
         governorType,
         proposalId: simProposal.id,
       }
-      if (simProposal.id !== 12n) continue
+      if (!simProposal.id.eq(12)) continue // TODO remove this line
       console.log('simProposal.id: ', simProposal.id)
       const { sim, proposal, latestBlock } = await simulate(config)
       simOutputs.push({ sim, proposal, latestBlock, config })
