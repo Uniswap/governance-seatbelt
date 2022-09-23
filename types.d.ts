@@ -9,7 +9,7 @@ interface SimulationConfigBase {
   type: 'executed' | 'proposed' | 'new'
   daoName: string // e.g. 'Compound' or 'Uniswap'
   governorAddress: string // address of the governor
-  governorType: GovernorType // TODO probably can remove this and infer type
+  governorType: GovernorType
 }
 
 export interface SimulationConfigExecuted extends SimulationConfigBase {

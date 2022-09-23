@@ -63,7 +63,6 @@ async function main() {
       // state overrides are required to simulate the transaction
       const state = String(states[i]) as keyof typeof PROPOSAL_STATES
       const isExecuted = PROPOSAL_STATES[state] === 'Executed'
-      console.log('id, isExecuted: ', id, isExecuted)
       return { id, simType: isExecuted ? 'executed' : 'proposed' }
     })
     const simProposalsIds = simProposals.map((sim) => sim.id)
@@ -89,8 +88,7 @@ async function main() {
         governorType,
         proposalId: simProposal.id,
       }
-      if (!simProposal.id.eq(12)) continue // TODO remove this line
-      console.log('simProposal.id: ', simProposal.id)
+
       const { sim, proposal, latestBlock } = await simulate(config)
       simOutputs.push({ sim, proposal, latestBlock, config })
       console.log(`    done`)

@@ -78,8 +78,6 @@ export const PROPOSAL_STATES = {
  * @param id Proposal ID
  */
 export function getBravoSlots(proposalId: BigNumberish) {
-  // TODO generalize this for other storage layouts
-
   // Proposal struct slot offsets, based on the governor's proposal struct
   //     struct Proposal {
   //       uint id;
