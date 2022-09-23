@@ -8,6 +8,7 @@ import { toUtf8Bytes } from '@ethersproject/strings'
 import { parseEther } from '@ethersproject/units'
 import { provider } from './ethers'
 import mftch, { FETCH_OPT } from 'micro-ftch'
+import axios from 'axios'
 // @ts-ignore
 const fetchUrl = mftch.default
 import {
@@ -42,6 +43,9 @@ import {
 import { writeFileSync } from 'fs'
 
 const TENDERLY_FETCH_OPTIONS = { type: 'json', headers: { 'X-Access-Key': TENDERLY_ACCESS_TOKEN } }
+const TENDERLY_FETCH_HEADERS = {
+  headers: { 'content-type': 'application/JSON', 'X-Access-Key': TENDERLY_ACCESS_TOKEN },
+}
 const DEFAULT_FROM = '0xD73a92Be73EfbFcF3854433A5FcbAbF9c1316073' // arbitrary EOA not used on-chain
 // --- Simulation methods ---
 
@@ -119,7 +123,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
   // Use the Tenderly API to get the encoded state overrides for governor storage
   const proposalKey = `proposals[${proposalId.toString()}]`
   const stateOverrides = {
-    network_id: '1',
+    networkID: '1',
     stateOverrides: {
       [timelock.address]: {
         value: timelockStorageObj,
@@ -288,7 +292,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
 
   const proposalKey = `proposals[${proposalId.toString()}]`
   const stateOverrides = {
-    network_id: '1',
+    networkID: '1',
     stateOverrides: {
       [timelock.address]: {
         value: timelockStorageObj,
@@ -455,11 +459,14 @@ async function getLatestBlock(chainId: BigNumberish): Promise<number> {
  */
 async function sendEncodeRequest(payload: any): Promise<StorageEncodingResponse> {
   try {
-    const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
+    // const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
     console.log('in sendEncodeRequest')
     console.log('TENDERLY_ENCODE_URL: ', TENDERLY_ENCODE_URL)
-    console.log('fetchOptions: ', JSON.stringify(fetchOptions))
-    return <Promise<StorageEncodingResponse>>fetchUrl(TENDERLY_ENCODE_URL, fetchOptions)
+    console.log('TENDERLY_FETCH_HEADERS: ', JSON.stringify(TENDERLY_FETCH_HEADERS))
+    console.log('payload: ', JSON.stringify(payload))
+    const x = await axios.post(TENDERLY_ENCODE_URL, payload, TENDERLY_FETCH_HEADERS)
+    return x.data as unknown as StorageEncodingResponse
+    // return <Promise<StorageEncodingResponse>>fetchUrl(TENDERLY_ENCODE_URL, fetchOptions)
   } catch (err) {
     console.log('err in sendEncodeRequest: ', JSON.stringify(err))
     throw err

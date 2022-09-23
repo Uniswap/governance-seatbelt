@@ -28,6 +28,7 @@
   "dependencies": {
     "@octokit/action": "^3.15.2",
     "@types/node": "^16.7.13",
+    "axios": "^0.27.2",
     "dotenv": "^10.0.0",
     "ethers": "^5.4.6",
     "md-to-pdf": "^5.1.0",
