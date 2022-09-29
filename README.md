@@ -205,6 +205,7 @@ Some notes on the outputs of reports:
 | PolygonBridgeExecutor actionSet("4": {"executed":true})                        | [100_fx_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/100_fx_0.md)   | [app](https://app.aave.com/governance/proposal/?proposalId=100) |
 | Re-enable ETH Borrowing                                                        | [101.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/101.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=101) |
 | Risk Parameter Updates for Aave V2 (2022-09-22)                                | [102.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/102.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=102) |
+| Ethereum v2 Reserve Factor - aFEI Holding Update                               | [103.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/103.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=103) |
 
 <!-- ### Reports table end ### -->
 
