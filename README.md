@@ -210,6 +210,7 @@ Some notes on the outputs of reports:
 | Ethereum v2 Reserve Factor - aFEI Holding Update                                             | [105.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/105.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=105) |
 | Adjust Aave Governance Level 2 requirements                                                  | [106.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/106.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=106) |
 | Use AAVE Ecosystem Reserve to vote YES on proposal to adjust Level 2 Governance requirements | [107.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/107.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=107) |
+| Risk Parameter Updates for Aave V2 ETH (2022-10-06)                                          | [108.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/108.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=108) |
 
 <!-- ### Reports table end ### -->
 
