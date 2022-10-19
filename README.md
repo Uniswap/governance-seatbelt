@@ -212,6 +212,7 @@ Some notes on the outputs of reports:
 | Use AAVE Ecosystem Reserve to vote YES on proposal to adjust Level 2 Governance requirements | [107.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/107.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=107) |
 | Risk Parameter Updates for Aave V2 ETH (2022-10-06)                                          | [108.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/108.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=108) |
 | Whitelist Balancer’s Liquidity Mining Claim                                                  | [109.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/109.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=109) |
+| FEI Reserve Factor Update                                                                    | [110.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/110.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=110) |
 
 <!-- ### Reports table end ### -->
 
