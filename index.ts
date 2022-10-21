@@ -82,11 +82,12 @@ async function runSimulation() {
         }
         const fxPayloads = getFxChildPayloads(sim)
         if (fxPayloads.length) {
-          for (const fxPayload of fxPayloads) {
+          for (let i = 0; i < fxPayloads.length; i++) {
+            const fxPayload = fxPayloads[i]
             const simulationResult = await simulateFxPortal(sim, fxPayload.event)
             const actionSet = getActionSetsChanged(simulationResult)
             subSimulations.push({
-              id: '0',
+              id: `${actionSet[0].actionSet.replace(/\"/g, '')}_${i}`,
               type: 'fxPortal',
               name: `PolygonBridgeExecutor actionSet(${actionSet
                 .map((set) => `${set.actionSet}: ${JSON.stringify(set.value)}`)

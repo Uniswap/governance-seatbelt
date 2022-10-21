@@ -33,7 +33,10 @@ export const checkTrace: ProposalCheck = {
     for (let [i, delegateCall] of proposal.withDelegateCalls.entries()) {
       if (delegateCall) {
         // i+1 should be index of the i-th payload, as on index 0 there is `getProposalState` call
-        if (checkSelfDestructOpcode(sim.transaction.transaction_info.call_trace.calls[i + 1].calls)) {
+        if (
+          sim.transaction.transaction_info.call_trace.calls[i + 1]?.calls &&
+          checkSelfDestructOpcode(sim.transaction.transaction_info.call_trace.calls[i + 1].calls)
+        ) {
           selfdestructFound = true
         }
       }
