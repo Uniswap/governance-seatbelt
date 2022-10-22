@@ -438,6 +438,11 @@
   resolved "https://registry.npmjs.org/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
+"@bgd-labs/aave-address-book@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@bgd-labs/aave-address-book/-/aave-address-book-1.3.0.tgz#b569cfaa6a591253221e55689ea1cadf8de30316"
+  integrity sha512-u4QLJvXFyT5w1CVu0ZPLCKv1C1nGZz6HVEmhSE3eV5Ljeq9+Or7HNxKqO8PpYyVIHtnr+Uiq2D7rd2hT4JjfvQ==
+
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
   resolved "https://registry.npmjs.org/@cspotcode/source-map-support/-/source-map-support-0.8.1.tgz"

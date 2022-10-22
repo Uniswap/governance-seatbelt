@@ -2,6 +2,7 @@ import { BigNumber, providers } from 'ethers'
 import { hexDataLength, hexDataSlice, hexZeroPad } from 'ethers/lib/utils'
 import { ProposalData } from '../types'
 import { erc20Contract } from '../utils/contracts/erc-20'
+import * as pools from '@bgd-labs/aave-address-book'
 
 export function deepDiff(
   before: Record<string, any> | string,
@@ -25,6 +26,7 @@ export function deepDiff(
 }
 
 export async function interpretStateChange(
+  contractAddress: string,
   name: string = '',
   original: Record<string, any>,
   dirty: Record<string, any>,
@@ -32,7 +34,7 @@ export async function interpretStateChange(
   deps: ProposalData
 ) {
   if (name === '_reserves' && (original.configuration.data || dirty.configuration.data))
-    return await reserveConfigurationChanged(original, dirty, key, deps)
+    return await reserveConfigurationChanged(contractAddress, original, dirty, key, deps)
   return undefined
 }
 
@@ -68,7 +70,36 @@ export function getBits(config: string, fromBits: number, toBits: number) {
   return value.toString()
 }
 
-export function decodeReserveData(data: string) {
+async function reserveConfigurationChanged(
+  contractAddress: string,
+  original: Record<string, any>,
+  dirty: Record<string, any>,
+  key: string,
+  deps: ProposalData
+) {
+  const configurationBefore = getDecodedReserveData(contractAddress, original.configuration.data)
+  const configurationAfter = getDecodedReserveData(contractAddress, dirty.configuration.data)
+  let symbol = 'unknown'
+  try {
+    symbol = await erc20Contract(key, deps.provider).symbol()
+  } catch (e) {}
+  // const symbol =
+  return `# decoded configuration.data for key \`${key}\` (symbol: ${symbol})
+${deepDiff(configurationBefore, configurationAfter, 'configuration.data')}`
+}
+
+function getDecodedReserveData(contractAddress: string, data?: any) {
+  if (!data) return {}
+  if (
+    [pools.AaveV2EthereumAMM.POOL, pools.AaveV2Ethereum.POOL, pools.AaveV2Polygon.POOL, pools.AaveV2Avalanche.POOL]
+      .map((address) => address.toLowerCase())
+      .includes(contractAddress.toLowerCase())
+  )
+    return decodeReserveDataV2(data)
+  return decodeReserveDataV3(data)
+}
+
+export function decodeReserveDataV2(data: string) {
   const ltv = getBits(data, 0, 16)
   const liquidationThreshold = getBits(data, 16, 32)
   const liquidationBonus = getBits(data, 32, 48)
@@ -89,19 +120,42 @@ export function decodeReserveData(data: string) {
   }
 }
 
-async function reserveConfigurationChanged(
-  original: Record<string, any>,
-  dirty: Record<string, any>,
-  key: string,
-  deps: ProposalData
-) {
-  const configurationBefore = original.configuration.data ? decodeReserveData(original.configuration.data) : {}
-  const configurationAfter = dirty.configuration.data ? decodeReserveData(dirty.configuration.data) : {}
-  let symbol = 'unknown'
-  try {
-    symbol = await erc20Contract(key, deps.provider).symbol()
-  } catch (e) {}
-  // const symbol =
-  return `# decoded configuration.data for key \`${key}\` (symbol: ${symbol})
-${deepDiff(configurationBefore, configurationAfter, 'configuration.data')}`
+export function decodeReserveDataV3(data: string) {
+  const ltv = getBits(data, 0, 16)
+  const liquidationThreshold = getBits(data, 16, 32)
+  const liquidationBonus = getBits(data, 32, 48)
+  const decimals = getBits(data, 48, 56)
+  const active = BigNumber.from(getBits(data, 56, 57)).toNumber()
+  const frozen = BigNumber.from(getBits(data, 57, 58)).toNumber()
+  const borrowingEnabled = BigNumber.from(getBits(data, 58, 59)).toNumber()
+  const stableRateBorrowingEnabled = BigNumber.from(getBits(data, 59, 60)).toNumber()
+  const paused = BigNumber.from(getBits(data, 60, 61)).toNumber()
+  const borrowingInIsolation = BigNumber.from(getBits(data, 61, 62)).toNumber()
+  const reserveFactor = getBits(data, 64, 80)
+  const borrowCap = getBits(data, 80, 116)
+  const supplyCap = getBits(data, 116, 152)
+  const liquidationProtocolFee = getBits(data, 152, 168)
+  const eModeCategory = getBits(data, 168, 176)
+  const unbackedMintCap = getBits(data, 176, 212)
+  const debtCeiling = getBits(data, 212, 252)
+
+  return {
+    ltv,
+    liquidationThreshold,
+    liquidationBonus,
+    decimals,
+    active: !!active,
+    frozen: !!frozen,
+    borrowingEnabled: !!borrowingEnabled,
+    stableRateBorrowingEnabled,
+    paused,
+    borrowingInIsolation,
+    reserveFactor,
+    borrowCap,
+    supplyCap,
+    liquidationProtocolFee,
+    eModeCategory,
+    unbackedMintCap,
+    debtCeiling,
+  }
 }
