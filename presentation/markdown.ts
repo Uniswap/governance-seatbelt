@@ -113,7 +113,7 @@ _Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blo
 
 ${
   subReports.length !== 0
-    ? `### Subreports\n\n${subReports.map((report) => `- [${report.name}](${report.link})\n`)}`
+    ? `### Subreports\n\n${subReports.map((report) => `- [${report.name}](${report.link})\n`).join('')}`
     : ''
 }
 
