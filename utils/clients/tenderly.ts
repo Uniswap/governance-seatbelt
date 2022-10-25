@@ -120,7 +120,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
   })
 
   // Use the Tenderly API to get the encoded state overrides for governor storage
-  const proposalKey = `proposals[${proposalId.toString()}]`
+  const proposalKey = `proposals[${proposalId.toHexString()}]`
   const stateOverrides = {
     networkID: '1',
     stateOverrides: {
@@ -296,9 +296,10 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
     timelockStorageObj[`_timestamps[${id.toHexString()}]`] = simTimestamp.toString()
   }
 
+  const proposalIdBn = BigNumber.from(proposalId)
   let governorStateOverrides: Record<string, string> = {}
   if (governorType === 'bravo') {
-    const proposalKey = `proposals[${proposalId.toString()}]`
+    const proposalKey = `proposals[${proposalIdBn.toHexString()}]`
     governorStateOverrides = {
       proposalCount: proposalId.toString(),
       [`${proposalKey}.eta`]: eta.toString(),
@@ -309,10 +310,9 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
       [`${proposalKey}.abstainVotes`]: '0',
     }
   } else if (governorType === 'oz') {
-    const proposalCoreKey = `_proposals[${proposalId.toString()}]`
-    const proposalVotesKey = `_proposalVotes[${proposalId.toString()}]`
+    const proposalCoreKey = `_proposals[${proposalIdBn.toHexString()}]`
+    const proposalVotesKey = `_proposalVotes[${proposalIdBn.toHexString()}]`
     governorStateOverrides = {
-      // [`${proposalCoreKey}.voteStart._deadline`]: simBlock.sub(2).toString(),
       [`${proposalCoreKey}.voteEnd._deadline`]: simBlock.sub(1).toString(),
       [`${proposalCoreKey}.canceled`]: 'false',
       [`${proposalCoreKey}.executed`]: 'false',
@@ -425,7 +425,7 @@ async function simulateExecuted(config: SimulationConfigExecuted): Promise<Simul
   const sim = await sendSimulation(simulationPayload)
 
   const formattedProposal: ProposalEvent = {
-    ...(proposalCreatedEvent.args as unknown as ProposalEvent),
+    ...proposal,
     id: BigNumber.from(proposalId), // Make sure we always have an ID field
   }
   return { sim, proposal: formattedProposal, latestBlock }
