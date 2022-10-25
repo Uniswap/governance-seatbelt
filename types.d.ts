@@ -69,7 +69,7 @@ export interface ProposalStruct {
 }
 
 export interface ProposalEvent {
-  id?: BigNumber // Compound governor
+  id?: BigNumber // Bravo governor
   proposalId?: BigNumber // OZ governor
   proposer: string
   startBlock: BigNumber

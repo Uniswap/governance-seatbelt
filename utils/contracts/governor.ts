@@ -139,8 +139,28 @@ export async function generateProposalId(
   return BigNumber.from(
     keccak256(
       defaultAbiCoder.encode(
-        ['string[]', 'uint256[]', 'string[]', 'string'],
+        ['address[]', 'uint256[]', 'bytes[]', 'bytes32'],
         [targets, values, calldatas, keccak256(toUtf8Bytes(description))]
+      )
+    )
+  )
+}
+
+// Returns the identifier of an operation containing a batch of transactions.
+// For OZ governors, predecessor is often zero and salt is often description hash.
+// This is only intended to be used with OZ governors.
+export function hashOperationBatch(
+  targets: string[],
+  values: BigNumberish[],
+  calldatas: string[],
+  predecessor: string,
+  salt: string
+): BigNumber {
+  return BigNumber.from(
+    keccak256(
+      defaultAbiCoder.encode(
+        ['address[]', 'uint256[]', 'bytes[]', 'bytes32', 'bytes32'],
+        [targets, values, calldatas, predecessor, salt]
       )
     )
   )

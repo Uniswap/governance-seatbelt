@@ -2,6 +2,7 @@ import { getAddress } from '@ethersproject/address'
 import { defaultAbiCoder } from '@ethersproject/abi'
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
 import { hexStripZeros } from '@ethersproject/bytes'
+import { HashZero } from '@ethersproject/constants'
 import { keccak256 } from '@ethersproject/keccak256'
 import { toUtf8Bytes } from '@ethersproject/strings'
 import { parseEther } from '@ethersproject/units'
@@ -17,6 +18,7 @@ import {
   getProposalId,
   getTimelock,
   getVotingToken,
+  hashOperationBatch,
 } from '../contracts/governor'
 import {
   BLOCK_GAS_LIMIT,
@@ -283,12 +285,46 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   })
 
   // Generate the state object needed to mark the transactions as queued in the Timelock's storage
+  // TODO why is values sometimes a function?
+  const cleanedVals = typeof values === 'function' ? new Array(targets.length).fill(BigNumber.from(0)) : values
   const timelockStorageObj: Record<string, string> = {}
   txHashes.forEach((hash) => {
     timelockStorageObj[`queuedTransactions[${hash}]`] = 'true'
   })
 
-  const proposalKey = `proposals[${proposalId.toString()}]`
+  if (governorType === 'oz') {
+    const id = hashOperationBatch(targets, cleanedVals, calldatas, HashZero, keccak256(toUtf8Bytes(description)))
+    timelockStorageObj[`_timestamps[${id.toHexString()}]`] = simTimestamp.toString()
+  }
+
+  let governorStateOverrides: Record<string, string> = {}
+  if (governorType === 'bravo') {
+    const proposalKey = `proposals[${proposalId.toString()}]`
+    governorStateOverrides = {
+      proposalCount: proposalId.toString(),
+      [`${proposalKey}.eta`]: eta.toString(),
+      [`${proposalKey}.canceled`]: 'false',
+      [`${proposalKey}.executed`]: 'false',
+      [`${proposalKey}.forVotes`]: votingTokenSupply.toString(),
+      [`${proposalKey}.againstVotes`]: '0',
+      [`${proposalKey}.abstainVotes`]: '0',
+    }
+  } else if (governorType === 'oz') {
+    const proposalCoreKey = `_proposals[${proposalId.toString()}]`
+    const proposalVotesKey = `_proposalVotes[${proposalId.toString()}]`
+    governorStateOverrides = {
+      // [`${proposalCoreKey}.voteStart._deadline`]: simBlock.sub(2).toString(),
+      [`${proposalCoreKey}.voteEnd._deadline`]: simBlock.sub(1).toString(),
+      [`${proposalCoreKey}.canceled`]: 'false',
+      [`${proposalCoreKey}.executed`]: 'false',
+      [`${proposalVotesKey}.forVotes`]: votingTokenSupply.toString(),
+      [`${proposalVotesKey}.againstVotes`]: '0',
+      [`${proposalVotesKey}.abstainVotes`]: '0',
+    }
+  } else {
+    throw new Error(`Cannot generate overrides for unknown governor type: ${governorType}`)
+  }
+
   const stateOverrides = {
     networkID: '1',
     stateOverrides: {
@@ -296,17 +332,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
         value: timelockStorageObj,
       },
       [governor.address]: {
-        value: {
-          // TODO need to abstract this out to support OZ governor.
-          // TODO also need OZ overrides so `isOperationReady(id)` returns true ("operation is not ready" error)
-          proposalCount: proposalId.toString(),
-          [`${proposalKey}.eta`]: eta.toString(),
-          [`${proposalKey}.forVotes`]: votingTokenSupply.toString(),
-          [`${proposalKey}.againstVotes`]: '0',
-          [`${proposalKey}.abstainVotes`]: '0',
-          [`${proposalKey}.canceled`]: 'false',
-          [`${proposalKey}.executed`]: 'false',
-        },
+        value: governorStateOverrides,
       },
     },
   }
@@ -317,8 +343,6 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   // leading zeroes, padding with zeros, strings vs. hex, etc.) are all intentional decisions to
   // ensure Tenderly properly parses the simulation payload
 
-  // TODO why is values sometimes a function?
-  const cleanedVals = typeof values === 'function' ? new Array(targets.length).fill(BigNumber.from(0)) : values
   const descriptionHash = keccak256(toUtf8Bytes(description))
   const executeInputs =
     governorType === 'bravo' ? [proposalId.toString()] : [targets, cleanedVals, calldatas, descriptionHash]
@@ -439,16 +463,11 @@ export function getContractName(contract: TenderlyContract | undefined) {
 async function getLatestBlock(chainId: BigNumberish): Promise<number> {
   try {
     // Send simulation request
-    console.log('in getLatestBlock')
-    console.log('chainId: ', chainId)
     const url = `${TENDERLY_BASE_URL}/network/${BigNumber.from(chainId).toString()}/block-number`
     const fetchOptions = <Partial<FETCH_OPT>>{ method: 'GET', ...TENDERLY_FETCH_OPTIONS }
-    console.log('url: ', url)
-    console.log('fetchOptions: ', JSON.stringify(fetchOptions))
     const res = <{ block_number: number }>await fetchUrl(url, fetchOptions)
     return res.block_number
   } catch (err) {
-    console.log('err in getLatestBlock: ', JSON.stringify(err))
     throw err
   }
 }
@@ -460,15 +479,10 @@ async function getLatestBlock(chainId: BigNumberish): Promise<number> {
 async function sendEncodeRequest(payload: any): Promise<StorageEncodingResponse> {
   try {
     // const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
-    console.log('in sendEncodeRequest')
-    console.log('TENDERLY_ENCODE_URL: ', TENDERLY_ENCODE_URL)
-    console.log('TENDERLY_FETCH_HEADERS: ', JSON.stringify(TENDERLY_FETCH_HEADERS))
-    console.log('payload: ', JSON.stringify(payload))
     const x = await axios.post(TENDERLY_ENCODE_URL, payload, TENDERLY_FETCH_HEADERS)
     return x.data as unknown as StorageEncodingResponse
     // return <Promise<StorageEncodingResponse>>fetchUrl(TENDERLY_ENCODE_URL, fetchOptions)
   } catch (err) {
-    console.log('err in sendEncodeRequest: ', JSON.stringify(err))
     throw err
   }
 }
@@ -485,10 +499,7 @@ async function sendEncodeRequest(payload: any): Promise<StorageEncodingResponse>
 async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<TenderlySimulation> {
   try {
     // Send simulation request
-    console.log('in sendSimulation')
     const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
-    console.log('TENDERLY_SIM_URL: ', TENDERLY_SIM_URL)
-    console.log('fetchOptions: ', JSON.stringify(fetchOptions))
     const sim = <TenderlySimulation>await fetchUrl(TENDERLY_SIM_URL, fetchOptions)
 
     // Post-processing to ensure addresses we use are checksummed (since ethers returns checksummed addresses)
