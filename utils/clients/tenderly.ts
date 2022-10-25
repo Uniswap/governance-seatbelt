@@ -8,7 +8,6 @@ import { toUtf8Bytes } from '@ethersproject/strings'
 import { parseEther } from '@ethersproject/units'
 import { provider } from './ethers'
 import mftch, { FETCH_OPT } from 'micro-ftch'
-import axios from 'axios'
 // @ts-ignore
 const fetchUrl = mftch.default
 import {
@@ -478,10 +477,8 @@ async function getLatestBlock(chainId: BigNumberish): Promise<number> {
  */
 async function sendEncodeRequest(payload: any): Promise<StorageEncodingResponse> {
   try {
-    // const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
-    const x = await axios.post(TENDERLY_ENCODE_URL, payload, TENDERLY_FETCH_HEADERS)
-    return x.data as unknown as StorageEncodingResponse
-    // return <Promise<StorageEncodingResponse>>fetchUrl(TENDERLY_ENCODE_URL, fetchOptions)
+    const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
+    return <Promise<StorageEncodingResponse>>fetchUrl(TENDERLY_ENCODE_URL, fetchOptions)
   } catch (err) {
     throw err
   }
