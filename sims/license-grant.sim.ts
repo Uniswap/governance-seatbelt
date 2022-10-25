@@ -47,6 +47,7 @@ export const config: SimulationConfigNew = {
   type: 'new',
   daoName: 'Uniswap',
   governorAddress: '0x408ED6354d4973f66138C91495F2f2FCbd8724C3',
+  governorType: 'bravo',
   targets: [call1.target, call2.target], // Array of targets to call.
   values: [call1.value, call2.value], // Array of values with each call.
   signatures: [call1.signature, call2.signature], // Array of function signatures. Leave empty if generating calldata with ethers like we do here.

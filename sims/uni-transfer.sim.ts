@@ -26,7 +26,7 @@ const call1 = {
 export const config: SimulationConfigNew = {
   type: 'new',
   daoName: 'Uniswap',
-  governorType: 'compound',
+  governorType: 'bravo',
   governorAddress: '0x408ED6354d4973f66138C91495F2f2FCbd8724C3',
   targets: [call1.target], // Array of targets to call.
   values: [call1.value], // Array of values with each call.
