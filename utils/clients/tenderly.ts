@@ -42,10 +42,8 @@ import {
 import { writeFileSync } from 'fs'
 
 const TENDERLY_FETCH_OPTIONS = { type: 'json', headers: { 'X-Access-Key': TENDERLY_ACCESS_TOKEN } }
-const TENDERLY_FETCH_HEADERS = {
-  headers: { 'content-type': 'application/JSON', 'X-Access-Key': TENDERLY_ACCESS_TOKEN },
-}
 const DEFAULT_FROM = '0xD73a92Be73EfbFcF3854433A5FcbAbF9c1316073' // arbitrary EOA not used on-chain
+
 // --- Simulation methods ---
 
 /**
