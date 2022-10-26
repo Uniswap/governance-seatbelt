@@ -204,6 +204,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
  * @param config Configuration object
  */
 async function simulateProposed(config: SimulationConfigProposed): Promise<SimulationResult> {
+  console.log('simulateProposed')
   const { governorAddress, governorType, proposalId } = config
 
   // --- Get details about the proposal we're simulating ---
@@ -460,8 +461,11 @@ export function getContractName(contract: TenderlyContract | undefined) {
 async function getLatestBlock(chainId: BigNumberish): Promise<number> {
   try {
     // Send simulation request
+    console.log('getLatestBlock')
     const url = `${TENDERLY_BASE_URL}/network/${BigNumber.from(chainId).toString()}/block-number`
     const fetchOptions = <Partial<FETCH_OPT>>{ method: 'GET', ...TENDERLY_FETCH_OPTIONS }
+    console.log('url: ', url)
+    console.log('fetchOptions: ', JSON.stringify(fetchOptions, null, 2))
     const res = <{ block_number: number }>await fetchUrl(url, fetchOptions)
     return res.block_number
   } catch (err) {
@@ -475,7 +479,10 @@ async function getLatestBlock(chainId: BigNumberish): Promise<number> {
  */
 async function sendEncodeRequest(payload: any): Promise<StorageEncodingResponse> {
   try {
+    console.log('sendEncodeRequest')
     const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
+    console.log('TENDERLY_ENCODE_URL: ', TENDERLY_ENCODE_URL)
+    console.log('fetchOptions: ', JSON.stringify(fetchOptions, null, 2))
     return <Promise<StorageEncodingResponse>>fetchUrl(TENDERLY_ENCODE_URL, fetchOptions)
   } catch (err) {
     throw err
@@ -494,7 +501,10 @@ async function sendEncodeRequest(payload: any): Promise<StorageEncodingResponse>
 async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<TenderlySimulation> {
   try {
     // Send simulation request
+    console.log('sendSimulation')
     const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
+    console.log('TENDERLY_SIM_URL: ', TENDERLY_SIM_URL)
+    console.log('fetchOptions: ', JSON.stringify(fetchOptions, null, 2))
     const sim = <TenderlySimulation>await fetchUrl(TENDERLY_SIM_URL, fetchOptions)
 
     // Post-processing to ensure addresses we use are checksummed (since ethers returns checksummed addresses)
