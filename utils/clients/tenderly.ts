@@ -335,6 +335,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
     },
   }
   const storageObj = await sendEncodeRequest(stateOverrides)
+  console.log('storageObj: ', storageObj);
 
   // --- Simulate it ---
   // Note: The Tenderly API is sensitive to the input types, so all formatting below (e.g. stripping
@@ -480,10 +481,18 @@ async function getLatestBlock(chainId: BigNumberish): Promise<number> {
 async function sendEncodeRequest(payload: any): Promise<StorageEncodingResponse> {
   try {
     console.log('sendEncodeRequest')
-    const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
+    const fetchOptions = <Partial<FETCH_OPT>>{
+      method: 'POST',
+      data: payload,
+      redirect: true,
+      full: true,
+      ...TENDERLY_FETCH_OPTIONS,
+    }
     console.log('TENDERLY_ENCODE_URL: ', TENDERLY_ENCODE_URL)
     console.log('fetchOptions: ', JSON.stringify(fetchOptions, null, 2))
-    return <Promise<StorageEncodingResponse>>fetchUrl(TENDERLY_ENCODE_URL, fetchOptions)
+    const response = await fetchUrl(TENDERLY_ENCODE_URL, fetchOptions)
+    console.log('response: ', JSON.stringify(response, null, 2));
+    return response.body as StorageEncodingResponse
   } catch (err) {
     throw err
   }
