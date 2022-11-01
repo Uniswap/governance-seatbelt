@@ -118,7 +118,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
   })
 
   // Use the Tenderly API to get the encoded state overrides for governor storage
-  const proposalKey = `proposals[${proposalId.toHexString()}]`
+  const proposalKey = `proposals[${proposalId.toString()}]`
   const stateOverrides = {
     networkID: '1',
     stateOverrides: {
@@ -292,13 +292,13 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
 
   if (governorType === 'oz') {
     const id = hashOperationBatch(targets, cleanedVals, calldatas, HashZero, keccak256(toUtf8Bytes(description)))
-    timelockStorageObj[`_timestamps[${id.toHexString()}]`] = simTimestamp.toString()
+    timelockStorageObj[`_timestamps[${id.toString()}]`] = simTimestamp.toString()
   }
 
   const proposalIdBn = BigNumber.from(proposalId)
   let governorStateOverrides: Record<string, string> = {}
   if (governorType === 'bravo') {
-    const proposalKey = `proposals[${proposalIdBn.toHexString()}]`
+    const proposalKey = `proposals[${proposalIdBn.toString()}]`
     governorStateOverrides = {
       proposalCount: proposalId.toString(),
       [`${proposalKey}.eta`]: eta.toString(),
@@ -309,8 +309,8 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
       [`${proposalKey}.abstainVotes`]: '0',
     }
   } else if (governorType === 'oz') {
-    const proposalCoreKey = `_proposals[${proposalIdBn.toHexString()}]`
-    const proposalVotesKey = `_proposalVotes[${proposalIdBn.toHexString()}]`
+    const proposalCoreKey = `_proposals[${proposalIdBn.toString()}]`
+    const proposalVotesKey = `_proposalVotes[${proposalIdBn.toString()}]`
     governorStateOverrides = {
       [`${proposalCoreKey}.voteEnd._deadline`]: simBlock.sub(1).toString(),
       [`${proposalCoreKey}.canceled`]: 'false',
