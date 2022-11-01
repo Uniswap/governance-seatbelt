@@ -9,6 +9,8 @@ import { aaveGovernanceContract, PROPOSAL_STATES } from '../contracts/aave-gover
 import { executor } from '../contracts/executor'
 import { votingStrategy } from '../contracts/voting-strategy'
 
+const BLOCK_TIME = 12
+
 export async function simulateProposal(proposalId: BigNumberish): Promise<SimulationResult> {
   const proposalState = (await aaveGovernanceContract.getProposalState(proposalId)) as keyof typeof PROPOSAL_STATES
   const proposal = (await aaveGovernanceContract.getProposalById(proposalId)) as ProposalStruct
@@ -72,6 +74,7 @@ export async function simulateProposal(proposalId: BigNumberish): Promise<Simula
     // Get voting token and total supply
     const rawVotingStrategyAddress = await provider.getStorageAt(AAVE_GOV_V2_ADDRESS, govSlots.votingStrategySlot)
     const votingStrategyAddress = getAddress(`0x${rawVotingStrategyAddress.slice(26)}`)
+    console.log(votingStrategyAddress)
     const totalVotingSupply = <BigNumber>(
       await votingStrategy(votingStrategyAddress).getTotalVotingSupplyAt(proposal.startBlock)
     )
@@ -81,11 +84,15 @@ export async function simulateProposal(proposalId: BigNumberish): Promise<Simula
     const delay = await executorContract.getDelay()
     const duration = await executorContract.VOTING_DURATION()
 
-    const CREATION_BLOCK_NUMBER = proposal.startBlock.add(1).toNumber()
+    const START_BLOCK_NUMBER = proposal.startBlock.add(1).toNumber()
     const VOTING_DURATION = duration.toNumber() + 1 // block number voting duration
     const VOTING_DELAY = delay.toNumber() + 1 // 1 sec margin in seconds
-    const EVM_BLOCK_NUMBER = CREATION_BLOCK_NUMBER + VOTING_DURATION
-    const EVM_EXECUTION_TIME = (await provider.getBlock(CREATION_BLOCK_NUMBER)).timestamp + VOTING_DURATION * 13
+    const EVM_BLOCK_NUMBER = START_BLOCK_NUMBER + VOTING_DURATION
+    const START_TIMESTAMP =
+      latestBlock.number < START_BLOCK_NUMBER
+        ? latestBlock.timestamp + (START_BLOCK_NUMBER - latestBlock.number) * BLOCK_TIME
+        : (await provider.getBlock(START_BLOCK_NUMBER)).timestamp
+    const EVM_EXECUTION_TIME = START_TIMESTAMP + VOTING_DURATION * BLOCK_TIME
     const FORCED_EXECUTION_TIME = EVM_EXECUTION_TIME + VOTING_DELAY
     // if a proposal is not yet finished instead of simulating at creation it makes sense to fork of the current block
     const SNAPSHOT_BLOCK_NUMBER = EVM_BLOCK_NUMBER > latestBlock.number ? latestBlock.number : EVM_BLOCK_NUMBER - 1
