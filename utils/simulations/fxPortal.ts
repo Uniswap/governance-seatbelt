@@ -78,7 +78,7 @@ export async function simulateFxPortal(simulation: TenderlySimulation, log: Log)
 
   const stateSyncedLogs = await getPastLogs(
     closeBlock,
-    closeBlock + 2000,
+    closeBlock + 8000,
     fxChildContract.filters.NewFxMessage(),
     fxChildContract
   )
@@ -92,7 +92,16 @@ export async function simulateFxPortal(simulation: TenderlySimulation, log: Log)
   if (correctLog) {
     const tx = await polygonProvider.getTransaction(correctLog.transactionHash)
     const txWithLogs = await tx.wait()
-    const log = txWithLogs.logs.find((l) => l.address.toLowerCase() === POLYGON_BRIDGE_EXECUTOR.toLowerCase())
+    const log = txWithLogs.logs.find((l) => {
+      if (l.address.toLowerCase() !== POLYGON_BRIDGE_EXECUTOR.toLowerCase()) return false
+      const [id, targets, , , , , executionTime] = ethers.utils.defaultAbiCoder.decode(
+        ['uint256', 'address[]', 'uint256[]', 'string[]', 'bytes[]', 'bool[]', 'uint256'],
+        l!.data
+      )
+      return targets.every((target: string) => {
+        return data.includes(target.toLowerCase().replace('0x', ''))
+      })
+    })
     const [id, , , , , , executionTime] = ethers.utils.defaultAbiCoder.decode(
       ['uint256', 'address[]', 'uint256[]', 'string[]', 'bytes[]', 'bool[]', 'uint256'],
       log!.data
@@ -101,7 +110,7 @@ export async function simulateFxPortal(simulation: TenderlySimulation, log: Log)
     simulationPayload.input = bridgeExecutor.interface.encodeFunctionData('execute', [Number(id)])
     simulationPayload.block_header = {
       number: hexStripZeros(BigNumber.from(log!.blockNumber + 1).toHexString()),
-      timestamp: hexStripZeros(BigNumber.from(executionTime).add(1).toHexString()),
+      timestamp: hexStripZeros(BigNumber.from(executionTime).toHexString()),
     }
   } else {
     const bridgeSimulationPayload: TenderlyPayload = {
