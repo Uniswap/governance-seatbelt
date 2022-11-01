@@ -19,11 +19,12 @@ export async function simulateProposal(proposalId: BigNumberish): Promise<Simula
   let simulationPayload: TenderlyPayload
   if (!FORCE_SIMULATION && PROPOSAL_STATES[proposalState] === ProposalState.Executed) {
     const gracePeriod = await executorContract.GRACE_PERIOD()
+    const delay = await executorContract.MAXIMUM_DELAY()
     // --- Get details about the proposal we're analyzing ---
     const proposalExecutedLogs = await getPastLogs(
       proposal.endBlock.toNumber(),
       // assuming a 11s blocktime should give us enough margin to cover the endTime
-      proposal.endBlock.toNumber() + Math.floor(gracePeriod / 11),
+      proposal.endBlock.toNumber() + Math.floor((gracePeriod.toNumber() + delay.toNumber()) / 11),
       aaveGovernanceContract.filters.ProposalExecuted(),
       aaveGovernanceContract
     )
