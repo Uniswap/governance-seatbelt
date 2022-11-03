@@ -495,6 +495,8 @@ async function sendEncodeRequest(payload: any): Promise<StorageEncodingResponse>
     console.log('response: ', JSON.stringify(response, null, 2))
     return response.body as StorageEncodingResponse
   } catch (err) {
+    console.log('logging sendEncodeRequest error')
+    console.log(JSON.stringify(err, null, 2))
     throw err
   }
 }
