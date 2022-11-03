@@ -8,6 +8,7 @@ import { toUtf8Bytes } from '@ethersproject/strings'
 import { parseEther } from '@ethersproject/units'
 import { provider } from './ethers'
 import mftch, { FETCH_OPT } from 'micro-ftch'
+import axios from 'axios'
 // @ts-ignore
 const fetchUrl = mftch.default
 import {
@@ -489,11 +490,16 @@ async function sendEncodeRequest(payload: any): Promise<StorageEncodingResponse>
       full: true,
       ...TENDERLY_FETCH_OPTIONS,
     }
+    const TENDERLY_FETCH_HEADERS = {
+      headers: { 'content-type': 'application/JSON', 'X-Access-Key': TENDERLY_ACCESS_TOKEN },
+    }
     console.log('TENDERLY_ENCODE_URL: ', TENDERLY_ENCODE_URL)
     console.log('fetchOptions: ', JSON.stringify(fetchOptions, null, 2))
-    const response = await fetchUrl(TENDERLY_ENCODE_URL, fetchOptions)
-    console.log('response: ', JSON.stringify(response, null, 2))
-    return response.body as StorageEncodingResponse
+    // const response = await fetchUrl(TENDERLY_ENCODE_URL, fetchOptions)
+    const response = await axios.post(TENDERLY_ENCODE_URL, payload, TENDERLY_FETCH_HEADERS)
+    console.log('response: ', JSON.stringify(response.data, null, 2))
+    return response.data as unknown as StorageEncodingResponse
+    // return response.body as StorageEncodingResponse
   } catch (err) {
     console.log('logging sendEncodeRequest error')
     console.log(JSON.stringify(err, null, 2))
