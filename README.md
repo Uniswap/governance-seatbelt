@@ -29,7 +29,7 @@ to the `matrix` section of `.github/workflows/governance-checks.yaml`.
 
 Note that currently only `GovernorBravo` style governors are supported.
 
-### Running Locally
+### Environment Variable Setup
 
 First, create a file called `.env` with the following environment variables:
 
@@ -58,7 +58,9 @@ DAO_NAME=Uniswap
 GOVERNOR_ADDRESS=0x408ED6354d4973f66138C91495F2f2FCbd8724C3
 ```
 
-There are now two modes of operation:
+### Running Simulations
+
+There are two modes of operation:
 
 1. Run `yarn start` to simulate and run checks on all GovernorBravo proposals
 2. Create a file called `<analysisName>.sim.ts` and run a specific simulation with `SIM_NAME=analysisName yarn start`. See the `*.sim.ts` files in the `sims` folder for examples.
