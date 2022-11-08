@@ -7,6 +7,7 @@ export const RPC_URL: string = process.env.RPC_URL!
 export const TENDERLY_ACCESS_TOKEN: string = process.env.TENDERLY_ACCESS_TOKEN!
 export const TENDERLY_USER: string = process.env.TENDERLY_USER!
 export const TENDERLY_PROJECT_SLUG: string = process.env.TENDERLY_PROJECT_SLUG!
+console.log('TENDERLY_USER: ', TENDERLY_USER);
 
 // Validate them.
 if (!ETHERSCAN_API_KEY) throw new Error('ETHERSCAN_API_KEY is not defined')
