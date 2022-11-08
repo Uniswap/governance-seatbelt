@@ -37,18 +37,23 @@ First, create a file called `.env` with the following environment variables:
 # Etherscan API Key, used when running Slither.
 ETHERSCAN_API_KEY=yourEtherscanApiKey
 
-# URL to your node, e.g. Infura or Alchemy endpoint
+# URL to your node, e.g. Infura or Alchemy endpoint.
 RPC_URL=yourNodeUrl
 
-# Tenderly access token
-# Access token is obtained from the Tenderly UI via Account > Authorization > Generate Access Token
+# Tenderly access token.
+# Access token is obtained from the Tenderly UI via Account > Authorization > Generate Access Token.
 TENDERLY_ACCESS_TOKEN=yourAccessToken
 
-# Tenderly project slug
-# Project slug can be found in the URL of your project: https://dashboard.tenderly.co/<username>/<project_slug>/transactions
+# Tenderly user name.
+# User name can be found in the URL of your project: https://dashboard.tenderly.co/<userName>/<project_slug>/transactions
+# This is `me` for personal accounts.
+TENDERLY_USER=userName
+
+# Tenderly project slug.
+# Project slug can be found in the URL of your project: https://dashboard.tenderly.co/<userName>/<project_slug>/transactions
 TENDERLY_PROJECT_SLUG=projectName
 
-# Define the DAO name and the address of its governor
+# Define the DAO name and the address of its governor.
 DAO_NAME=Uniswap
 GOVERNOR_ADDRESS=0x408ED6354d4973f66138C91495F2f2FCbd8724C3
 ```
