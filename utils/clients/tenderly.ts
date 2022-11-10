@@ -291,7 +291,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
 
   if (governorType === 'oz') {
     const id = hashOperationBatch(targets, cleanedVals, calldatas, HashZero, keccak256(toUtf8Bytes(description)))
-    timelockStorageObj[`_timestamps[${id.toString()}]`] = simTimestamp.toString()
+    timelockStorageObj[`_timestamps[${id.toHexString()}]`] = simTimestamp.toString()
   }
 
   const proposalIdBn = BigNumber.from(proposalId)
