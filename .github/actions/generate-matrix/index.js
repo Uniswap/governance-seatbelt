@@ -98447,6 +98447,7 @@ var require_cache = __commonJS({
 // utils/constants.ts
 var RPC_URL = process.env.RPC_URL;
 var RPC_POLYGON = process.env.RPC_POLYGON;
+var RPC_OPTIMISM = process.env.RPC_OPTIMISM;
 var TENDERLY_ACCESS_TOKEN = process.env.TENDERLY_ACCESS_TOKEN;
 var TENDERLY_BASE_URL = `https://api.tenderly.co/api/v1`;
 var TENDERLY_ROOT = process.env.TENDERLY_ROOT;
@@ -98472,6 +98473,7 @@ var import_ethers2 = __toESM(require_lib31());
 var import_ethers = __toESM(require_lib31());
 var provider = new import_ethers.providers.StaticJsonRpcProvider(RPC_URL);
 var polygonProvider = new import_ethers.providers.StaticJsonRpcProvider(RPC_POLYGON);
+var optimismProvider = new import_ethers.providers.StaticJsonRpcProvider(RPC_OPTIMISM);
 
 // utils/contracts/aave-governance-v2.ts
 var AAVE_GOVERNANCE_V2_ABI = [
