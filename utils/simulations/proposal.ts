@@ -75,7 +75,6 @@ export async function simulateProposal(proposalId: BigNumberish): Promise<Simula
     // Get voting token and total supply
     const rawVotingStrategyAddress = await provider.getStorageAt(AAVE_GOV_V2_ADDRESS, govSlots.votingStrategySlot)
     const votingStrategyAddress = getAddress(`0x${rawVotingStrategyAddress.slice(26)}`)
-    console.log(votingStrategyAddress)
     const totalVotingSupply = <BigNumber>(
       await votingStrategy(votingStrategyAddress).getTotalVotingSupplyAt(proposal.startBlock)
     )

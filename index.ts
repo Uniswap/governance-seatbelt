@@ -5,7 +5,7 @@
 require('dotenv').config()
 import fs from 'fs'
 import { DAO_NAME, PROPOSAL_FILTER, OMIT_CACHE, AAVE_GOV_V2_ADDRESS } from './utils/constants'
-import { provider, polygonProvider } from './utils/clients/ethers'
+import { provider, polygonProvider, optimismProvider } from './utils/clients/ethers'
 import { AllCheckResults, ProposalData, SimulationResult, SubSimulation } from './types'
 import ALL_CHECKS from './checks'
 import { toSubReport, toProposalReport, toCheckSummary } from './presentation/markdown'
@@ -15,6 +15,11 @@ import { PromisePool } from '@supercharge/promise-pool'
 import { simulateProposal } from './utils/simulations/proposal'
 import { getArcPayloads, simulateArc } from './utils/simulations/arc'
 import { getActionSetsChanged, getFxChildPayloads, simulateFxPortal } from './utils/simulations/fxPortal'
+import {
+  getOptimismActionSetsChanged,
+  getOptimismPayloads,
+  simulateOptimismProposal,
+} from './utils/simulations/opCDMProposals'
 
 Error.stackTraceLimit = Infinity
 
@@ -94,6 +99,23 @@ async function runSimulation() {
                 .join(',')})`,
               simulation: simulationResult,
               provider: polygonProvider,
+            })
+          }
+        }
+        const optimismPayloads = getOptimismPayloads(sim)
+        if (optimismPayloads.length) {
+          for (let i = 0; i < optimismPayloads.length; i++) {
+            const optimismPayload = optimismPayloads[i]
+            const simulationResult = await simulateOptimismProposal(sim, optimismPayload)
+            const actionSet = getOptimismActionSetsChanged(simulationResult)
+            subSimulations.push({
+              id: `${actionSet[0].actionSet.replace(/\"/g, '')}_${i}`,
+              type: 'optimism',
+              name: `OptimismBridgeExecutor actionSet(${actionSet
+                .map((set) => `${set.actionSet}: ${JSON.stringify(set.value)}`)
+                .join(',')})`,
+              simulation: simulationResult,
+              provider: optimismProvider,
             })
           }
         }
@@ -186,6 +208,19 @@ async function generateReports(simOutputs: SimulationResult[]) {
             fs.writeFileSync(filename, fxReport)
             // will be rendered in another markdown so the path cannot be relative to the file
             subReports.push({ link: filename.replace('./', '/'), name: 'PolygonBridgeExecution' })
+          }
+
+          if (subSimulation.type === 'optimism') {
+            const optimismReport = await toSubReport(
+              { start: startBlock, end: endBlock, current: latestBlock },
+              checkResults,
+              subSimulation.simulation,
+              subSimulation.name
+            )
+            const filename = getProposalFileName(proposal.id.toNumber(), `optimism_${subSimulation.id}`)
+            fs.writeFileSync(filename, optimismReport)
+            // will be rendered in another markdown so the path cannot be relative to the file
+            subReports.push({ link: filename.replace('./', '/'), name: 'OptimismBridgeExecution' })
           }
         }
       }

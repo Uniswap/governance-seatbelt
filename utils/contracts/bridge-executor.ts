@@ -1,8 +1,8 @@
 export const abi = [
   {
     inputs: [
-      { internalType: 'address', name: 'fxRootSender', type: 'address' },
-      { internalType: 'address', name: 'fxChild', type: 'address' },
+      { internalType: 'address', name: 'ovmL2CrossDomainMessenger', type: 'address' },
+      { internalType: 'address', name: 'ethereumGovernanceExecutor', type: 'address' },
       { internalType: 'uint256', name: 'delay', type: 'uint256' },
       { internalType: 'uint256', name: 'gracePeriod', type: 'uint256' },
       { internalType: 'uint256', name: 'minimumDelay', type: 'uint256' },
@@ -12,16 +12,33 @@ export const abi = [
     stateMutability: 'nonpayable',
     type: 'constructor',
   },
+  { inputs: [], name: 'DelayLongerThanMax', type: 'error' },
+  { inputs: [], name: 'DelayShorterThanMin', type: 'error' },
+  { inputs: [], name: 'DuplicateAction', type: 'error' },
+  { inputs: [], name: 'EmptyTargets', type: 'error' },
+  { inputs: [], name: 'FailedActionExecution', type: 'error' },
+  { inputs: [], name: 'GracePeriodTooShort', type: 'error' },
+  { inputs: [], name: 'InconsistentParamsLength', type: 'error' },
+  { inputs: [], name: 'InsufficientBalance', type: 'error' },
+  { inputs: [], name: 'InvalidActionsSetId', type: 'error' },
+  { inputs: [], name: 'InvalidInitParams', type: 'error' },
+  { inputs: [], name: 'MaximumDelayTooShort', type: 'error' },
+  { inputs: [], name: 'MinimumDelayTooLong', type: 'error' },
+  { inputs: [], name: 'NotGuardian', type: 'error' },
+  { inputs: [], name: 'OnlyCallableByThis', type: 'error' },
+  { inputs: [], name: 'OnlyQueuedActions', type: 'error' },
+  { inputs: [], name: 'TimelockNotFinished', type: 'error' },
+  { inputs: [], name: 'UnauthorizedEthereumExecutor', type: 'error' },
   {
     anonymous: false,
-    inputs: [{ indexed: false, internalType: 'uint256', name: 'id', type: 'uint256' }],
+    inputs: [{ indexed: true, internalType: 'uint256', name: 'id', type: 'uint256' }],
     name: 'ActionsSetCanceled',
     type: 'event',
   },
   {
     anonymous: false,
     inputs: [
-      { indexed: false, internalType: 'uint256', name: 'id', type: 'uint256' },
+      { indexed: true, internalType: 'uint256', name: 'id', type: 'uint256' },
       { indexed: true, internalType: 'address', name: 'initiatorExecution', type: 'address' },
       { indexed: false, internalType: 'bytes[]', name: 'returnedData', type: 'bytes[]' },
     ],
@@ -31,7 +48,7 @@ export const abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: false, internalType: 'uint256', name: 'id', type: 'uint256' },
+      { indexed: true, internalType: 'uint256', name: 'id', type: 'uint256' },
       { indexed: false, internalType: 'address[]', name: 'targets', type: 'address[]' },
       { indexed: false, internalType: 'uint256[]', name: 'values', type: 'uint256[]' },
       { indexed: false, internalType: 'string[]', name: 'signatures', type: 'string[]' },
@@ -45,7 +62,7 @@ export const abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: false, internalType: 'uint256', name: 'previousDelay', type: 'uint256' },
+      { indexed: false, internalType: 'uint256', name: 'oldDelay', type: 'uint256' },
       { indexed: false, internalType: 'uint256', name: 'newDelay', type: 'uint256' },
     ],
     name: 'DelayUpdate',
@@ -54,25 +71,16 @@ export const abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: false, internalType: 'address', name: 'previousFxChild', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'newFxChild', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'oldEthereumGovernanceExecutor', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'newEthereumGovernanceExecutor', type: 'address' },
     ],
-    name: 'FxChildUpdate',
+    name: 'EthereumGovernanceExecutorUpdate',
     type: 'event',
   },
   {
     anonymous: false,
     inputs: [
-      { indexed: false, internalType: 'address', name: 'previousFxRootSender', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'newFxRootSender', type: 'address' },
-    ],
-    name: 'FxRootSenderUpdate',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: false, internalType: 'uint256', name: 'previousGracePeriod', type: 'uint256' },
+      { indexed: false, internalType: 'uint256', name: 'oldGracePeriod', type: 'uint256' },
       { indexed: false, internalType: 'uint256', name: 'newGracePeriod', type: 'uint256' },
     ],
     name: 'GracePeriodUpdate',
@@ -81,7 +89,7 @@ export const abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: false, internalType: 'address', name: 'previousGuardian', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'oldGuardian', type: 'address' },
       { indexed: false, internalType: 'address', name: 'newGuardian', type: 'address' },
     ],
     name: 'GuardianUpdate',
@@ -90,7 +98,7 @@ export const abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: false, internalType: 'uint256', name: 'previousMaximumDelay', type: 'uint256' },
+      { indexed: false, internalType: 'uint256', name: 'oldMaximumDelay', type: 'uint256' },
       { indexed: false, internalType: 'uint256', name: 'newMaximumDelay', type: 'uint256' },
     ],
     name: 'MaximumDelayUpdate',
@@ -99,26 +107,18 @@ export const abi = [
   {
     anonymous: false,
     inputs: [
-      { indexed: false, internalType: 'uint256', name: 'previousMinimumDelay', type: 'uint256' },
+      { indexed: false, internalType: 'uint256', name: 'oldMinimumDelay', type: 'uint256' },
       { indexed: false, internalType: 'uint256', name: 'newMinimumDelay', type: 'uint256' },
     ],
     name: 'MinimumDelayUpdate',
     type: 'event',
   },
   {
-    anonymous: false,
-    inputs: [{ indexed: false, internalType: 'address', name: 'newAdmin', type: 'address' }],
-    name: 'NewAdmin',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: false, internalType: 'address', name: 'bridge', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'initiatorChange', type: 'address' },
-    ],
-    name: 'NewBridge',
-    type: 'event',
+    inputs: [],
+    name: 'OVM_L2_CROSS_DOMAIN_MESSENGER',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
     inputs: [{ internalType: 'uint256', name: 'actionsSetId', type: 'uint256' }],
@@ -162,7 +162,7 @@ export const abi = [
           { internalType: 'bool', name: 'executed', type: 'bool' },
           { internalType: 'bool', name: 'canceled', type: 'bool' },
         ],
-        internalType: 'struct IBridgeExecutor.ActionsSet',
+        internalType: 'struct IExecutorBase.ActionsSet',
         name: '',
         type: 'tuple',
       },
@@ -180,7 +180,7 @@ export const abi = [
   {
     inputs: [{ internalType: 'uint256', name: 'actionsSetId', type: 'uint256' }],
     name: 'getCurrentState',
-    outputs: [{ internalType: 'enum IBridgeExecutor.ActionsSetState', name: '', type: 'uint8' }],
+    outputs: [{ internalType: 'enum IExecutorBase.ActionsSetState', name: '', type: 'uint8' }],
     stateMutability: 'view',
     type: 'function',
   },
@@ -193,14 +193,7 @@ export const abi = [
   },
   {
     inputs: [],
-    name: 'getFxChild',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'getFxRootSender',
+    name: 'getEthereumGovernanceExecutor',
     outputs: [{ internalType: 'address', name: '', type: 'address' }],
     stateMutability: 'view',
     type: 'function',
@@ -242,11 +235,13 @@ export const abi = [
   },
   {
     inputs: [
-      { internalType: 'uint256', name: 'stateId', type: 'uint256' },
-      { internalType: 'address', name: 'rootMessageSender', type: 'address' },
-      { internalType: 'bytes', name: 'data', type: 'bytes' },
+      { internalType: 'address[]', name: 'targets', type: 'address[]' },
+      { internalType: 'uint256[]', name: 'values', type: 'uint256[]' },
+      { internalType: 'string[]', name: 'signatures', type: 'string[]' },
+      { internalType: 'bytes[]', name: 'calldatas', type: 'bytes[]' },
+      { internalType: 'bool[]', name: 'withDelegatecalls', type: 'bool[]' },
     ],
-    name: 'processMessageFromRoot',
+    name: 'queue',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -260,15 +255,8 @@ export const abi = [
     type: 'function',
   },
   {
-    inputs: [{ internalType: 'address', name: 'fxChild', type: 'address' }],
-    name: 'updateFxChild',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'address', name: 'fxRootSender', type: 'address' }],
-    name: 'updateFxRootSender',
+    inputs: [{ internalType: 'address', name: 'ethereumGovernanceExecutor', type: 'address' }],
+    name: 'updateEthereumGovernanceExecutor',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
