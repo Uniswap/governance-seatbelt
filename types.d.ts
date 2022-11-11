@@ -21,7 +21,7 @@ export type SimulationConfig = SimulationConfigExecuted | SimulationConfigPropos
 export interface SubSimulation {
   simulation: TenderlySimulation
   name: string
-  type: 'arc' | 'fxPortal'
+  type: 'arc' | 'fxPortal' | 'optimism'
   id: string
   provider: providers.StaticJsonRpcProvider
 }
@@ -120,7 +120,7 @@ type ContractObject = {
 }
 
 export type TenderlyPayload = {
-  network_id: '1' | '3' | '4' | '5' | '42' | '137'
+  network_id: string
   block_number?: number
   transaction_index?: number
   from: string
@@ -313,6 +313,13 @@ interface Simulation {
   }
 }
 
+interface Trace {
+  from: string
+  to: string
+  input: string
+  output: string
+}
+
 interface Transaction {
   hash: From
   block_hash: string
@@ -331,6 +338,7 @@ interface Transaction {
   index: number
   value: string
   access_list: null
+  call_trace: Trace[]
   status: boolean
   addresses: string[]
   contract_ids: string[]
@@ -652,6 +660,7 @@ declare global {
     interface ProcessEnv {
       RPC_URL: string
       RPC_POLYGON: string
+      RPC_OPTIMISM: string
 
       OMIT_CACHE: string
       TENDERLY_ACCESS_TOKEN: string
