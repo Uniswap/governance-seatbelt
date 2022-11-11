@@ -3,6 +3,7 @@ import { ContractTransaction } from '@ethersproject/contracts'
 import { JsonRpcProvider } from '@ethersproject/providers'
 
 // --- Simulation configurations ---
+// TODO Consider refactoring to an enum instead of string.
 export type GovernorType = 'oz' | 'bravo'
 
 interface SimulationConfigBase {
@@ -53,6 +54,8 @@ export type ProposalActions = [
   string[]
 ]
 
+// TODO If adding support for a third governor, instead of hardcoding optional governor-specific
+// fields, make this a union type of each governor's individual proposal type.
 export interface ProposalStruct {
   id: BigNumber
   proposer?: string

@@ -17,7 +17,7 @@ import {
   getProposalId,
   getTimelock,
   getVotingToken,
-  hashOperationBatch,
+  hashOperationBatchOz,
 } from '../contracts/governor'
 import {
   BLOCK_GAS_LIMIT,
@@ -290,7 +290,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   })
 
   if (governorType === 'oz') {
-    const id = hashOperationBatch(targets, cleanedVals, calldatas, HashZero, keccak256(toUtf8Bytes(description)))
+    const id = hashOperationBatchOz(targets, cleanedVals, calldatas, HashZero, keccak256(toUtf8Bytes(description)))
     timelockStorageObj[`_timestamps[${id.toHexString()}]`] = simTimestamp.toString()
   }
 

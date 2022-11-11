@@ -27,7 +27,7 @@ export const checkSlither: ProposalCheck = {
 
     // Skip existing timelock and governor contracts to reduce noise. These contracts are already
     // deployed and in use, and if they are being updated, the new contract will be one of the
-    // touched contracts that get's analyzed.
+    // touched contracts that gets analyzed.
     // NOTE: This requires an archive node since we need to query for the governor implementation
     // at the simulation block number, since the implementation may have changed since.
     const addressesToSkip = new Set([deps.timelock.address, deps.governor.address])

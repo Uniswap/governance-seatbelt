@@ -10,14 +10,14 @@ import { timelock } from './timelock'
 import { GovernorType, ProposalEvent, ProposalStruct } from '../../types'
 
 // --- Exported methods ---
-export async function inferGovernorType(address: string): Promise<'oz' | 'bravo'> {
+export async function inferGovernorType(address: string): Promise<GovernorType> {
   const abi = ['function initialProposalId() external view returns (uint256)']
   const governor = new Contract(address, abi, provider)
 
   try {
     // If the `initialProposalId` function exists, and the initial proposal was a "small" value,
-    // it's overwhelmingly likely this is. OZ style governors use a hash as the proposal IDs so IDs
-    // will be very large numbers.
+    // it's overwhelmingly likely this is GovernorBravo. OZ style governors use a hash as the
+    // proposal IDs so IDs will be very large numbers.
     const id = <BigNumberish>await governor.initialProposalId()
     if (BigNumber.from(id).lte(100_000)) return 'bravo'
   } catch (err) {}
@@ -149,7 +149,7 @@ export async function generateProposalId(
 // Returns the identifier of an operation containing a batch of transactions.
 // For OZ governors, predecessor is often zero and salt is often description hash.
 // This is only intended to be used with OZ governors.
-export function hashOperationBatch(
+export function hashOperationBatchOz(
   targets: string[],
   values: BigNumberish[],
   calldatas: string[],
