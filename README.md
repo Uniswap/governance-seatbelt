@@ -220,6 +220,7 @@ Some notes on the outputs of reports:
 | Chaos Labs Risk Platform Proposal                                                                                                                                                      | [113.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/113.md)               | [app](https://app.aave.com/governance/proposal/?proposalId=113) |
 | Certora Continuous Formal Verification                                                                                                                                                 | [114.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/114.md)               | [app](https://app.aave.com/governance/proposal/?proposalId=114) |
 | Strategic Partnership with Balancer DAO Part 2 - 100k BAL Acquisition                                                                                                                  | [115.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/115.md)               | [app](https://app.aave.com/governance/proposal/?proposalId=115) |
+| Add OP to Aave V3 on Optimism                                                                                                                                                          | [116.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/116.md)               | [app](https://app.aave.com/governance/proposal/?proposalId=116) |
 
 <!-- ### Reports table end ### -->
 
