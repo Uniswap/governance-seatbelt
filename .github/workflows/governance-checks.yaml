@@ -93,6 +93,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RPC_URL: ${{ secrets.RPC_URL }}
           RPC_POLYGON: ${{ secrets.RPC_POLYGON }}
+          RPC_OPTIMISM: ${{ secrets.RPC_OPTIMISM }}
           TENDERLY_ACCESS_TOKEN: ${{ secrets.TENDERLY_ACCESS_TOKEN }}
           TENDERLY_PROJECT_SLUG: ${{ secrets.TENDERLY_PROJECT_SLUG }}
           TENDERLY_ACCOUNT: ${{ secrets.TENDERLY_ACCOUNT }}
