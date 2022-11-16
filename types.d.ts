@@ -3,10 +3,14 @@ import { ContractTransaction } from '@ethersproject/contracts'
 import { JsonRpcProvider } from '@ethersproject/providers'
 
 // --- Simulation configurations ---
+// TODO Consider refactoring to an enum instead of string.
+export type GovernorType = 'oz' | 'bravo'
+
 interface SimulationConfigBase {
   type: 'executed' | 'proposed' | 'new'
   daoName: string // e.g. 'Compound' or 'Uniswap'
   governorAddress: string // address of the governor
+  governorType: GovernorType
 }
 
 export interface SimulationConfigExecuted extends SimulationConfigBase {
@@ -50,12 +54,16 @@ export type ProposalActions = [
   string[]
 ]
 
+// TODO If adding support for a third governor, instead of hardcoding optional governor-specific
+// fields, make this a union type of each governor's individual proposal type.
 export interface ProposalStruct {
   id: BigNumber
-  proposer: string
+  proposer?: string
   eta: BigNumber
-  startBlock: BigNumber
-  endBlock: BigNumber
+  startBlock?: BigNumber // Compound governor
+  startTime?: BigNumber // OZ governor
+  endBlock?: BigNumber // Compound governor
+  endTime?: BigNumber // OZ governor
   forVotes: BigNumber
   againstVotes: BigNumber
   abstainVotes: BigNumber
@@ -64,7 +72,8 @@ export interface ProposalStruct {
 }
 
 export interface ProposalEvent {
-  id: BigNumber
+  id?: BigNumber // Bravo governor
+  proposalId?: BigNumber // OZ governor
   proposer: string
   startBlock: BigNumber
   endBlock: BigNumber

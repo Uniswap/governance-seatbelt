@@ -4,14 +4,22 @@
 
 import dotenv from 'dotenv'
 dotenv.config()
+import { BigNumber, Contract } from 'ethers'
 import { DAO_NAME, GOVERNOR_ADDRESS, SIM_NAME } from './utils/constants'
 import { provider } from './utils/clients/ethers'
 import { simulate } from './utils/clients/tenderly'
-import { AllCheckResults, ProposalEvent, SimulationConfig, SimulationConfigBase, SimulationData } from './types'
+import { AllCheckResults, GovernorType, SimulationConfig, SimulationConfigBase, SimulationData } from './types'
 import ALL_CHECKS from './checks'
 import { generateAndSaveReports } from './presentation/report'
-import { governorBravo, PROPOSAL_STATES } from './utils/contracts/governor-bravo'
-import { timelock } from './utils/contracts/timelock'
+import { PROPOSAL_STATES } from './utils/contracts/governor-bravo'
+import {
+  formatProposalId,
+  getGovernor,
+  getProposalIds,
+  getTimelock,
+  inferGovernorType,
+} from './utils/contracts/governor'
+import { getAddress } from '@ethersproject/address'
 
 /**
  * @notice Simulate governance proposals and run proposal checks against them
@@ -21,6 +29,9 @@ async function main() {
   // Prepare array to store all simulation outputs
   const simOutputs: SimulationData[] = []
 
+  let governor: Contract
+  let governorType: GovernorType
+
   // Determine if we are running a specific simulation or all on-chain proposals for a specified governor.
   if (SIM_NAME) {
     // If a SIM_NAME is provided, we run that simulation
@@ -29,6 +40,9 @@ async function main() {
 
     const { sim, proposal, latestBlock } = await simulate(config)
     simOutputs.push({ sim, proposal, latestBlock, config })
+
+    governorType = await inferGovernorType(config.governorAddress)
+    governor = await getGovernor(governorType, config.governorAddress)
   } else {
     // If no SIM_NAME is provided, we get proposals to simulate from the chain
     if (!GOVERNOR_ADDRESS) throw new Error('Must provider a GOVERNOR_ADDRESS')
@@ -36,18 +50,14 @@ async function main() {
     const latestBlock = await provider.getBlock('latest')
 
     // Fetch all proposal IDs
-    const governor = governorBravo(GOVERNOR_ADDRESS)
-    const proposalCreatedLogs = await governor.queryFilter(governor.filters.ProposalCreated(), 0, latestBlock.number)
-    const allProposalIds = proposalCreatedLogs.map((logs) => (logs.args as unknown as ProposalEvent).id.toNumber())
-
-    // Remove proposals from GovernorAlpha based on the initial GovernorBravo proposal ID
-    const initialProposalId = await governor.initialProposalId()
-    const validProposalIds = allProposalIds.filter((id) => id > initialProposalId.toNumber())
+    governorType = await inferGovernorType(GOVERNOR_ADDRESS)
+    const proposalIds = await getProposalIds(governorType, GOVERNOR_ADDRESS, latestBlock.number)
+    governor = getGovernor(governorType, GOVERNOR_ADDRESS)
 
     // If we aren't simulating all proposals, filter down to just the active ones. For now we
     // assume we're simulating all by default
-    const states = await Promise.all(validProposalIds.map((id) => governor.state(id)))
-    const simProposals: { id: number; simType: SimulationConfigBase['type'] }[] = validProposalIds.map((id, i) => {
+    const states = await Promise.all(proposalIds.map((id) => governor.state(id)))
+    const simProposals: { id: BigNumber; simType: SimulationConfigBase['type'] }[] = proposalIds.map((id, i) => {
       // If state is `Executed` (state 7), we use the executed sim type and effectively just
       // simulate the real transaction. For all other states, we use the `proposed` type because
       // state overrides are required to simulate the transaction
@@ -61,7 +71,12 @@ async function main() {
     // We intentionally do not run these in parallel to avoid hitting Tenderly API rate limits or flooding
     // them with requests if we e.g. simulate all proposals for a governor (instead of just active ones)
     const numProposals = simProposals.length
-    console.log(`Simulating ${numProposals} ${DAO_NAME} proposals: IDs of ${JSON.stringify(simProposalsIds)}`)
+    console.log(
+      `Simulating ${numProposals} ${DAO_NAME} proposals: IDs of ${simProposalsIds
+        .map((id) => formatProposalId(governorType, id))
+        .join(', ')}`
+    )
+
     for (const simProposal of simProposals) {
       if (simProposal.simType === 'new') throw new Error('Simulation type "new" is not supported in this branch')
       // Determine if this proposal is already `executed` or currently in-progress (`proposed`)
@@ -69,9 +84,11 @@ async function main() {
       const config: SimulationConfig = {
         type: simProposal.simType,
         daoName: DAO_NAME,
-        governorAddress: governor.address,
+        governorAddress: getAddress(GOVERNOR_ADDRESS),
+        governorType,
         proposalId: simProposal.id,
       }
+
       const { sim, proposal, latestBlock } = await simulate(config)
       simOutputs.push({ sim, proposal, latestBlock, config })
       console.log(`    done`)
@@ -80,14 +97,13 @@ async function main() {
 
   // --- Run proposal checks and save output ---
   // Generate the proposal data and dependencies needed by checks
-  const governor = governorBravo(simOutputs[0].config.governorAddress) // all sims have the same governor address
-  const proposalData = { governor, provider, timelock: timelock(await governor.admin()) }
+  const proposalData = { governor, provider, timelock: await getTimelock(governorType, governor.address) }
 
   console.log('Starting proposal checks and report generation...')
   for (const simOutput of simOutputs) {
     // Run checks
     const { sim, proposal, latestBlock, config } = simOutput
-    console.log(`  Running for proposal ${proposal.id}...`)
+    console.log(`  Running for proposal ID ${formatProposalId(governorType, proposal.id!)}...`)
     const checkResults: AllCheckResults = Object.fromEntries(
       await Promise.all(
         Object.keys(ALL_CHECKS).map(async (checkId) => [
@@ -110,6 +126,7 @@ async function main() {
     // GitHub artifacts are flattened (folder structure is not preserved), so we include the DAO name in the filename.
     const dir = `./reports/${config.daoName}/${config.governorAddress}`
     await generateAndSaveReports(
+      governorType,
       { start: startBlock, end: endBlock, current: latestBlock },
       proposal,
       checkResults,

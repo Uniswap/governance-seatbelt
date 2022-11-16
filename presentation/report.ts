@@ -11,7 +11,8 @@ import rehypeSlug from 'rehype-slug'
 import { visit } from 'unist-util-visit'
 import { unified } from 'unified'
 import { mdToPdf } from 'md-to-pdf'
-import { AllCheckResults, ProposalEvent } from '../types'
+import { formatProposalId } from '../utils/contracts/governor'
+import { AllCheckResults, GovernorType, ProposalEvent } from '../types'
 
 // --- Markdown helpers ---
 
@@ -112,6 +113,7 @@ function estimateTime(current: Block, block: BigNumber): number {
  * @param filename The name of the file. All report formats will have the same filename with different extensions.
  */
 export async function generateAndSaveReports(
+  governorType: GovernorType,
   blocks: { current: Block; start: Block | null; end: Block | null },
   proposal: ProposalEvent,
   checks: AllCheckResults,
@@ -119,11 +121,11 @@ export async function generateAndSaveReports(
 ) {
   // Prepare the output folder and filename.
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-  const id = proposal.id
+  const id = formatProposalId(governorType, proposal.id!)
   const path = `${dir}/${id}`
 
   // Generate the base markdown proposal report. This is the markdown report which is translated into other file types.
-  const baseReport = await toMarkdownProposalReport(blocks, proposal, checks)
+  const baseReport = await toMarkdownProposalReport(governorType, blocks, proposal, checks)
 
   // The table of contents' links in the baseReport work when converted to HTML, but do not work as Markdown
   // or PDF links, since the emojis in the header titles cause issues. We apply the remarkFixEmojiLinks plugin
@@ -156,6 +158,7 @@ export async function generateAndSaveReports(
  * @param checks The checks results.
  */
 async function toMarkdownProposalReport(
+  governorType: GovernorType,
   blocks: { current: Block; start: Block | null; end: Block | null },
   proposal: ProposalEvent,
   checks: AllCheckResults
@@ -170,7 +173,7 @@ _Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blo
     blocks.current.timestamp
   )}_
 
-- ID: ${id}
+- ID: ${formatProposalId(governorType, id!)}
 - Proposer: ${toAddressLink(proposer)}
 - Start Block: ${startBlock} (${
     blocks.start ? formatTime(blocks.start.timestamp) : formatTime(estimateTime(blocks.current, startBlock))

@@ -6,7 +6,7 @@ for better informed voting.
 
 ## Reports
 
-Every hour a GitHub workflow is run which simulates all GovernorBravo proposals for each DAO defined in [`governance-checks.yaml`](https://github.com/Uniswap/governance-seatbelt/blob/main/.github/workflows/governance-checks.yaml).
+Every few hours a GitHub workflow is run which simulates all proposals for each DAO defined in [`governance-checks.yaml`](https://github.com/Uniswap/governance-seatbelt/blob/main/.github/workflows/governance-checks.yaml).
 Reports for each proposal are saved as Markdown files associated with the workflow run.
 To view the reports, navigate to this repo's [Actions](https://github.com/Uniswap/governance-seatbelt/actions), select a workflow, and download the attached artifacts.
 This will download a zip file containing all reports, where you can find the report you're interested in and open it your favorite markdown viewer.
@@ -27,9 +27,9 @@ Some notes on the outputs of reports:
 To add a DAO to CI, submit a pull request that adds the desired `DAO_NAME` and `GOVERNOR_ADDRESS`
 to the `matrix` section of `.github/workflows/governance-checks.yaml`.
 
-Note that currently only `GovernorBravo` style governors are supported.
+Note that currently only Compound `GovernorBravo` and OpenZeppelin style governors are supported.
 
-### Running Locally
+### Environment Variable Setup
 
 First, create a file called `.env` with the following environment variables:
 
@@ -37,23 +37,30 @@ First, create a file called `.env` with the following environment variables:
 # Etherscan API Key, used when running Slither.
 ETHERSCAN_API_KEY=yourEtherscanApiKey
 
-# URL to your node, e.g. Infura or Alchemy endpoint
+# URL to your node, e.g. Infura or Alchemy endpoint.
 RPC_URL=yourNodeUrl
 
-# Tenderly access token
-# Access token is obtained from the Tenderly UI via Account > Authorization > Generate Access Token
+# Tenderly access token.
+# Access token is obtained from the Tenderly UI via Account > Authorization > Generate Access Token.
 TENDERLY_ACCESS_TOKEN=yourAccessToken
 
-# Tenderly project slug
-# Project slug can be found in the URL of your project: https://dashboard.tenderly.co/<username>/<project_slug>/transactions
+# Tenderly user name.
+# User name can be found in the URL of your project: https://dashboard.tenderly.co/<userName>/<project_slug>/transactions
+# This is `me` for personal accounts.
+TENDERLY_USER=userName
+
+# Tenderly project slug.
+# Project slug can be found in the URL of your project: https://dashboard.tenderly.co/<userName>/<project_slug>/transactions
 TENDERLY_PROJECT_SLUG=projectName
 
-# Define the DAO name and the address of its governor
+# Define the DAO name and the address of its governor.
 DAO_NAME=Uniswap
 GOVERNOR_ADDRESS=0x408ED6354d4973f66138C91495F2f2FCbd8724C3
 ```
 
-There are now two modes of operation:
+### Running Simulations
 
-1. Run `yarn start` to simulate and run checks on all GovernorBravo proposals
-2. Create a file called `<analysisName>.sim.ts` and run a specific simulation with `SIM_NAME=analysisName yarn start`. See the `*.sim.ts` files in the `sims` folder for examples.
+There are two modes of operation:
+
+1. Run `yarn start` to simulate and run checks on all Governor proposals.
+2. Alternatively, create a file called `<analysisName>.sim.ts` and run a specific simulation with `SIM_NAME=analysisName yarn start`. See the `*.sim.ts` files in the `sims` folder for examples.

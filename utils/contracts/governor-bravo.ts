@@ -1,5 +1,7 @@
-import { Contract } from 'ethers'
+import { BigNumber, BigNumberish, Contract } from 'ethers'
+import { hexZeroPad } from '@ethersproject/bytes'
 import { provider } from '../clients/ethers'
+import { getSolidityStorageSlotUint, to32ByteHexString } from '../utils'
 
 const GOVERNOR_BRAVO_ABI = [
   'event NewAdmin(address oldAdmin, address newAdmin)',
@@ -69,4 +71,57 @@ export const PROPOSAL_STATES = {
   '5': 'Queued',
   '6': 'Expired',
   '7': 'Executed',
+}
+
+/**
+ * @notice Returns an object containing various GovernorBravo slots
+ * @param id Proposal ID
+ */
+export function getBravoSlots(proposalId: BigNumberish) {
+  // Proposal struct slot offsets, based on the governor's proposal struct
+  //     struct Proposal {
+  //       uint id;
+  //       address proposer;
+  //       uint eta;
+  //       address[] targets;
+  //       uint[] values;
+  //       string[] signatures;
+  //       bytes[] calldatas;
+  //       uint startBlock;
+  //       uint endBlock;
+  //       uint forVotes;
+  //       uint againstVotes;
+  //       uint abstainVotes;
+  //       bool canceled;
+  //       bool executed;
+  //       mapping (address => Receipt) receipts;
+  //     }
+  const etaOffset = 2
+  const targetsOffset = 3
+  const valuesOffset = 4
+  const signaturesOffset = 5
+  const calldatasOffset = 6
+  const forVotesOffset = 9
+  const againstVotesOffset = 10
+  const abstainVotesOffset = 11
+  const canceledSlotOffset = 12 // this is packed with `executed`
+
+  // Compute and return slot numbers
+  const proposalsMapSlot = '0xa' // proposals ID to proposal struct mapping
+  const proposalSlot = getSolidityStorageSlotUint(proposalsMapSlot, proposalId)
+  return {
+    proposalCount: to32ByteHexString('0x7'), // slot of the proposalCount storage variable
+    votingToken: '0x9', // slot of voting token, e.g. UNI, COMP  (getter is named after token, so can't generalize it that way),
+    proposalsMap: proposalsMapSlot,
+    proposal: proposalSlot,
+    canceled: hexZeroPad(BigNumber.from(proposalSlot).add(canceledSlotOffset).toHexString(), 32),
+    eta: hexZeroPad(BigNumber.from(proposalSlot).add(etaOffset).toHexString(), 32),
+    forVotes: hexZeroPad(BigNumber.from(proposalSlot).add(forVotesOffset).toHexString(), 32),
+    againstVotes: hexZeroPad(BigNumber.from(proposalSlot).add(againstVotesOffset).toHexString(), 32),
+    abstainVotes: hexZeroPad(BigNumber.from(proposalSlot).add(abstainVotesOffset).toHexString(), 32),
+    targets: hexZeroPad(BigNumber.from(proposalSlot).add(targetsOffset).toHexString(), 32),
+    values: hexZeroPad(BigNumber.from(proposalSlot).add(valuesOffset).toHexString(), 32),
+    signatures: hexZeroPad(BigNumber.from(proposalSlot).add(signaturesOffset).toHexString(), 32),
+    calldatas: hexZeroPad(BigNumber.from(proposalSlot).add(calldatasOffset).toHexString(), 32),
+  }
 }
