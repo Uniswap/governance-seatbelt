@@ -226,6 +226,7 @@ Some notes on the outputs of reports:
 | Risk Parameter Updates for Aave V2 ETH Market (2022-11-13)                                                                                                                              | [118.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/118.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=118) |
 | Risk Parameter Updates for Aave V2 ETH (2022-11-13)                                                                                                                                     | [119.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/119.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=119) |
 | Risk Parameter Updates for Aave V2 (2022-11-17)                                                                                                                                         | [120.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/120.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=120) |
+| Risk Parameter Updates for Aave V2 ETH Market (2022-11-22)                                                                                                                              | [121.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/121.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=121) |
 
 <!-- ### Reports table end ### -->
 
