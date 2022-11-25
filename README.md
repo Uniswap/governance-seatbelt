@@ -231,6 +231,7 @@ Some notes on the outputs of reports:
 | Pause UNI Borrowing                                                                                                                                                                     | [123.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/123.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=123) |
 | Risk Parameter Updates for Aave V2 Polygon                                                                                                                                              | [124.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/124.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=124) |
 | PolygonBridgeExecutor actionSet("7": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false})  | [124_fx_7_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/124_fx_7_0.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=124) |
+| Risk Parameter Updates for Aave v2 Ethereum Liquidty Pool                                                                                                                               | [125.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/125.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=125) |
 
 <!-- ### Reports table end ### -->
 
