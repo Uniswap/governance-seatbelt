@@ -20,7 +20,7 @@ const OPTIMISM_BRIDGE_CREATION_BLOCK = 18825397
 
 export function getOptimismPayloads(simulation: TenderlySimulation) {
   return simulation.transaction.call_trace.filter(
-    (trace) => trace.to.toLowerCase() === L1_CROSS_DOMAIN_MESSENGER.toLowerCase()
+    (trace) => trace.to?.toLowerCase() === L1_CROSS_DOMAIN_MESSENGER.toLowerCase()
   )
 }
 

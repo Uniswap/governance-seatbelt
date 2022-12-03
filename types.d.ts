@@ -315,7 +315,7 @@ interface Simulation {
 
 interface Trace {
   from: string
-  to: string
+  to?: string
   input: string
   output: string
 }
