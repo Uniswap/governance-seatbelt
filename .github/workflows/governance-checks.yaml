@@ -74,10 +74,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.10'
+      # Pre installed in newest ubuntu
+      # - name: Set up Python
+      #   uses: actions/setup-python@v4
+      #   with:
+      #     python-version: '3.10'
 
       - name: Install solc-select
         run: pip3 install solc-select
@@ -112,7 +113,7 @@ jobs:
             git config --global pull.rebase true
             git add reports
             git commit -am "fix(cache): ${{ matrix.proposals }} :robot:"
-            git pull origin main
+            git pull --rebase --autostash
             git push
           exit
           fi
@@ -149,8 +150,9 @@ jobs:
             git config --global user.email 'cache-bot@bgdlabs.com'
             git config --global pull.rebase true
             git add reports
+            git add README.md
             git commit -am "fix(cache): update readme :robot:"
-            git pull origin main
+            git pull --rebase --autostash
             git push
           exit
           fi
