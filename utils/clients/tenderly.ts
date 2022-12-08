@@ -102,9 +102,8 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
   const from = DEFAULT_FROM
   const value = values.reduce((sum, cur) => BigNumber.from(sum).add(cur), BigNumber.from(0)).toString()
 
-  // For Bravo governors, we use the block right after the proposal ends, and for OZ
-  // governors we arbitrarily use the next block number.
-  const simBlock = governorType === 'bravo' ? proposal.endBlock!.add(1) : BigNumber.from(latestBlock.number + 1)
+  // Run simulation at the block right after the proposal ends.
+  const simBlock = proposal.endBlock!.add(1)
 
   // For OZ governors we arbitrarily choose execution time. For Bravo governors, we
   // compute the approximate earliest possible execution time based on governance parameters. This
