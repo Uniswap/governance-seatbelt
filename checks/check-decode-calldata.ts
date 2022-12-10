@@ -2,8 +2,10 @@ import { FunctionFragment, Interface } from '@ethersproject/abi'
 import { getAddress } from '@ethersproject/address'
 import { formatUnits } from '@ethersproject/units'
 import { ProposalCheck, FluffyCall } from '../types'
-import { fetchTokenMetadata } from '../utils/contracts/erc20'
+import { ERC20_ABI, fetchTokenMetadata } from '../utils/contracts/erc20'
 import { bullet } from '../presentation/report'
+
+const ierc20 = new Interface(ERC20_ABI)
 
 /**
  * Decodes proposal target calldata into a human-readable format
@@ -141,21 +143,27 @@ async function prettifyCalldata(call: FluffyCall, target: string) {
   switch (selector) {
     // --- Custom descriptions for common methods ---
     // Custom descriptions add the word "formatted" to the end so it's clear that this is a custom error
-    // message and all numbers with decimals have already been parsed to a human readable format
+    // message and all numbers with decimals have already been parsed to a human readable format.
+    // We decode the calldata manually instead of relying on `call.decoded_input` because it's more
+    // robust. Sometimes `call.decoded_input` may be undefined when Tenderly is not familiar with a
+    // given proxy pattern, but since this is known calldata we know how it should be decoded regardless.
     case '0x095ea7b3': {
-      const spender = getAddress(call.decoded_input?.[0].value as string)
-      const amount = formatUnits(call.decoded_input?.[1].value as string, decimals)
+      const decodedCalldata = ierc20.decodeFunctionData('approve', call.input)
+      const spender = getAddress(decodedCalldata.spender)
+      const amount = formatUnits(decodedCalldata.value, decimals)
       return `\`${call.from}\` approves \`${spender}\` to spend ${amount} ${symbol} (formatted)`
     }
     case '0xba45b0b8': {
-      const receiver = getAddress(call.decoded_input?.[0].value as string)
-      const amount = formatUnits(call.decoded_input?.[1].value as string, decimals)
+      const decodedCalldata = ierc20.decodeFunctionData('transfer', call.input)
+      const receiver = getAddress(decodedCalldata.to)
+      const amount = formatUnits(decodedCalldata.value, decimals)
       return `\`${call.from}\` transfers \`${amount}\` ${symbol} to ${receiver} (formatted)`
     }
     case '0x23b872dd': {
-      const from = getAddress(call.decoded_input?.[0].value as string)
-      const to = getAddress(call.decoded_input?.[1].value as string)
-      const amount = formatUnits(call.decoded_input?.[2].value as string, decimals)
+      const decodedCalldata = ierc20.decodeFunctionData('transferFrom', call.input)
+      const from = getAddress(decodedCalldata.from)
+      const to = getAddress(decodedCalldata.to)
+      const amount = formatUnits(decodedCalldata.value, decimals)
       return `\`${call.from}\` transfers \`${amount}\` ${symbol} from ${from} to ${to} (formatted)`
     }
   }
