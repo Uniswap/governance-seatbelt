@@ -144,7 +144,7 @@ async function prettifyCalldata(call: FluffyCall, target: string) {
     // --- Custom descriptions for common methods ---
     // Custom descriptions add the word "formatted" to the end so it's clear that this is a custom error
     // message and all numbers with decimals have already been parsed to a human readable format.
-    // We decoded the calldata manually instead of relying on `call.decoded_input` because it's more
+    // We decode the calldata manually instead of relying on `call.decoded_input` because it's more
     // robust. Sometimes `call.decoded_input` may be undefined when Tenderly is not familiar with a
     // given proxy pattern, but since this is known calldata we know how it should be decoded regardless.
     case '0x095ea7b3': {
