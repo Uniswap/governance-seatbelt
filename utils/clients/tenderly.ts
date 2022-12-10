@@ -17,6 +17,7 @@ import {
   getProposalId,
   getTimelock,
   getVotingToken,
+  hashOperationOz,
   hashOperationBatchOz,
 } from '../contracts/governor'
 import {
@@ -80,7 +81,8 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
 
   const startBlock = BigNumber.from(latestBlock.number - 100) // arbitrarily subtract 100
   const proposal: ProposalEvent = {
-    id: proposalId,
+    id: proposalId, // Bravo governor
+    proposalId, // OZ governor (for simplicity we just include both ID formats)
     proposer: DEFAULT_FROM,
     startBlock,
     endBlock: startBlock.add(1),
@@ -99,8 +101,21 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
   // Set various simulation parameters
   const from = DEFAULT_FROM
   const value = values.reduce((sum, cur) => BigNumber.from(sum).add(cur), BigNumber.from(0)).toString()
-  const simBlock = proposal.endBlock.add(1)
-  const simTimestamp = BigNumber.from(latestBlock.timestamp).add(simBlock.sub(proposal.endBlock).mul(12))
+
+  // Run simulation at the block right after the proposal ends.
+  const simBlock = proposal.endBlock!.add(1)
+
+  // For OZ governors we arbitrarily choose execution time. For Bravo governors, we
+  // compute the approximate earliest possible execution time based on governance parameters. This
+  // can only be approximate because voting period is defined in blocks, not as a timestamp. We
+  // assume 12 second block times to prefer underestimating timestamp rather than overestimating,
+  // and we prefer underestimating to avoid simulations reverting in cases where governance
+  // proposals call methods that pass in a start timestamp that must be lower than the current
+  // block timestamp (represented by the `simTimestamp` variable below)
+  const simTimestamp =
+    governorType === 'bravo'
+      ? BigNumber.from(latestBlock.timestamp).add(simBlock.sub(proposal.endBlock!).mul(12))
+      : BigNumber.from(latestBlock.timestamp + 1)
   const eta = simTimestamp // set proposal eta to be equal to the timestamp we simulate at
 
   // Compute transaction hashes used by the Timelock
@@ -117,8 +132,56 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
     timelockStorageObj[`queuedTransactions[${hash}]`] = 'true'
   })
 
+  if (governorType === 'oz') {
+    const id = hashOperationBatchOz(targets, values, calldatas, HashZero, keccak256(toUtf8Bytes(description)))
+    timelockStorageObj[`_timestamps[${id.toHexString()}]`] = simTimestamp.toString()
+  }
+
   // Use the Tenderly API to get the encoded state overrides for governor storage
-  const proposalKey = `proposals[${proposalId.toString()}]`
+  let governorStateOverrides: Record<string, string> = {}
+  if (governorType === 'bravo') {
+    const proposalKey = `proposals[${proposalId.toString()}]`
+    governorStateOverrides = {
+      proposalCount: proposalId.toString(),
+      [`${proposalKey}.id`]: proposalId.toString(),
+      [`${proposalKey}.proposer`]: DEFAULT_FROM,
+      [`${proposalKey}.eta`]: eta.toString(),
+      [`${proposalKey}.startBlock`]: proposal.startBlock.toString(),
+      [`${proposalKey}.endBlock`]: proposal.endBlock.toString(),
+      [`${proposalKey}.canceled`]: 'false',
+      [`${proposalKey}.executed`]: 'false',
+      [`${proposalKey}.forVotes`]: votingTokenSupply.toString(),
+      [`${proposalKey}.againstVotes`]: '0',
+      [`${proposalKey}.abstainVotes`]: '0',
+    }
+
+    targets.forEach((target, i) => {
+      const value = BigNumber.from(values[i]).toString()
+      governorStateOverrides[`${proposalKey}.targets[${i}]`] = target
+      governorStateOverrides[`${proposalKey}.values[${i}]`] = value
+      governorStateOverrides[`${proposalKey}.signatures[${i}]`] = signatures[i]
+      governorStateOverrides[`${proposalKey}.calldatas[${i}]`] = calldatas[i]
+    })
+  } else if (governorType === 'oz') {
+    const proposalCoreKey = `_proposals[${proposalId.toString()}]`
+    const proposalVotesKey = `_proposalVotes[${proposalId.toString()}]`
+    governorStateOverrides = {
+      [`${proposalCoreKey}.voteEnd._deadline`]: simBlock.sub(1).toString(),
+      [`${proposalCoreKey}.canceled`]: 'false',
+      [`${proposalCoreKey}.executed`]: 'false',
+      [`${proposalVotesKey}.forVotes`]: votingTokenSupply.toString(),
+      [`${proposalVotesKey}.againstVotes`]: '0',
+      [`${proposalVotesKey}.abstainVotes`]: '0',
+    }
+
+    targets.forEach((target, i) => {
+      const id = hashOperationOz(target, values[i], calldatas[i], HashZero, HashZero)
+      governorStateOverrides[`_timestamps[${id}]`] = '2' // must be > 1.
+    })
+  } else {
+    throw new Error(`Cannot generate overrides for unknown governor type: ${governorType}`)
+  }
+
   const stateOverrides = {
     networkID: '1',
     stateOverrides: {
@@ -126,30 +189,10 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
         value: timelockStorageObj,
       },
       [governor.address]: {
-        value: {
-          proposalCount: proposalId.toString(),
-          [`${proposalKey}.id`]: proposalId.toString(),
-          [`${proposalKey}.proposer`]: DEFAULT_FROM,
-          [`${proposalKey}.eta`]: eta.toString(),
-          [`${proposalKey}.startBlock`]: proposal.startBlock.toString(),
-          [`${proposalKey}.endBlock`]: proposal.endBlock.toString(),
-          [`${proposalKey}.forVotes`]: votingTokenSupply.toString(),
-          [`${proposalKey}.againstVotes`]: '0',
-          [`${proposalKey}.abstainVotes`]: '0',
-          [`${proposalKey}.canceled`]: 'false',
-          [`${proposalKey}.executed`]: 'false',
-        },
+        value: governorStateOverrides,
       },
     },
   }
-
-  targets.forEach((target, i) => {
-    const value = BigNumber.from(values[i]).toString()
-    stateOverrides.stateOverrides[governor.address].value[`${proposalKey}.targets[${i}]`] = target
-    stateOverrides.stateOverrides[governor.address].value[`${proposalKey}.values[${i}]`] = value
-    stateOverrides.stateOverrides[governor.address].value[`${proposalKey}.signatures[${i}]`] = signatures[i]
-    stateOverrides.stateOverrides[governor.address].value[`${proposalKey}.calldatas[${i}]`] = calldatas[i]
-  })
 
   const storageObj = await sendEncodeRequest(stateOverrides)
 
@@ -256,11 +299,11 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
       ? '0'
       : (values as BigNumber[]).reduce((sum, cur) => sum.add(cur), BigNumber.from(0)).toString()
 
-  // For compound style governance, we use the block right after the proposal ends, and for OZ
-  // governance we arbitrarily use the next block number.
+  // For Bravo governors, we use the block right after the proposal ends, and for OZ
+  // governors we arbitrarily use the next block number.
   const simBlock = governorType === 'bravo' ? proposal.endBlock!.add(1) : BigNumber.from(latestBlock.number + 1)
 
-  // For OZ governance we are given the earliest possible execution time. For Compound governance, we
+  // For OZ governors we are given the earliest possible execution time. For Bravo governors, we
   // Compute the approximate earliest possible execution time based on governance parameters. This
   // can only be approximate because voting period is defined in blocks, not as a timestamp. We
   // assume 12 second block times to prefer underestimating timestamp rather than overestimating,
@@ -502,9 +545,9 @@ async function sendEncodeRequest(payload: any): Promise<StorageEncodingResponse>
  * @param delay How long to wait until next simulation request after failure, in milliseconds
  */
 async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<TenderlySimulation> {
+  const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
   try {
     // Send simulation request
-    const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
     const sim = <TenderlySimulation>await fetchUrl(TENDERLY_SIM_URL, fetchOptions)
 
     // Post-processing to ensure addresses we use are checksummed (since ethers returns checksummed addresses)
@@ -516,7 +559,7 @@ async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<T
     const is429 = typeof err === 'object' && err?.statusCode === 400
     if (delay > 8000 || !is429) {
       console.warn(`Simulation request failed with the below request payload and error`)
-      console.log(JSON.stringify(payload))
+      console.log(JSON.stringify(fetchOptions))
       throw err
     }
     console.warn(err)
