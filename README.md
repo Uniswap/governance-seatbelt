@@ -240,6 +240,7 @@ Some notes on the outputs of reports:
 | Freeze Aave V1                                                                                                                                                                          | [129.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/129.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=129) |
 | Set LDO, stMATIC, MaticX and SD Emission_Admin for Polygon v3 Liquidity Pool                                                                                                            | [130.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/130.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=130) |
 | PolygonBridgeExecutor actionSet("8": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false})  | [130_fx_8_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/130_fx_8_0.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=130) |
+| Aave v2 ETH Interest Rate Curve Update                                                                                                                                                  | [131.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/131.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=131) |
 
 <!-- ### Reports table end ### -->
 
