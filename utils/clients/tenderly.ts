@@ -267,15 +267,11 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
     return getProposalId(log.args as unknown as ProposalEvent).eq(proposalId)
   })[0]
   if (!proposalCreatedEvent) throw new Error(`Proposal creation log for #${proposalId} not found in governor logs`)
-  const {
-    targets,
-    signatures: sigs,
-    calldatas,
-    description,
-  } = proposalCreatedEvent.args as unknown as ProposalEvent
-  // workaround an issue that ethers cannot decode the values properly
-  // we know that the values are the 3rd parameter in
-  // ProposalCreated(proposalId, proposer, targets, values, signatures, calldatas, startBlock, endBlock, description)
+  const { targets, signatures: sigs, calldatas, description } = proposalCreatedEvent.args as unknown as ProposalEvent
+
+  // Workaround an issue that ethers cannot decode the values properly.
+  // We know that the values are the 3rd parameter in
+  // `ProposalCreated(proposalId, proposer, targets, values, signatures, calldatas, startBlock, endBlock, description)`
   const values: BigNumber[] = proposalCreatedEvent.args![3]
 
   // --- Prepare simulation configuration ---
@@ -296,11 +292,8 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
 
   // Set `from` arbitrarily, and set `value` based on proposal properties
   const from = DEFAULT_FROM
-  // TODO why is values sometimes a function here?
-  const value =
-    typeof values === 'function'
-      ? '0'
-      : (values as BigNumber[]).reduce((sum, cur) => sum.add(cur), BigNumber.from(0)).toString()
+  // Get the total value across all proposal calls.
+  const value = values.reduce((sum, cur) => sum.add(cur), BigNumber.from(0)).toString()
 
   // For Bravo governors, we use the block right after the proposal ends, and for OZ
   // governors we arbitrarily use the next block number.
@@ -321,22 +314,20 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
 
   // Compute transaction hashes used by the Timelock
   const txHashes = targets.map((target, i) => {
-    const [val, sig, calldata] = [typeof values === 'function' ? '0' : values[i], sigs[i], calldatas[i]]
+    const [val, sig, calldata] = [values[i], sigs[i], calldatas[i]]
     return keccak256(
       defaultAbiCoder.encode(['address', 'uint256', 'string', 'bytes', 'uint256'], [target, val, sig, calldata, eta])
     )
   })
 
   // Generate the state object needed to mark the transactions as queued in the Timelock's storage
-  // TODO why is values sometimes a function?
-  const cleanedVals = typeof values === 'function' ? new Array(targets.length).fill(BigNumber.from(0)) : values
   const timelockStorageObj: Record<string, string> = {}
   txHashes.forEach((hash) => {
     timelockStorageObj[`queuedTransactions[${hash}]`] = 'true'
   })
 
   if (governorType === 'oz') {
-    const id = hashOperationBatchOz(targets, cleanedVals, calldatas, HashZero, keccak256(toUtf8Bytes(description)))
+    const id = hashOperationBatchOz(targets, values, calldatas, HashZero, keccak256(toUtf8Bytes(description)))
     timelockStorageObj[`_timestamps[${id.toHexString()}]`] = simTimestamp.toString()
   }
 
@@ -388,7 +379,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
 
   const descriptionHash = keccak256(toUtf8Bytes(description))
   const executeInputs =
-    governorType === 'bravo' ? [proposalId.toString()] : [targets, cleanedVals, calldatas, descriptionHash]
+    governorType === 'bravo' ? [proposalId.toString()] : [targets, values, calldatas, descriptionHash]
   const simulationPayload: TenderlyPayload = {
     network_id: '1',
     // this field represents the block state to simulate against, so we use the latest block number
