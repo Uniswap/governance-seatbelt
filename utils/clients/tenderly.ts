@@ -270,7 +270,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const { targets, signatures: sigs, calldatas, description } = proposalCreatedEvent.args as unknown as ProposalEvent
 
   // Workaround an issue that ethers cannot decode the values properly.
-  // We know that the values are the 3rd parameter in
+  // We know that the values are the 4th parameter in
   // `ProposalCreated(proposalId, proposer, targets, values, signatures, calldatas, startBlock, endBlock, description)`
   const values: BigNumber[] = proposalCreatedEvent.args![3]
 
