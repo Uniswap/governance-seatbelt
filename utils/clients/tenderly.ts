@@ -269,11 +269,14 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   if (!proposalCreatedEvent) throw new Error(`Proposal creation log for #${proposalId} not found in governor logs`)
   const {
     targets,
-    values,
     signatures: sigs,
     calldatas,
     description,
   } = proposalCreatedEvent.args as unknown as ProposalEvent
+  // workaround an issue that ethers cannot decode the values properly
+  // we know that the values are the 3rd parameter in
+  // ProposalCreated(proposalId, proposer, targets, values, signatures, calldatas, startBlock, endBlock, description)
+  const values: BigNumber[] = proposalCreatedEvent.args![3]
 
   // --- Prepare simulation configuration ---
   // We need the following state conditions to be true to successfully simulate a proposal:
