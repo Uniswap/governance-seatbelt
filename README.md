@@ -243,6 +243,7 @@ Some notes on the outputs of reports:
 | Aave v2 ETH Interest Rate Curve Update                                                                                                                                                  | [131.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/131.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=131) |
 | Freeze Aave V1                                                                                                                                                                          | [132.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/132.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=132) |
 | Gauntlet <> Aave Renewal                                                                                                                                                                | [133.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/133.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=133) |
+| Update renFIL rate strategy on Aave v2 Ethereum                                                                                                                                         | [134.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/134.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=134) |
 
 <!-- ### Reports table end ### -->
 
