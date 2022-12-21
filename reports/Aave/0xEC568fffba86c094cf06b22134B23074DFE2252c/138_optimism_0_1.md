@@ -1,8 +1,8 @@
 ## OptimismBridgeExecutor actionSet("0": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false})
 
-_Updated as of block [16228789](https://etherscan.io/block/16228789) at 12/20/2022, 5:07:35 PM ET_
+_Updated as of block [16229534](https://etherscan.io/block/16229534) at 12/20/2022, 7:36:47 PM ET_
 
-- Simulation: [https://dashboard.tenderly.co/me/simulator/cd07890a-1aa0-4985-b7d6-74a5cb69a006](https://dashboard.tenderly.co/me/simulator/cd07890a-1aa0-4985-b7d6-74a5cb69a006)
+- Simulation: [https://dashboard.tenderly.co/me/simulator/21968e64-8c95-4b82-96e1-01accd28687a](https://dashboard.tenderly.co/me/simulator/21968e64-8c95-4b82-96e1-01accd28687a)
 
 ### Checks
 
@@ -36,7 +36,7 @@ Info:
 - 5708990770823839524233143914691831279965224835928
 + 5708990770823839524233875314812698130615922072408
 
-# decoded configuration.data for key `0x68f180fcce6836688e9084f035309e29bf0a2095` (symbol: unknown)
+# decoded configuration.data for key `0x68f180fcce6836688e9084f035309e29bf0a2095` (symbol: WBTC)
 @@ configuration.data.borrowCap @@
 - 0
 + 605
@@ -45,13 +45,13 @@ Info:
 
 ```diff
 # OptimismBridgeExecutor at `0x7d9103572bE58FfE99dc390E8246f02dcAe6f611`
-@@ `_queuedActions` key `0xd6afa19c0a49dca887e47e489727eb8cf8a9379623fd4d26c71dc1bfe837f2d6` @@
-- true
-+ false
-
 @@ `_actionsSets` key `"0"`.executed @@
 - false
 + true
+
+@@ `_queuedActions` key `0x9a17679661d23a5ced3c8da916f53cb948ba9a0be139aa6227c10fe5a5521a5b` @@
+- true
++ false
 
 ```
 
