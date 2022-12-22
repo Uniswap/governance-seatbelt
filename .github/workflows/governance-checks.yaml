@@ -11,6 +11,8 @@ on:
 jobs:
   check-proposals:
     strategy:
+      # Set fail-fast to false to ensure all Matrix runs complete even if one fails.
+      fail-fast: false
       matrix:
         include:
           - DAO_NAME: 'Uniswap'
