@@ -23,10 +23,6 @@ export const checkStateChanges: ProposalCheck = {
     // recording state changes for (1) the the `queuedTransactions` mapping of the timelock, and
     // (2) the `proposal.executed` change of the governor, because this will be consistent across
     // all proposals and mainly add noise to the output
-    console.log(
-      'sim.transaction.transaction_info.state_diff: ',
-      JSON.stringify(sim.transaction.transaction_info.state_diff, null, 2)
-    )
     const stateDiffs = sim.transaction.transaction_info.state_diff.reduce((diffs, diff) => {
       const addr = getAddress(diff.raw[0].address)
       // Check if this is a diff that should be filtered out
