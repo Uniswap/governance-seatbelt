@@ -75,6 +75,9 @@ jobs:
           GOVERNOR_ADDRESS: ${{ matrix.GOVERNOR_ADDRESS }}
 
       - name: Upload artifacts
+        # We always upload artifacts, even if certain proposal sims/checks failed. This is because
+        # we don't want to block generating all reports for all DAOs when a single one fails.
+        if: always()
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.DAO_NAME }}
