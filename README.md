@@ -255,6 +255,7 @@ Some notes on the outputs of reports:
 | OptimismBridgeExecutor actionSet("0": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false}) | [138_optimism_0_1.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/138_optimism_0_1.md) | [app](https://app.aave.com/governance/proposal/?proposalId=138) |
 | OptimismBridgeExecutor actionSet("2": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false}) | [138_optimism_2_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/138_optimism_2_0.md) | [app](https://app.aave.com/governance/proposal/?proposalId=138) |
 | OptimismBridgeExecutor actionSet("2": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false}) | [138_optimism_2_1.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/138_optimism_2_1.md) | [app](https://app.aave.com/governance/proposal/?proposalId=138) |
+| Chaos Labs Aave v2 Coverage                                                                                                                                                             | [139.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/139.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=139) |
 
 <!-- ### Reports table end ### -->
 
