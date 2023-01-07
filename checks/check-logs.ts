@@ -12,7 +12,7 @@ export const checkLogs: ProposalCheck = {
     const info: string[] = []
 
     // Emitted logs in the simulation are an array, so first we organize them by address. We skip
-    // recording logs for (1) the the `queuedTransactions` mapping of the timelock, and
+    // recording logs for (1) the `queuedTransactions` mapping of the timelock, and
     // (2) the `proposal.executed` change of the governor, because this will be consistent across
     // all proposals and mainly add noise to the output
     // TODO remove some logic currently duplicated in the checkStateChanges check?
