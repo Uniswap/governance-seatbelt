@@ -20,7 +20,7 @@ export const checkStateChanges: ProposalCheck = {
     }
 
     // State diffs in the simulation are an array, so first we organize them by address. We skip
-    // recording state changes for (1) the the `queuedTransactions` mapping of the timelock, and
+    // recording state changes for (1) the `queuedTransactions` mapping of the timelock, and
     // (2) the `proposal.executed` change of the governor, because this will be consistent across
     // all proposals and mainly add noise to the output
     if (!sim.transaction.transaction_info.state_diff) {
