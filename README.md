@@ -268,6 +268,7 @@ Some notes on the outputs of reports:
 | Freeze jEUR on Aave v3 Polygon                                                                                                                                                          | [143.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/143.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=143) |
 | PolygonBridgeExecutor actionSet("11": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false}) | [143_fx_11_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/143_fx_11_0.md)           | [app](https://app.aave.com/governance/proposal/?proposalId=143) |
 | Ethereum v2 Collector Contract Consolidation                                                                                                                                            | [144.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/144.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=144) |
+| Renew Aave Grants DAO                                                                                                                                                                   | [145.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/145.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=145) |
 
 <!-- ### Reports table end ### -->
 
