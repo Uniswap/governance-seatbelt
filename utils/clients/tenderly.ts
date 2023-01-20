@@ -229,8 +229,8 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
       timestamp: hexStripZeros(simTimestamp.toHexString()),
     },
     state_objects: {
-      // Give `from` address 10 ETH to send transaction
-      [from]: { balance: parseEther('10').toString() },
+      // Give `from` address 1000 ETH to send transaction
+      [from]: { balance: parseEther('1000').toString() },
       // Ensure transactions are queued in the timelock
       [timelock.address]: { storage: storageObj.stateOverrides[timelock.address.toLowerCase()].value },
       // Ensure governor storage is properly configured so `state(proposalId)` returns `Queued`
@@ -398,8 +398,8 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
       timestamp: hexStripZeros(simTimestamp.toHexString()),
     },
     state_objects: {
-      // Give `from` address 10 ETH to send transaction
-      [from]: { balance: parseEther('10').toString() },
+      // Give `from` address 1000 ETH to send transaction
+      [from]: { balance: parseEther('1000').toString() },
       // Ensure transactions are queued in the timelock
       [timelock.address]: { storage: storageObj.stateOverrides[timelock.address.toLowerCase()].value },
       // Ensure governor storage is properly configured so `state(proposalId)` returns `Queued`
@@ -551,7 +551,7 @@ async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<T
     return sim
   } catch (err: any) {
     console.log('err in sendSimulation: ', JSON.stringify(err))
-    const is429 = typeof err === 'object' && err?.statusCode === 400
+    const is429 = typeof err === 'object' && err?.statusCode === 429
     if (delay > 8000 || !is429) {
       console.warn(`Simulation request failed with the below request payload and error`)
       console.log(JSON.stringify(fetchOptions))
