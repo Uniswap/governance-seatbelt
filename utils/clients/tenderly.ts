@@ -221,7 +221,8 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
     gas: BLOCK_GAS_LIMIT,
     gas_price: '0',
     value,
-    save: false, // set this to true to see the simulated transaction in your Tenderly dashboard (useful for debugging)
+    save_if_fails: false, // Set to true to save the simulation to your Tenderly dashboard if it fails.
+    save: false, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
     generate_access_list: true, // not required, but useful as a sanity check to ensure consistency in the simulation response
     block_header: {
       // this data represents what block.number and block.timestamp should return in the EVM during the simulation
@@ -390,7 +391,8 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
     gas: BLOCK_GAS_LIMIT,
     gas_price: '0',
     value,
-    save: false, // set this to true to see the simulated transaction in your Tenderly dashboard (useful for debugging)
+    save_if_fails: false, // Set to true to save the simulation to your Tenderly dashboard if it fails.
+    save: false, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
     generate_access_list: true, // not required, but useful as a sanity check to ensure consistency in the simulation response
     block_header: {
       // this data represents what block.number and block.timestamp should return in the EVM during the simulation
@@ -454,7 +456,8 @@ async function simulateExecuted(config: SimulationConfigExecuted): Promise<Simul
     gas: tx.gasLimit.toNumber(),
     gas_price: tx.gasPrice?.toString(),
     value: tx.value.toString(),
-    save: false,
+    save_if_fails: false, // Set to true to save the simulation to your Tenderly dashboard if it fails.
+    save: false, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
     generate_access_list: true,
   }
   const sim = await sendSimulation(simulationPayload)
