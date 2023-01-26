@@ -98,9 +98,8 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
   const votingToken = await getVotingToken(governorType, governorAddress, proposalId)
   const votingTokenSupply = <BigNumber>await votingToken.totalSupply() // used to manipulate vote count
 
-  // Set various simulation parameters
+  // Set `from` arbitrarily.
   const from = DEFAULT_FROM
-  const value = values.reduce((sum, cur) => BigNumber.from(sum).add(cur), BigNumber.from(0)).toString()
 
   // Run simulation at the block right after the proposal ends.
   const simBlock = proposal.endBlock!.add(1)
@@ -220,7 +219,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
     input: governor.interface.encodeFunctionData('execute', executeInputs),
     gas: BLOCK_GAS_LIMIT,
     gas_price: '0',
-    value,
+    value: '0', // The proposal executor should not need to send value to execute the proposal.
     save_if_fails: false, // Set to true to save the simulation to your Tenderly dashboard if it fails.
     save: false, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
     generate_access_list: true, // not required, but useful as a sanity check to ensure consistency in the simulation response
@@ -230,8 +229,8 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
       timestamp: hexStripZeros(simTimestamp.toHexString()),
     },
     state_objects: {
-      // Give `from` address 1000 ETH to send transaction
-      [from]: { balance: parseEther('1000').toString() },
+      // Give `from` address 10 ETH to send transaction.
+      [from]: { balance: parseEther('10').toString() },
       // Ensure transactions are queued in the timelock
       [timelock.address]: { storage: storageObj.stateOverrides[timelock.address.toLowerCase()].value },
       // Ensure governor storage is properly configured so `state(proposalId)` returns `Queued`
@@ -291,10 +290,8 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const votingToken = await getVotingToken(governorType, governorAddress, proposal.id)
   const votingTokenSupply = <BigNumber>await votingToken.totalSupply() // used to manipulate vote count
 
-  // Set `from` arbitrarily, and set `value` based on proposal properties
+  // Set `from` arbitrarily.
   const from = DEFAULT_FROM
-  // Get the total value across all proposal calls.
-  const value = values.reduce((sum, cur) => sum.add(cur), BigNumber.from(0)).toString()
 
   // For Bravo governors, we use the block right after the proposal ends, and for OZ
   // governors we arbitrarily use the next block number.
@@ -390,7 +387,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
     input: governor.interface.encodeFunctionData('execute', executeInputs),
     gas: BLOCK_GAS_LIMIT,
     gas_price: '0',
-    value,
+    value: '0', // The proposal executor should not need to send value to execute the proposal.
     save_if_fails: false, // Set to true to save the simulation to your Tenderly dashboard if it fails.
     save: false, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
     generate_access_list: true, // not required, but useful as a sanity check to ensure consistency in the simulation response
@@ -400,8 +397,8 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
       timestamp: hexStripZeros(simTimestamp.toHexString()),
     },
     state_objects: {
-      // Give `from` address 1000 ETH to send transaction
-      [from]: { balance: parseEther('1000').toString() },
+      // Give `from` address 10 ETH to send transaction.
+      [from]: { balance: parseEther('10').toString() },
       // Ensure transactions are queued in the timelock
       [timelock.address]: { storage: storageObj.stateOverrides[timelock.address.toLowerCase()].value },
       // Ensure governor storage is properly configured so `state(proposalId)` returns `Queued`
