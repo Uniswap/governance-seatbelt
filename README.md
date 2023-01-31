@@ -271,6 +271,7 @@ Some notes on the outputs of reports:
 | Renew Aave Grants DAO                                                                                                                                                                   | [145.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/145.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=145) |
 | Repay Excess CRV Debt on Ethereum v2                                                                                                                                                    | [146.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/146.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=146) |
 | Aave Ethereum V3                                                                                                                                                                        | [147.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/147.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=147) |
+| Interest Rate Curve Changes for Aave V2 ETH                                                                                                                                             | [148.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/148.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=148) |
 
 <!-- ### Reports table end ### -->
 
