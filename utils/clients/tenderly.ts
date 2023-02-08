@@ -387,7 +387,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
     input: governor.interface.encodeFunctionData('execute', executeInputs),
     gas: BLOCK_GAS_LIMIT,
     gas_price: '0',
-    value: '0', // The proposal executor should not need to send value to execute the proposal.
+    value: values.reduce((a, b) => a.add(b), BigNumber.from(0)).toString(), // The proposal executor may need to send value to execute the proposal.
     save_if_fails: false, // Set to true to save the simulation to your Tenderly dashboard if it fails.
     save: false, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
     generate_access_list: true, // not required, but useful as a sanity check to ensure consistency in the simulation response
