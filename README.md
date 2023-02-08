@@ -279,6 +279,7 @@ Some notes on the outputs of reports:
 | PolygonBridgeExecutor actionSet("12": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false}) | [151_fx_12_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/151_fx_12_0.md)           | [app](https://app.aave.com/governance/proposal/?proposalId=151) |
 | PolygonBridgeExecutor actionSet("13": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false}) | [151_fx_13_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/151_fx_13_0.md)           | [app](https://app.aave.com/governance/proposal/?proposalId=151) |
 | Add USDT to Aave Ethereum V3 pool                                                                                                                                                       | [152.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/152.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=152) |
+| Add rETH to Aave Ethereum V3 pool                                                                                                                                                       | [153.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/153.md)                           | [app](https://app.aave.com/governance/proposal/?proposalId=153) |
 
 <!-- ### Reports table end ### -->
 
