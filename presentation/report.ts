@@ -62,7 +62,8 @@ function toMessageList(header: string, text: string[]): string {
  * @param name the descriptive name of the check
  */
 function toCheckSummary({ result: { errors, warnings, info }, name }: AllCheckResults[string]): string {
-  const status = errors.length === 0 ? (warnings.length === 0 ? '✅ Passed' : '⚠️ Passed with warnings') : '❌ Failed'
+  const status =
+    errors.length === 0 ? (warnings.length === 0 ? '✅ Passed' : '❗❗ **Passed with warnings**') : '❌ **Failed**'
 
   return `### ${name} ${status}
 
@@ -214,7 +215,7 @@ function remarkFixEmojiLinks() {
         const isInternalLink = url.startsWith('#')
         if (isInternalLink && url.endsWith('--passed-with-warnings')) {
           // @ts-ignore node.url does exist, the typings just aren't correct
-          node.url = node.url.replace('--passed-with-warnings', '-⚠️-passed-with-warnings')
+          node.url = node.url.replace('--passed-with-warnings', '-❗❗-passed-with-warnings')
         } else if (isInternalLink && url.endsWith('--passed')) {
           // @ts-ignore node.url does exist, the typings just aren't correct
           node.url = node.url.replace('--passed', '-✅-passed')
