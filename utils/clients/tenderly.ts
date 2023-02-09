@@ -378,19 +378,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const executeInputs =
     governorType === 'bravo' ? [proposalId.toString()] : [targets, values, calldatas, descriptionHash]
 
-  // Governors will forward the value with each call. If the governor has enough ETH to cover the
-  // sum of values across all calls, the caller does not need to send ETH. Otherwise, the caller
-  // must send ETH to cover the difference.
-  let value = '0'
-  const totalValue = values.reduce((sum, cur) => sum.add(cur), Zero)
-  if (totalValue.gt(Zero)) {
-    const governorEthBalance = await provider.getBalance(governor.address)
-    if (governorEthBalance.lt(totalValue)) {
-      value = totalValue.sub(governorEthBalance).toString()
-    }
-  }
-
-  const simulationPayload: TenderlyPayload = {
+  let simulationPayload: TenderlyPayload = {
     network_id: '1',
     // this field represents the block state to simulate against, so we use the latest block number
     block_number: latestBlock.number,
@@ -399,7 +387,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
     input: governor.interface.encodeFunctionData('execute', executeInputs),
     gas: BLOCK_GAS_LIMIT,
     gas_price: '0',
-    value,
+    value: '0',
     save_if_fails: false, // Set to true to save the simulation to your Tenderly dashboard if it fails.
     save: false, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
     generate_access_list: true, // not required, but useful as a sanity check to ensure consistency in the simulation response
@@ -417,11 +405,28 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
       [governor.address]: { storage: storageObj.stateOverrides[governor.address.toLowerCase()].value },
     },
   }
-  const sim = await sendSimulation(simulationPayload)
+
   const formattedProposal: ProposalEvent = {
     ...(proposalCreatedEvent.args as unknown as ProposalEvent),
+    values, // This does not get included otherwise, same reason why we use `proposalCreatedEvent.args![3]` above.
     id: BigNumber.from(proposalId), // Make sure we always have an ID field
   }
+
+  let sim = await sendSimulation(simulationPayload)
+  const totalValue = values.reduce((sum, cur) => sum.add(cur), Zero)
+
+  // Sim succeeded, or failure was not due to an ETH balance issue, so return the simulation.
+  if (sim.simulation.status || totalValue.eq(Zero)) return { sim, proposal: formattedProposal, latestBlock }
+
+  // Simulation failed, try again by setting value to the difference between total call values and governor ETH balance.
+  const governorEthBalance = await provider.getBalance(governor.address)
+  simulationPayload.value = totalValue.sub(governorEthBalance).toString()
+  sim = await sendSimulation(simulationPayload)
+  if (sim.simulation.status) return { sim, proposal: formattedProposal, latestBlock }
+
+  // Simulation failed, try again by setting value to the total call values.
+  simulationPayload.value = totalValue.toString()
+  sim = await sendSimulation(simulationPayload)
   return { sim, proposal: formattedProposal, latestBlock }
 }
 
