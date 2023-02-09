@@ -219,7 +219,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
     input: governor.interface.encodeFunctionData('execute', executeInputs),
     gas: BLOCK_GAS_LIMIT,
     gas_price: '0',
-    value: '0', // The proposal executor should not need to send value to execute the proposal.
+    value: '0', // TODO Support sending ETH in local simulations like we do below in `simulateProposed`.
     save_if_fails: false, // Set to true to save the simulation to your Tenderly dashboard if it fails.
     save: false, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
     generate_access_list: true, // not required, but useful as a sanity check to ensure consistency in the simulation response
@@ -229,8 +229,9 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
       timestamp: hexStripZeros(simTimestamp.toHexString()),
     },
     state_objects: {
-      // Give `from` address 10 ETH to send transaction.
-      [from]: { balance: parseEther('10').toString() },
+      // Since gas price is zero, the sender needs no balance.
+      // TODO Support sending ETH in local simulations like we do below in `simulateProposed`.
+      [from]: { balance: '0' },
       // Ensure transactions are queued in the timelock
       [timelock.address]: { storage: storageObj.stateOverrides[timelock.address.toLowerCase()].value },
       // Ensure governor storage is properly configured so `state(proposalId)` returns `Queued`
@@ -397,8 +398,9 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
       timestamp: hexStripZeros(simTimestamp.toHexString()),
     },
     state_objects: {
-      // Give `from` address 10 ETH to send transaction.
-      [from]: { balance: parseEther('10').toString() },
+      // Since gas price is zero, the sender needs no balance. If the sender does need a balance to
+      // send ETH with the execution, this will be overridden later.
+      [from]: { balance: '0' },
       // Ensure transactions are queued in the timelock
       [timelock.address]: { storage: storageObj.stateOverrides[timelock.address.toLowerCase()].value },
       // Ensure governor storage is properly configured so `state(proposalId)` returns `Queued`
@@ -420,12 +422,15 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
 
   // Simulation failed, try again by setting value to the difference between total call values and governor ETH balance.
   const governorEthBalance = await provider.getBalance(governor.address)
-  simulationPayload.value = totalValue.sub(governorEthBalance).toString()
+  const newValue = totalValue.sub(governorEthBalance).toString()
+  simulationPayload.value = newValue
+  simulationPayload.state_objects![from].balance = newValue
   sim = await sendSimulation(simulationPayload)
   if (sim.simulation.status) return { sim, proposal: formattedProposal, latestBlock }
 
   // Simulation failed, try again by setting value to the total call values.
   simulationPayload.value = totalValue.toString()
+  simulationPayload.state_objects![from].balance = totalValue.toString()
   sim = await sendSimulation(simulationPayload)
   return { sim, proposal: formattedProposal, latestBlock }
 }

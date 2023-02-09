@@ -9,11 +9,15 @@ import { ProposalCheck } from '../types'
 export const checkValueRequired: ProposalCheck = {
   name: 'Reports on whether the caller needs to send ETH with the call',
   async checkProposal(proposal, sim, deps) {
-    // TODO Fix typings for values. The `values` field is not present in the proposal object, but
-    // key `3` contains them. (Similarly key 0 is proposal ID, 1 is proposer, etc.). This is related
-    // to why we use `proposalCreatedEvent.args![3]` in `tenderly.ts`.
+    // TODO Fix typings for values. The `values` field is not always present in the proposal object,
+    // but key `3` contains them. (Similarly key 0 is proposal ID, 1 is proposer, etc.). This is
+    // related to why we use `proposalCreatedEvent.args![3]` in `tenderly.ts`.
     type ProposalValues = { '3': BigNumber[] }
-    const totalValue = (proposal as unknown as ProposalValues)['3'].reduce((sum, cur) => sum.add(cur), Zero)
+    const totalValue = proposal.values
+      ? // For local simulations, `values` exists and `3` does not.
+        proposal.values.reduce((sum, cur) => sum.add(cur), Zero)
+      : // For simulations read from the chain, `3` exists and `values` does not.
+        (proposal as unknown as ProposalValues)['3'].reduce((sum, cur) => sum.add(cur), Zero)
 
     const txValue = BigNumber.from(sim.simulation.value)
     if (txValue.eq(Zero)) {
