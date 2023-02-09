@@ -2,7 +2,7 @@ import { getAddress } from '@ethersproject/address'
 import { defaultAbiCoder } from '@ethersproject/abi'
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
 import { hexStripZeros } from '@ethersproject/bytes'
-import { HashZero } from '@ethersproject/constants'
+import { HashZero, Zero } from '@ethersproject/constants'
 import { keccak256 } from '@ethersproject/keccak256'
 import { toUtf8Bytes } from '@ethersproject/strings'
 import { parseEther } from '@ethersproject/units'
@@ -374,10 +374,22 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   // Note: The Tenderly API is sensitive to the input types, so all formatting below (e.g. stripping
   // leading zeroes, padding with zeros, strings vs. hex, etc.) are all intentional decisions to
   // ensure Tenderly properly parses the simulation payload
-
   const descriptionHash = keccak256(toUtf8Bytes(description))
   const executeInputs =
     governorType === 'bravo' ? [proposalId.toString()] : [targets, values, calldatas, descriptionHash]
+
+  // Governors will forward the value with each call. If the governor has enough ETH to cover the
+  // sum of values across all calls, the caller does not need to send ETH. Otherwise, the caller
+  // must send ETH to cover the difference.
+  let value = '0'
+  const totalValue = values.reduce((sum, cur) => sum.add(cur), Zero)
+  if (totalValue.gt(Zero)) {
+    const governorEthBalance = await provider.getBalance(governor.address)
+    if (governorEthBalance.lt(totalValue)) {
+      value = totalValue.sub(governorEthBalance).toString()
+    }
+  }
+
   const simulationPayload: TenderlyPayload = {
     network_id: '1',
     // this field represents the block state to simulate against, so we use the latest block number
@@ -387,7 +399,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
     input: governor.interface.encodeFunctionData('execute', executeInputs),
     gas: BLOCK_GAS_LIMIT,
     gas_price: '0',
-    value: '0', // The proposal executor should not need to send value to execute the proposal.
+    value,
     save_if_fails: false, // Set to true to save the simulation to your Tenderly dashboard if it fails.
     save: false, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
     generate_access_list: true, // not required, but useful as a sanity check to ensure consistency in the simulation response
