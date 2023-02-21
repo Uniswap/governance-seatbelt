@@ -51,7 +51,7 @@ export async function simulateOptimismProposal(simulation: TenderlySimulation, t
   const latestBlock = await optimismProvider.getBlock('latest')
   const closeBlock = await getCloseBlock(
     OPTIMISM_BRIDGE_CREATION_BLOCK,
-    latestBlock.number,
+    latestBlock.number - 1,
     BigNumber.from(simulation.simulation.block_header.timestamp).toNumber(),
     optimismProvider
   )

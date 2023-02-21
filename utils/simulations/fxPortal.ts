@@ -51,7 +51,7 @@ export async function simulateFxPortal(simulation: TenderlySimulation, log: Log)
   const latestBlock = await polygonProvider.getBlock('latest')
   const closeBlock = await getCloseBlock(
     POLYGON_BRIDGE_CREATION_BLOCK,
-    latestBlock.number,
+    latestBlock.number - 1,
     BigNumber.from(simulation.simulation.block_header.timestamp).toNumber(),
     polygonProvider
   )
