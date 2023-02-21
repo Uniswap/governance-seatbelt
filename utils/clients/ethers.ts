@@ -33,13 +33,16 @@ export async function getCloseBlock(
   targetTimestamp: number,
   provider: providers.StaticJsonRpcProvider
 ): Promise<number> {
+  if (targetTimestamp >= Math.floor(new Date().getTime() / 1000)) {
+    return maxBlockNumber
+    // throw new Error('targetTimestamp in the future') TODO: should throw instead
+  }
   const block = await binarySearchBlock(
     provider,
     targetTimestamp,
     await getBlock(provider, minBlockNumber),
     await getBlock(provider, maxBlockNumber)
   )
-  console.log(block.number)
   return block.number
 }
 
@@ -59,7 +62,6 @@ export async function binarySearchBlock(
   low: BlockTimestamp,
   high: BlockTimestamp
 ): Promise<BlockTimestamp> {
-  console.log(low, high)
   // not found
   if (low.number > high.number) throw Error('timestamp unreachable')
   // find mid
