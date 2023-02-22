@@ -68,6 +68,7 @@ export async function sendSimulation(
   delay = 1000,
   rpcURL: string
 ): Promise<TenderlySimulation> {
+  console.log(JSON.stringify(payload))
   try {
     let simURL = TENDERLY_SIM_URL
     if (rpcURL && /rpc\.tenderly\.co\/fork/.test(rpcURL)) {

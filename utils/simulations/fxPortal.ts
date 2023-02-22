@@ -8,8 +8,8 @@ import { hexDataSlice, hexStripZeros } from 'ethers/lib/utils'
 import { SHORT_EXECUTOR } from '../../presentation/markdown'
 import { Log, TenderlyPayload, TenderlySimulation } from '../../types'
 import { getCloseBlock, getPastLogs, polygonProvider } from '../clients/ethers'
-import { sendSimulation } from '../clients/tenderly'
-import { BLOCK_GAS_LIMIT, FROM, RPC_POLYGON } from '../constants'
+import { sendSimulation, sleep } from '../clients/tenderly'
+import { BLOCK_GAS_LIMIT, FROM, MOCK_EXECUTOR, RPC_POLYGON } from '../constants'
 import { abi as BRIDGE_EXECUTOR_ABI } from '../contracts/bridge-executor'
 import { fxChildContract, FX_CHILD } from '../contracts/fxChild'
 
@@ -107,7 +107,6 @@ export async function simulateFxPortal(simulation: TenderlySimulation, log: Log)
       ['uint256', 'address[]', 'uint256[]', 'string[]', 'bytes[]', 'bool[]', 'uint256'],
       log!.data
     )
-    simulationPayload.block_number = log!.blockNumber + 1
     simulationPayload.input = bridgeExecutor.interface.encodeFunctionData('execute', [Number(id)])
     simulationPayload.block_header = {
       number: hexStripZeros(BigNumber.from(log!.blockNumber + 1).toHexString()),
@@ -147,7 +146,9 @@ export async function simulateFxPortal(simulation: TenderlySimulation, log: Log)
       timestamp: hexStripZeros(BigNumber.from(executionTime).add(1).toHexString()),
     }
     simulationPayload.input = bridgeExecutor.interface.encodeFunctionData('execute', [Number(id)])
+    simulationPayload.contracts = [
+      { source: MOCK_EXECUTOR, networks: { '137': { address: POLYGON_BRIDGE_EXECUTOR } } },
+    ] as any
   }
-
   return await sendSimulation(simulationPayload, 1000, RPC_POLYGON)
 }

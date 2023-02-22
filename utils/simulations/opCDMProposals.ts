@@ -84,11 +84,9 @@ export async function simulateOptimismProposal(simulation: TenderlySimulation, t
     opChildContract
   )
 
-  const correctLog = stateSyncedLogs.find(
-    (l) =>
-      (l.args as any).rootMessageSender.toLowerCase() === SHORT_EXECUTOR.toLowerCase() &&
-      ((l.args as any).receiver.toLowerCase() === OPTIMISM_BRIDGE_EXECUTOR.toLowerCase() && (l.data as any)) === data
-  )
+  const correctLog = stateSyncedLogs.find((l) => {
+    return ((l.args as any).target.toLowerCase() === OPTIMISM_BRIDGE_EXECUTOR.toLowerCase() && (l.data as any)) === data
+  })
 
   if (correctLog) {
     const tx = await optimismProvider.getTransaction(correctLog.transactionHash)
