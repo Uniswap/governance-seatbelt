@@ -8,7 +8,7 @@ import { hexDataSlice, hexStripZeros, hexZeroPad } from 'ethers/lib/utils'
 import { SHORT_EXECUTOR } from '../../presentation/markdown'
 import { TenderlyPayload, TenderlySimulation, Trace } from '../../types'
 import { getCloseBlock, getPastLogs, optimismProvider } from '../clients/ethers'
-import { sendSimulation } from '../clients/tenderly'
+import { sendSimulation, sleep } from '../clients/tenderly'
 import { BLOCK_GAS_LIMIT, FROM, RPC_OPTIMISM } from '../constants'
 import { abi as BRIDGE_EXECUTOR_ABI } from '../contracts/bridge-executor'
 import { opChildContract } from '../contracts/ovmL2'
@@ -132,6 +132,7 @@ export async function simulateOptimismProposal(simulation: TenderlySimulation, t
     }
 
     const bridgeSim = await sendSimulation(bridgeSimulationPayload, 1000, RPC_OPTIMISM)
+    await sleep(2000)
 
     const queueEvent = bridgeSim.transaction.transaction_info.logs?.find((e) => e.name === 'ActionsSetQueued')
     const executionTime = queueEvent?.inputs.find((e) => e.soltype?.name === 'executionTime')?.value as string
