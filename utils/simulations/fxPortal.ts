@@ -126,6 +126,7 @@ export async function simulateFxPortal(simulation: TenderlySimulation, log: Log)
     }
 
     const bridgeSim = await sendSimulation(bridgeSimulationPayload, 1000, RPC_POLYGON)
+    await sleep(2000)
 
     const queueEvent = bridgeSim.transaction.transaction_info.logs?.find((e) => e.name === 'ActionsSetQueued')
     const executionTime = queueEvent?.inputs.find((e) => e.soltype?.name === 'executionTime')?.value as string
