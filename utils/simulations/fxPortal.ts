@@ -6,7 +6,7 @@ import { ChainId } from '@aave/contract-helpers'
 import { BigNumber, Contract, ethers } from 'ethers'
 import { hexDataSlice, hexStripZeros } from 'ethers/lib/utils'
 import { SHORT_EXECUTOR } from '../../presentation/markdown'
-import { Log, TenderlyPayload, TenderlySimulation } from '../../types'
+import { Log, TenderlyPayload, TenderlySimulation, StateObject } from '../../types'
 import { getCloseBlock, getPastLogs, polygonProvider } from '../clients/ethers'
 import { sendSimulation, sleep } from '../clients/tenderly'
 import { BLOCK_GAS_LIMIT, FROM, MOCK_EXECUTOR, RPC_POLYGON } from '../constants'
@@ -126,7 +126,6 @@ export async function simulateFxPortal(simulation: TenderlySimulation, log: Log)
     }
 
     const bridgeSim = await sendSimulation(bridgeSimulationPayload, 1000, RPC_POLYGON)
-    await sleep(2000)
 
     const queueEvent = bridgeSim.transaction.transaction_info.logs?.find((e) => e.name === 'ActionsSetQueued')
     const executionTime = queueEvent?.inputs.find((e) => e.soltype?.name === 'executionTime')?.value as string
@@ -135,10 +134,16 @@ export async function simulateFxPortal(simulation: TenderlySimulation, log: Log)
     const state = bridgeSim.transaction.transaction_info.state_diff.reduce((acc, diff) => {
       diff.raw.forEach((raw) => {
         if (!acc[raw.address]) acc[raw.address] = { storage: {} }
-        acc[raw.address].storage[raw.key] = raw.dirty
+        acc[raw.address].storage![raw.key] = raw.dirty
       })
       return acc
-    }, {} as { [key: string]: { storage: { [key: string]: string } } })
+    }, {} as Record<string, StateObject>)
+
+    if (!state[POLYGON_BRIDGE_EXECUTOR]) {
+      state[POLYGON_BRIDGE_EXECUTOR] = { code: MOCK_EXECUTOR }
+    } else {
+      state[POLYGON_BRIDGE_EXECUTOR].code = MOCK_EXECUTOR
+    }
 
     simulationPayload.state_objects = state
     simulationPayload.block_number = bridgeSim.simulation.block_number
@@ -147,9 +152,6 @@ export async function simulateFxPortal(simulation: TenderlySimulation, log: Log)
       timestamp: hexStripZeros(BigNumber.from(executionTime).add(1).toHexString()),
     }
     simulationPayload.input = bridgeExecutor.interface.encodeFunctionData('execute', [Number(id)])
-    simulationPayload.contracts = [
-      { source: MOCK_EXECUTOR, networks: { '137': { address: POLYGON_BRIDGE_EXECUTOR } } },
-    ] as any
   }
   return await sendSimulation(simulationPayload, 1000, RPC_POLYGON)
 }
