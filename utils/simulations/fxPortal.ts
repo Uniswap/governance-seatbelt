@@ -79,7 +79,7 @@ export async function simulateFxPortal(simulation: TenderlySimulation, log: Log)
 
   const stateSyncedLogs = await getPastLogs(
     closeBlock,
-    closeBlock + 8000,
+    closeBlock + 80000,
     fxChildContract.filters.NewFxMessage(),
     fxChildContract
   )
@@ -108,6 +108,7 @@ export async function simulateFxPortal(simulation: TenderlySimulation, log: Log)
       log!.data
     )
     simulationPayload.input = bridgeExecutor.interface.encodeFunctionData('execute', [Number(id)])
+    simulationPayload.block_number = log!.blockNumber + 1
     simulationPayload.block_header = {
       number: hexStripZeros(BigNumber.from(log!.blockNumber + 1).toHexString()),
       timestamp: hexStripZeros(BigNumber.from(executionTime).toHexString()),
