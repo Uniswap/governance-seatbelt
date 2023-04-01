@@ -64,62 +64,68 @@ async function runSimulation() {
       throw error
     })
     .process(async (proposalId) => {
-      console.log(`  Simulating ${DAO_NAME} proposal ${proposalId}...`)
-      // skip proposals when they were simulated before in an immutable state
-      const proposalState = (await aaveGovernanceContract.getProposalState(proposalId)) as keyof typeof PROPOSAL_STATES
-      const skip = isProposalStateImmutable(proposalState) && cache[proposalId] === proposalState
-      if (fs.existsSync(getProposalFileName(proposalId)) && skip && !OMIT_CACHE) {
-        console.log(`Skipped simulation for ${proposalId}`)
-      } else {
-        const { sim, latestBlock, proposal } = await simulateProposal(proposalId)
-        const subSimulations: SubSimulation[] = []
-        const arcPayloads = getArcPayloads(sim)
-        if (arcPayloads.length) {
-          for (const arcPayload of arcPayloads) {
-            subSimulations.push({
-              id: arcPayload.actionSet,
-              type: 'arc',
-              name: `Arc actionSet(${arcPayload.actionSet})`,
-              simulation: await simulateArc(sim, arcPayload.actionSet, arcPayload.timestamp),
-              provider,
-            })
+      try {
+        console.log(`  Simulating ${DAO_NAME} proposal ${proposalId}...`)
+        // skip proposals when they were simulated before in an immutable state
+        const proposalState = (await aaveGovernanceContract.getProposalState(
+          proposalId
+        )) as keyof typeof PROPOSAL_STATES
+        const skip = isProposalStateImmutable(proposalState) && cache[proposalId] === proposalState
+        if (fs.existsSync(getProposalFileName(proposalId)) && skip && !OMIT_CACHE) {
+          console.log(`Skipped simulation for ${proposalId}`)
+        } else {
+          const { sim, latestBlock, proposal } = await simulateProposal(proposalId)
+          const subSimulations: SubSimulation[] = []
+          const arcPayloads = getArcPayloads(sim)
+          if (arcPayloads.length) {
+            for (const arcPayload of arcPayloads) {
+              subSimulations.push({
+                id: arcPayload.actionSet,
+                type: 'arc',
+                name: `Arc actionSet(${arcPayload.actionSet})`,
+                simulation: await simulateArc(sim, arcPayload.actionSet, arcPayload.timestamp),
+                provider,
+              })
+            }
           }
-        }
-        const fxPayloads = getFxChildPayloads(sim)
-        if (fxPayloads.length) {
-          for (let i = 0; i < fxPayloads.length; i++) {
-            const fxPayload = fxPayloads[i]
-            const simulationResult = await simulateFxPortal(sim, fxPayload.event)
-            const actionSet = getActionSetsChanged(simulationResult)
-            subSimulations.push({
-              id: `${actionSet[0].actionSet.replace(/\"/g, '')}_${i}`,
-              type: 'fxPortal',
-              name: `PolygonBridgeExecutor actionSet(${actionSet
-                .map((set) => `${set.actionSet}: ${JSON.stringify(set.value)}`)
-                .join(',')})`,
-              simulation: simulationResult,
-              provider: polygonProvider,
-            })
+          const fxPayloads = getFxChildPayloads(sim)
+          if (fxPayloads.length) {
+            for (let i = 0; i < fxPayloads.length; i++) {
+              const fxPayload = fxPayloads[i]
+              const simulationResult = await simulateFxPortal(sim, fxPayload.event)
+              const actionSet = getActionSetsChanged(simulationResult)
+              subSimulations.push({
+                id: `${actionSet[0].actionSet.replace(/\"/g, '')}_${i}`,
+                type: 'fxPortal',
+                name: `PolygonBridgeExecutor actionSet(${actionSet
+                  .map((set) => `${set.actionSet}: ${JSON.stringify(set.value)}`)
+                  .join(',')})`,
+                simulation: simulationResult,
+                provider: polygonProvider,
+              })
+            }
           }
-        }
-        const optimismPayloads = getOptimismPayloads(sim)
-        if (optimismPayloads.length) {
-          for (let i = 0; i < optimismPayloads.length; i++) {
-            const optimismPayload = optimismPayloads[i]
-            const simulationResult = await simulateOptimismProposal(sim, optimismPayload)
-            const actionSet = getOptimismActionSetsChanged(simulationResult)
-            subSimulations.push({
-              id: `${actionSet[0].actionSet.replace(/\"/g, '')}_${i}`,
-              type: 'optimism',
-              name: `OptimismBridgeExecutor actionSet(${actionSet
-                .map((set) => `${set.actionSet}: ${JSON.stringify(set.value)}`)
-                .join(',')})`,
-              simulation: simulationResult,
-              provider: optimismProvider,
-            })
+          const optimismPayloads = getOptimismPayloads(sim)
+          if (optimismPayloads.length) {
+            for (let i = 0; i < optimismPayloads.length; i++) {
+              const optimismPayload = optimismPayloads[i]
+              const simulationResult = await simulateOptimismProposal(sim, optimismPayload)
+              const actionSet = getOptimismActionSetsChanged(simulationResult)
+              subSimulations.push({
+                id: `${actionSet[0].actionSet.replace(/\"/g, '')}_${i}`,
+                type: 'optimism',
+                name: `OptimismBridgeExecutor actionSet(${actionSet
+                  .map((set) => `${set.actionSet}: ${JSON.stringify(set.value)}`)
+                  .join(',')})`,
+                simulation: simulationResult,
+                provider: optimismProvider,
+              })
+            }
           }
+          return { sim, proposal, latestBlock, subSimulations, provider }
         }
-        return { sim, proposal, latestBlock, subSimulations, provider }
+      } catch (e) {
+        return null
       }
     })
   if (errors.length) throw errors
