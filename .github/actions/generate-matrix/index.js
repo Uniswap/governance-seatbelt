@@ -35562,7 +35562,7 @@ function generateMatrix() {
       if (!cache[i] || !isProposalStateImmutable(cache[i])) {
         proposalKeys.push(i);
       }
-      if (proposalKeys.length >= 20)
+      if (proposalKeys.length >= 10)
         break;
     }
     console.log(`::set-output name=matrix::${proposalKeys.join(",")}`);
