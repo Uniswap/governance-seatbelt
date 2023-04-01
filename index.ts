@@ -250,7 +250,7 @@ async function main() {
   // Generate the proposal data and dependencies needed by checks
   await generateReports(simOutputs)
   // store cache
-  fs.writeFileSync(proposalStateCachePath, JSON.stringify(cache))
+  fs.writeFileSync(proposalStateCachePath, JSON.stringify(cache, null, 2))
   console.log('Done!')
 }
 

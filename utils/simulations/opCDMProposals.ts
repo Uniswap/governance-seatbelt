@@ -132,7 +132,6 @@ export async function simulateOptimismProposal(simulation: TenderlySimulation, t
     }
 
     const bridgeSim = await sendSimulation(bridgeSimulationPayload, 1000, RPC_OPTIMISM)
-    await sleep(2000)
 
     const queueEvent = bridgeSim.transaction.transaction_info.logs?.find((e) => e.name === 'ActionsSetQueued')
     const executionTime = queueEvent?.inputs.find((e) => e.soltype?.name === 'executionTime')?.value as string

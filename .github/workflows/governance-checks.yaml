@@ -14,59 +14,14 @@ on:
     branches:
       - main
   workflow_dispatch:
-    inputs:
-      omitCache:
-        description: 'Omit existing cache'
-        required: false
-        default: 'false'
 
 jobs:
-  generate-matrix:
-    strategy:
-      matrix:
-        include:
-          - DAO_NAME: 'Aave'
-      fail-fast: false
-
-    name: Check live proposal number
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.generator.outputs.matrix }}
-      shouldRun: ${{ steps.generator.outputs.shouldRun }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Build Matrix
-        uses: ./.github/actions/generate-matrix
-        id: generator
-        env:
-          RPC_URL: ${{ secrets.RPC_MAINNET }}
-          RPC_POLYGON: ${{ secrets.RPC_POLYGON }}
-          RPC_OPTIMISM: ${{ secrets.RPC_OPTIMISM }}
-          DAO_NAME: ${{ matrix.DAO_NAME }}
-          OMIT_CACHE: ${{ github.event.inputs.omitCache }}
-          GITHUB_SHA: ${{ github.sha }}
-
   generate-reports:
-    if: ${{needs.generate-matrix.outputs.shouldRun == 'true'}}
-    strategy:
-      matrix: ${{fromJson(needs.generate-matrix.outputs.matrix)}}
-    needs:
-      - generate-matrix
     name: Check all live proposals
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Cache Primes
-        id: cache-primes
-        uses: actions/cache@v3
-        with:
-          path: proposal-states.json
-          key: ${{ matrix.DAO_NAME }}-${{ matrix.cacheKey }}-${{ github.sha }} # this will always be a miss, so new cache will be stored
-          restore-keys: ${{ matrix.DAO_NAME }}-${{ matrix.cacheKey }}- # this will partial match the last stored cache
 
       - uses: actions/setup-node@v3
         with:
@@ -88,10 +43,20 @@ jobs:
       - name: Install Slither
         run: pip3 install slither-analyzer
 
+      - name: Build Matrix
+        uses: ./.github/actions/generate-matrix
+        id: generator
+        env:
+          RPC_URL: ${{ secrets.RPC_MAINNET }}
+          RPC_POLYGON: ${{ secrets.RPC_POLYGON }}
+          RPC_OPTIMISM: ${{ secrets.RPC_OPTIMISM }}
+          DAO_NAME: 'Aave'
+          GITHUB_SHA: ${{ github.sha }}
+
       - name: Run checks
+        if: ${{steps.generator.outputs.matrix != ''}}
         run: yarn start
         env:
-          OMIT_CACHE: ${{ github.event.inputs.omitCache }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RPC_URL: ${{ secrets.RPC_URL }}
@@ -101,45 +66,11 @@ jobs:
           TENDERLY_PROJECT_SLUG: ${{ secrets.TENDERLY_PROJECT_SLUG }}
           TENDERLY_ACCOUNT: ${{ secrets.TENDERLY_ACCOUNT }}
           IPFS_GATEWAY: ${{secrets.IPFS_GATEWAY}}
-          DAO_NAME: ${{ matrix.DAO_NAME }}
-          PROPOSAL_FILTER: ${{ matrix.proposals }}
-
-      - name: check diff
-        run: |
-          if [[ -z $(git status -s) ]]
-          then
-            echo "tree is clean"
-          else
-            git config --global user.name 'Cache bot'
-            git config --global user.email 'cache-bot@bgdlabs.com'
-            git config --global pull.rebase true
-            git add reports
-            git commit -am "fix(cache): ${{ matrix.proposals }} :robot:"
-            git pull --rebase --autostash
-            git push
-          exit
-          fi
-
-  update-readme:
-    if: ${{needs.generate-matrix.outputs.matrix != '[]'}}
-    needs:
-      - generate-reports
-
-    name: Check all live proposals
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-          cache: 'yarn'
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+          DAO_NAME: 'Aave'
+          PROPOSAL_FILTER: ${{ steps.generator.outputs.matrix }}
 
       - name: Update readme
+        if: ${{steps.generator.outputs.matrix != ''}}
         run: yarn ci:readme
 
       - name: check diff
@@ -152,8 +83,7 @@ jobs:
             git config --global user.email 'cache-bot@bgdlabs.com'
             git config --global pull.rebase true
             git add reports
-            git add README.md
-            git commit -am "fix(cache): update readme :robot:"
+            git commit -am "fix(cache): ${{ steps.generator.outputs.matrix }} :robot:"
             git pull --rebase --autostash
             git push
           exit

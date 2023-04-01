@@ -1,7 +1,6 @@
-import { DAO_NAME, OMIT_CACHE } from '../utils/constants'
+require('dotenv').config()
 import { aaveGovernanceContract, isProposalStateImmutable } from '../utils/contracts/aave-governance-v2'
-import { restoreCache } from '@actions/cache'
-import { unlinkSync, readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 
 /**
  * We only want to re-simulate proposals that:
@@ -15,47 +14,16 @@ import { unlinkSync, readFileSync, existsSync } from 'node:fs'
 async function generateMatrix() {
   const proposalsCount = await aaveGovernanceContract.getProposalsCount()
   const proposals = [...Array(Number(proposalsCount)).keys()]
-  const json = { include: [] as { DAO_NAME: string; proposals: string; cacheKey: string }[] }
-  const chunkSize = 10
-  for (let i = 0; i < proposals.length; i += chunkSize) {
-    let chunk = proposals.slice(i, i + chunkSize)
-    const cacheKey = [...Array(Number(chunkSize)).keys()]
-      .map((n) => n + i)
-      .toString()
-      .replace(/,/g, '_')
-    /**
-     * The cache is per matrix chunk, so we have to restore it per chunk and diff the states
-     * If we already know all proposals of a chunk are cached, we can omit the whole chunk.
-     */
-    if (!OMIT_CACHE) {
-      const key = await restoreCache(['proposal-states.json'], `${DAO_NAME}-${cacheKey}-${process.env.GITHUB_SHA}`, [
-        `${DAO_NAME}-${cacheKey}-`,
-      ])
-      if (key) {
-        const path = './proposal-states.json'
-        const cache = existsSync(path) ? JSON.parse(readFileSync(path).toString()) : {}
-        let tempChunk = []
-        for (const proposalId of chunk) {
-          // id not cached
-          if (!cache[proposalId] || !isProposalStateImmutable(cache[proposalId])) {
-            tempChunk.push(proposalId)
-          }
-        }
-        chunk = tempChunk
-        unlinkSync(path)
-      }
+  const proposalKeys: number[] = []
+  const path = './proposal-states.json'
+  const cache = existsSync(path) ? JSON.parse(readFileSync(path).toString()) : {}
+  for (let i = 0; i < proposals.length; i++) {
+    if (!cache[i] || !isProposalStateImmutable(cache[i])) {
+      proposalKeys.push(i)
     }
-    // we need to use _ instead of, so we can use it as a cache identifier
-    if (chunk.length != 0) {
-      json.include.push({
-        DAO_NAME: DAO_NAME as string,
-        proposals: chunk.toString().replace(/,/g, '_'),
-        cacheKey,
-      })
-    }
+    if (proposalKeys.length >= 20) break
   }
-  console.log(`::set-output name=matrix::${JSON.stringify(json)}`)
-  console.log(`::set-output name=shouldRun::${json.include.length ? 'true' : 'false'}`)
+  console.log(`::set-output name=matrix::${proposalKeys.join(',')}`)
 }
 
 generateMatrix()

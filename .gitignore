@@ -15,4 +15,4 @@ trace*.json
 tenderly*.json
 
 # ci cache
-proposal-states.json
+# proposal-states.json
