@@ -125,6 +125,7 @@ async function runSimulation() {
           return { sim, proposal, latestBlock, subSimulations, provider }
         }
       } catch (e) {
+        console.log(e)
         return null
       }
     })
