@@ -82,7 +82,7 @@ jobs:
             git config --global user.name 'Cache bot'
             git config --global user.email 'cache-bot@bgdlabs.com'
             git config --global pull.rebase true
-            git add reports
+            git add .
             git commit -am "fix(cache): ${{ steps.generator.outputs.matrix }} :robot:"
             git pull --rebase --autostash
             git push
