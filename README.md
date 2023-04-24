@@ -50,7 +50,9 @@ TENDERLY_ACCESS_TOKEN=yourAccessToken
 TENDERLY_USER=userName
 
 # Tenderly project slug.
-# Project slug can be found in the URL of your project: https://dashboard.tenderly.co/<userName>/<project_slug>/transactions
+# Project slug can be found in the URL of your project: https://dashboard.tenderly.co/<userName>/<project_slug>/transactions.
+# The name of your tenderly project may not always be your project slug,
+# and the project slug can sometimes just be `project`.
 TENDERLY_PROJECT_SLUG=projectName
 
 # Define the DAO name and the address of its governor.
@@ -64,3 +66,7 @@ There are two modes of operation:
 
 1. Run `yarn start` to simulate and run checks on all Governor proposals.
 2. Alternatively, create a file called `<analysisName>.sim.ts` and run a specific simulation with `SIM_NAME=analysisName yarn start`. See the `*.sim.ts` files in the `sims` folder for examples.
+
+When running either of those two modes locally, reports will be saved into a `reports/` folder in the root of the repository.
+The specific path will be `./reports/${daoName}/${governorAddress}/${proposalId}.${extension}`.
+The `reports/` folder is gitignored, so when searching for reports in this directory your editor may hide the files by default.
