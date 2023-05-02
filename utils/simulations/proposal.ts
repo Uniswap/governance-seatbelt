@@ -9,7 +9,7 @@ import { aaveGovernanceContract, PROPOSAL_STATES } from '../contracts/aave-gover
 import { executor } from '../contracts/executor'
 import { votingStrategy } from '../contracts/voting-strategy'
 
-const BLOCK_TIME = 11.8
+const BLOCK_TIME = 12
 
 export async function simulateProposal(proposalId: BigNumberish): Promise<SimulationResult> {
   const proposalState = (await aaveGovernanceContract.getProposalState(proposalId)) as keyof typeof PROPOSAL_STATES
@@ -154,7 +154,7 @@ export async function simulateProposal(proposalId: BigNumberish): Promise<Simula
             // Set the proposal ETA to a random future timestamp
             [govSlots.eta]: hexZeroPad(BigNumber.from(FORCED_EXECUTION_TIME).toHexString(), 32),
             // Set for votes to 2% of total votingPower so quorum is valid
-            [govSlots.forVotes]: hexZeroPad(totalVotingSupply.mul(quorum).div(10000).toHexString(), 32),
+            [govSlots.forVotes]: hexZeroPad(totalVotingSupply.mul(quorum).div(10000).mul(2).toHexString(), 32),
             // Set against votes to 0 so the diff is valid
             [govSlots.againstVotes]: hexZeroPad('0x0', 32),
             // The canceled and execute slots are packed, so we can zero out that full slot
