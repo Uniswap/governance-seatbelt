@@ -12,6 +12,7 @@ import {
   RPC_URL,
   TENDERLY_ROOT,
   AAVE_LONG_EXECUTOR,
+  AAVE_SHORT_EXECUTOR,
 } from '../constants'
 import { aaveGovernanceContract, PROPOSAL_STATES } from '../contracts/aave-governance-v2'
 import { executor } from '../contracts/executor'
@@ -66,7 +67,14 @@ export async function simulateProposal(proposalId: BigNumberish): Promise<Simula
 
     // --- Storage slots and offsets for AaveGovernanceV2 ---
     const govSlots = getAaveGovernanceV2Slots(proposal.id)
-    const queuedTxsSlot = proposal.executor === AAVE_LONG_EXECUTOR ? '0x7' : '0x3' // executor mapping from tx hash to bool about it's queue status
+    let queuedTxsSlot = '0x0' // executor mapping from tx hash to bool about it's queue status
+    if (proposal.executor === AAVE_LONG_EXECUTOR) {
+      queuedTxsSlot = '0x7'
+    } else if (proposal.executor === AAVE_SHORT_EXECUTOR) {
+      queuedTxsSlot = '0x3'
+    } else {
+      throw new Error('Wrong executor')
+    }
 
     // --- Prepare simulation configuration ---
     // We need the following state conditions to be true to successfully simulate a proposal:
@@ -162,10 +170,7 @@ export async function simulateProposal(proposalId: BigNumberish): Promise<Simula
             // Set the proposal ETA to a random future timestamp
             [govSlots.eta]: hexZeroPad(BigNumber.from(FORCED_EXECUTION_TIME).toHexString(), 32),
             // Set for votes to 2% of total votingPower so quorum is valid
-            [govSlots.forVotes]: hexZeroPad(
-              totalVotingSupply.mul(quorum).div(10000).add('100000000000000000000000').toHexString(),
-              32
-            ),
+            [govSlots.forVotes]: hexZeroPad(totalVotingSupply.mul(quorum).div(10000).mul(2).toHexString(), 32),
             // Set against votes to 0 so the diff is valid
             [govSlots.againstVotes]: hexZeroPad('0x0', 32),
             // The canceled and execute slots are packed, so we can zero out that full slot
