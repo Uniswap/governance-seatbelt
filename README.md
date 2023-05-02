@@ -403,6 +403,7 @@ Some notes on the outputs of reports:
 | Upgrade Aave V3 pools to Aave V3.0.2                                                                                                                                                     | [213.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/213.md)                             | [app](https://app.aave.com/governance/proposal/?proposalId=213) |
 | PolygonBridgeExecutor actionSet("34": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false})  | [213_fx_34_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/213_fx_34_0.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=213) |
 | OptimismBridgeExecutor actionSet("14": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false}) | [213_optimism_14_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/213_optimism_14_0.md) | [app](https://app.aave.com/governance/proposal/?proposalId=213) |
+| Upgrade the safety module to v1.5 PART 1                                                                                                                                                 | [214.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/214.md)                             | [app](https://app.aave.com/governance/proposal/?proposalId=214) |
 
 <!-- ### Reports table end ### -->
 
