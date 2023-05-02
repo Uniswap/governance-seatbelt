@@ -9,7 +9,7 @@ import { aaveGovernanceContract, PROPOSAL_STATES } from '../contracts/aave-gover
 import { executor } from '../contracts/executor'
 import { votingStrategy } from '../contracts/voting-strategy'
 
-const BLOCK_TIME = 12
+const BLOCK_TIME = 11.8
 
 export async function simulateProposal(proposalId: BigNumberish): Promise<SimulationResult> {
   const proposalState = (await aaveGovernanceContract.getProposalState(proposalId)) as keyof typeof PROPOSAL_STATES
