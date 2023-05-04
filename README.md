@@ -407,6 +407,7 @@ Some notes on the outputs of reports:
 | Gauntlet Recommendations for Polygon V3 and Arbitrum V3                                                                                                                                  | [215.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/215.md)                             | [app](https://app.aave.com/governance/proposal/?proposalId=215) |
 | Risk Parameter Updates Aave V3 Polygon                                                                                                                                                   | [216.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/216.md)                             | [app](https://app.aave.com/governance/proposal/?proposalId=216) |
 | PolygonBridgeExecutor actionSet("34": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false})  | [216_fx_34_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/216_fx_34_0.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=216) |
+| Supply and Borrow Cap Updates Aave V3                                                                                                                                                    | [217.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/217.md)                             | [app](https://app.aave.com/governance/proposal/?proposalId=217) |
 
 <!-- ### Reports table end ### -->
 
