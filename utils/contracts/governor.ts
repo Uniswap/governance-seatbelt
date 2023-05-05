@@ -22,12 +22,16 @@ export async function inferGovernorType(address: string): Promise<GovernorType> 
     if (BigNumber.from(id).lte(100_000)) return 'bravo'
   } catch (err) {}
 
+  // TODO: Infer Arb Governor type
+  if(getAddress(address) === '0x789fC99093B09aD01C34DC7251D0C89ce743e5a4') return 'arb'
+  if(getAddress(address) === '0xf07DeD9dC292157749B6Fd268E37DF6EA38395B9') return 'arb'
+
   return 'oz'
 }
 
 export function getGovernor(governorType: GovernorType, address: string) {
   if (governorType === 'bravo') return governorBravo(address)
-  if (governorType === 'oz') return governorOz(address)
+  if (governorType === 'oz' || governorType === 'arb') return governorOz(address)
   throw new Error(`Unknown governor type: ${governorType}`)
 }
 
@@ -207,7 +211,7 @@ export async function getImplementation(address: string, blockTag: number) {
 }
 
 export function formatProposalId(governorType: GovernorType, id: BigNumberish) {
-  if (governorType === 'oz') return BigNumber.from(id).toHexString()
+  if (governorType === 'oz' || governorType === 'arb') return BigNumber.from(id).toHexString()
   return BigNumber.from(id).toString()
 }
 

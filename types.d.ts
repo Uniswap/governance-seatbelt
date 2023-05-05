@@ -4,7 +4,7 @@ import { JsonRpcProvider } from '@ethersproject/providers'
 
 // --- Simulation configurations ---
 // TODO Consider refactoring to an enum instead of string.
-export type GovernorType = 'oz' | 'bravo'
+export type GovernorType = 'oz' | 'bravo' | 'arb'
 
 interface SimulationConfigBase {
   type: 'executed' | 'proposed' | 'new'
@@ -32,7 +32,30 @@ export interface SimulationConfigNew extends SimulationConfigBase {
   description: string
 }
 
-export type SimulationConfig = SimulationConfigExecuted | SimulationConfigProposed | SimulationConfigNew
+export interface SimulationConfigArbL2ToL1 extends SimulationConfigBase {
+  type: 'arbl2tol1'
+  targets: string[]
+  values: BigNumberish[]
+  signatures: string[]
+  calldatas: string[]
+  description: string
+  parentId: BigNumberish
+  idoffset: BigNumberish
+}
+
+export interface SimulationConfigArbRetryable extends SimulationConfigBase {
+  type: 'arbretryable'
+  targets: string[]
+  values: BigNumberish[]
+  signatures: string[]
+  calldatas: string[]
+  description: string
+  parentId: BigNumberish
+  idoffset: BigNumberish
+  from: string
+}
+
+export type SimulationConfig = SimulationConfigExecuted | SimulationConfigProposed | SimulationConfigNew | SimulationConfigArbL2ToL1 | SimulationConfigArbRetryable
 
 export interface SimulationResult {
   sim: TenderlySimulation
@@ -82,6 +105,7 @@ export interface ProposalEvent {
   values: BigNumber[]
   signatures: string[]
   calldatas: string[]
+  chainid: string
 }
 
 export type Message = string
@@ -147,7 +171,7 @@ type ContractObject = {
 }
 
 export type TenderlyPayload = {
-  network_id: '1' | '3' | '4' | '5' | '42'
+  network_id: '1' | '3' | '4' | '5' | '42' | '42161'
   block_number?: number
   transaction_index?: number
   from: string

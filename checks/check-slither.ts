@@ -63,7 +63,7 @@ export const checkSlither: ProposalCheck = {
       // Append results to report info.
       // Note that slither supports a `--json` flag  we could use, but directly printing the formatted
       // results in a code block is simpler and sufficient for now.
-      const contractName = getContractName(contract)
+      const contractName = getContractName(contract, address)
       info.push(`Slither report for ${contractName}`)
       info.push(codeBlock(slitherOutput.stderr.trim()))
     }

@@ -13,6 +13,7 @@ import { unified } from 'unified'
 import { mdToPdf } from 'md-to-pdf'
 import { formatProposalId } from '../utils/contracts/governor'
 import { AllCheckResults, GovernorType, ProposalEvent } from '../types'
+import { TENDERLY_USER, TENDERLY_PROJECT_SLUG } from '../utils/constants'
 
 // --- Markdown helpers ---
 
@@ -45,8 +46,8 @@ export function blockQuote(str: string): string {
  * @param address to be linked
  * @param code whether to link to the code tab
  */
-export function toAddressLink(address: string, code: boolean = false): string {
-  return `[\`${address}\`](https://etherscan.io/address/${address}${code ? '#code' : ''})`
+export function toAddressLink(address: string, code: boolean = false, explorer: string = 'https://etherscan.io'): string {
+  return `[\`${address}\`](${explorer}/address/${address}${code ? '#code' : ''})`
 }
 
 // -- Report formatters ---
@@ -101,8 +102,21 @@ function formatTime(blockTimestamp: number): string {
  * @param block the future block number
  */
 function estimateTime(current: Block, block: BigNumber): number {
-  if (block.lt(current.number)) throw new Error('end block is less than current')
+  if (block.lt(current.number)) return 0
+  // TODO: fix this, currently not working if the block is on another chain (e.g. arb1)
+  // throw new Error('end block is less than current')
   return block.sub(current.number).mul(13).add(current.timestamp).toNumber()
+}
+
+export function getExplorer(chainid: string): string {
+  switch (chainid) {
+    case "1":
+      return 'https://etherscan.io'
+    case "42161":
+      return 'https://arbiscan.io'
+    default:
+      return 'https://etherscan.io'
+  }
 }
 
 /**
@@ -112,13 +126,15 @@ function estimateTime(current: Block, block: BigNumber): number {
  * @param checks The checks results.
  * @param dir The directory where the file should be saved. It will be created if it doesn't exist.
  * @param filename The name of the file. All report formats will have the same filename with different extensions.
+ * @param simid The Tenderly simulation ID.
  */
 export async function generateAndSaveReports(
   governorType: GovernorType,
   blocks: { current: Block; start: Block | null; end: Block | null },
   proposal: ProposalEvent,
   checks: AllCheckResults,
-  dir: string
+  dir: string,
+  simid: string
 ) {
   // Prepare the output folder and filename.
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
@@ -126,7 +142,7 @@ export async function generateAndSaveReports(
   const path = `${dir}/${id}`
 
   // Generate the base markdown proposal report. This is the markdown report which is translated into other file types.
-  const baseReport = await toMarkdownProposalReport(governorType, blocks, proposal, checks)
+  const baseReport = await toMarkdownProposalReport(governorType, blocks, proposal, checks, simid)
 
   // The table of contents' links in the baseReport work when converted to HTML, but do not work as Markdown
   // or PDF links, since the emojis in the header titles cause issues. We apply the remarkFixEmojiLinks plugin
@@ -162,7 +178,8 @@ async function toMarkdownProposalReport(
   governorType: GovernorType,
   blocks: { current: Block; start: Block | null; end: Block | null },
   proposal: ProposalEvent,
-  checks: AllCheckResults
+  checks: AllCheckResults,
+  simid: string
 ): Promise<string> {
   const { id, proposer, targets, endBlock, startBlock, description } = proposal
 
@@ -170,19 +187,20 @@ async function toMarkdownProposalReport(
   const report = `
 # ${getProposalTitle(description.trim())}
 
-_Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blocks.current.number}) at ${formatTime(
+_Updated as of block [${blocks.current.number}](https://arbiscan.io/block/${blocks.current.number}) at ${formatTime(
     blocks.current.timestamp
   )}_
 
 - ID: ${formatProposalId(governorType, id!)}
-- Proposer: ${toAddressLink(proposer)}
+- Proposer: ${toAddressLink(proposer, false, getExplorer(proposal.chainid))}
 - Start Block: ${startBlock} (${
     blocks.start ? formatTime(blocks.start.timestamp) : formatTime(estimateTime(blocks.current, startBlock))
   })
 - End Block: ${endBlock} (${
     blocks.end ? formatTime(blocks.end.timestamp) : formatTime(estimateTime(blocks.current, endBlock))
   })
-- Targets: ${targets.map((target) => toAddressLink(target, true)).join('; ')}
+- Targets: ${targets.map((target) => toAddressLink(target, true, getExplorer(proposal.chainid))).join('; ')}
+- Tenderly Simulation: [${simid}](https://dashboard.tenderly.co/${TENDERLY_USER}/${TENDERLY_PROJECT_SLUG}/simulator/${simid})
 
 ## Table of contents
 

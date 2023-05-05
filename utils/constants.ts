@@ -4,6 +4,8 @@ dotenv.config()
 // Load environment variables.
 export const ETHERSCAN_API_KEY: string = process.env.ETHERSCAN_API_KEY!
 export const RPC_URL: string = process.env.RPC_URL!
+export const L1_RPC_URL: string = process.env.L1_RPC_URL!
+export const ARB1_RPC_URL: string = process.env.ARB1_RPC_URL!
 export const TENDERLY_ACCESS_TOKEN: string = process.env.TENDERLY_ACCESS_TOKEN!
 export const TENDERLY_USER: string = process.env.TENDERLY_USER!
 export const TENDERLY_PROJECT_SLUG: string = process.env.TENDERLY_PROJECT_SLUG!
@@ -11,6 +13,8 @@ export const TENDERLY_PROJECT_SLUG: string = process.env.TENDERLY_PROJECT_SLUG!
 // Validate them.
 if (!ETHERSCAN_API_KEY) throw new Error('ETHERSCAN_API_KEY is not defined')
 if (!RPC_URL) throw new Error('RPC_URL is not defined')
+if (!L1_RPC_URL) throw new Error('L1_RPC_URL is not defined')
+if (!ARB1_RPC_URL) throw new Error('ARB1_RPC_URL is not defined')
 if (!TENDERLY_ACCESS_TOKEN) throw new Error('TENDERLY_ACCESS_TOKEN is not defined')
 if (!TENDERLY_USER) throw new Error('TENDERLY_USER is not defined')
 if (!TENDERLY_PROJECT_SLUG) throw new Error('TENDERLY_PROJECT_SLUG is not defined')

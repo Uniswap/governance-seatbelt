@@ -15,18 +15,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - DAO_NAME: 'Uniswap'
-            GOVERNOR_ADDRESS: '0x408ED6354d4973f66138C91495F2f2FCbd8724C3'
-          - DAO_NAME: 'Compound'
-            GOVERNOR_ADDRESS: '0xc0Da02939E1441F497fd74F78cE7Decb17B66529'
-          - DAO_NAME: 'Idle'
-            GOVERNOR_ADDRESS: '0x3D5Fc645320be0A085A32885F078F7121e5E5375'
-          - DAO_NAME: 'Unlock'
-            GOVERNOR_ADDRESS: '0x7757f7f21F5Fa9b1fd168642B79416051cd0BB94'
-          - DAO_NAME: 'ENS'
-            GOVERNOR_ADDRESS: '0x323A76393544d5ecca80cd6ef2A560C6a395b7E3'
-          - DAO_NAME: 'Hop'
-            GOVERNOR_ADDRESS: '0xed8Bdb5895B8B7f9Fdb3C087628FD8410E853D48'
+          - DAO_NAME: 'ArbCore'
+            GOVERNOR_ADDRESS: '0xf07DeD9dC292157749B6Fd268E37DF6EA38395B9'
+          - DAO_NAME: 'ArbTreasury'
+            GOVERNOR_ADDRESS: '0x789fC99093B09aD01C34DC7251D0C89ce743e5a4'
           
 
     name: Check all live proposals
@@ -73,6 +65,8 @@ jobs:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RPC_URL: ${{ secrets.RPC_URL }}
+          L1_RPC_URL: ${{ secrets.L1_RPC_URL }}
+          ARB1_RPC_URL: ${{ secrets.ARB1_RPC_URL }}
           TENDERLY_ACCESS_TOKEN: ${{ secrets.TENDERLY_ACCESS_TOKEN }}
           TENDERLY_USER: ${{ secrets.TENDERLY_USER }}
           TENDERLY_PROJECT_SLUG: ${{ secrets.TENDERLY_PROJECT_SLUG }}

@@ -1,5 +1,5 @@
 import { Contract } from 'ethers'
-import { provider } from '../clients/ethers'
+import { provider, arb1provider, l1provider } from '../clients/ethers'
 import { getAddress } from '@ethersproject/address'
 
 const SAI = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
@@ -28,9 +28,9 @@ export const SAI_ABI = [
   ...ERC20_BASE_ABI,
 ]
 
-export async function fetchTokenMetadata(address: string) {
+export async function fetchTokenMetadata(address: string, chainid: string) {
   const abi = getAddress(address) === SAI ? SAI_ABI : ERC20_ABI
-  const token = new Contract(address, abi, provider)
+  const token = new Contract(address, abi, chainid === '42161' ? arb1provider : chainid === '1' ? l1provider : provider)
   const response = await Promise.all([token.name(), token.symbol(), token.decimals()])
   return {
     name: response[0] as string,

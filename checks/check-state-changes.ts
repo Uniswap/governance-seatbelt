@@ -60,7 +60,7 @@ export const checkStateChanges: ProposalCheck = {
     for (const [address, diffs] of Object.entries(stateDiffs)) {
       // Use contracts array to get contract name of address
       const contract = sim.contracts.find((c) => c.address === address)
-      info.push(bullet(getContractName(contract)))
+      info.push(bullet(getContractName(contract, address)))
 
       // Parse each diff. A single diff may involve multiple storage changes, e.g. a proposal that
       // executes three transactions will show three state changes to the `queuedTransactions`

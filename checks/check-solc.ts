@@ -62,7 +62,7 @@ export const checkSolc: ProposalCheck = {
       }
 
       // Append results to report info.
-      const contractName = getContractName(contract)
+      const contractName = getContractName(contract, address)
       if (output.stderr === '') {
         info.push(`No compiler warnings for ${contractName}`)
       } else {

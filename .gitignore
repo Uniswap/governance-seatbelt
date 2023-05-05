@@ -14,3 +14,7 @@ crytic-export/
 # other
 trace*.json
 tenderly*.json
+
+.DS_Store
+new-response.json
+simulationPayload.json

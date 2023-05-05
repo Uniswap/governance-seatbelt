@@ -2,6 +2,8 @@ import { getAddress } from '@ethersproject/address'
 import { getContractName } from '../utils/clients/tenderly'
 import { bullet } from '../presentation/report'
 import { ProposalCheck, Log } from '../types'
+import { Interface } from '@ethersproject/abi'
+import { ArbSys__factory } from '@arbitrum/sdk/dist/lib/abi/factories/ArbSys__factory'
 
 /**
  * Reports all emitted events from the proposal
@@ -38,7 +40,7 @@ export const checkLogs: ProposalCheck = {
     for (const [address, logs] of Object.entries(events)) {
       // Use contracts array to get contract name of address
       const contract = sim.contracts.find((c) => c.address === address)
-      info.push(bullet(getContractName(contract)))
+      info.push(bullet(getContractName(contract, address)))
 
       // Format log data for report
       logs.forEach((log) => {
@@ -49,7 +51,15 @@ export const checkLogs: ProposalCheck = {
         } else {
           // Log is not decoded, report the raw data
           // TODO find a transaction with undecoded logs to know how topics/data are formatted in simulation response
-          info.push(bullet(`Undecoded log: \`${JSON.stringify(log)}\``, 1))
+          const IArbSys = ArbSys__factory.createInterface();
+          // hardcoding ArbSys event decoding with arbitrum sdk 
+          if (log.raw.topics[0] === IArbSys.getEventTopic('L2ToL1Tx')){
+            const decoded = IArbSys.parseLog(log.raw);
+            const parsedInputs = decoded.eventFragment.inputs.map((i, index) => `${i.name}: ${decoded.args[index]}`).join(', ')
+            info.push(bullet(`\`${decoded.name}(${parsedInputs})\``, 1))
+          }else{
+            info.push(bullet(`Undecoded log: \`${JSON.stringify(log)}\``, 1))
+          }
         }
       })
     }
