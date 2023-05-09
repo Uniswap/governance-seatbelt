@@ -417,6 +417,7 @@ Some notes on the outputs of reports:
 | Add MAI to Aave Arbitrum V3 pool                                                                                                                                                         | [219.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/219.md)                             | [app](https://app.aave.com/governance/proposal/?proposalId=219) |
 | MaticX Supply Cap Increase Polygon v3 and AGD Approval                                                                                                                                   | [220.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/220.md)                             | [app](https://app.aave.com/governance/proposal/?proposalId=220) |
 | PolygonBridgeExecutor actionSet("35": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false})  | [220_fx_35_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/220_fx_35_0.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=220) |
+| Upgrade the safety module to v1.5 PART 2                                                                                                                                                 | [221.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/221.md)                             | [app](https://app.aave.com/governance/proposal/?proposalId=221) |
 
 <!-- ### Reports table end ### -->
 
