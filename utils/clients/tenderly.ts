@@ -220,8 +220,8 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
     gas: BLOCK_GAS_LIMIT,
     gas_price: '0',
     value: '0', // TODO Support sending ETH in local simulations like we do below in `simulateProposed`.
-    save_if_fails: false, // Set to true to save the simulation to your Tenderly dashboard if it fails.
-    save: false, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
+    save_if_fails: true, // Set to true to save the simulation to your Tenderly dashboard if it fails.
+    save: true, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
     generate_access_list: true, // not required, but useful as a sanity check to ensure consistency in the simulation response
     block_header: {
       // this data represents what block.number and block.timestamp should return in the EVM during the simulation
@@ -389,8 +389,8 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
     gas: BLOCK_GAS_LIMIT,
     gas_price: '0',
     value: '0',
-    save_if_fails: false, // Set to true to save the simulation to your Tenderly dashboard if it fails.
-    save: false, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
+    save_if_fails: true, // Set to true to save the simulation to your Tenderly dashboard if it fails.
+    save: true, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
     generate_access_list: true, // not required, but useful as a sanity check to ensure consistency in the simulation response
     block_header: {
       // this data represents what block.number and block.timestamp should return in the EVM during the simulation
@@ -475,8 +475,8 @@ async function simulateExecuted(config: SimulationConfigExecuted): Promise<Simul
     gas: tx.gasLimit.toNumber(),
     gas_price: tx.gasPrice?.toString(),
     value: tx.value.toString(),
-    save_if_fails: false, // Set to true to save the simulation to your Tenderly dashboard if it fails.
-    save: false, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
+    save_if_fails: true, // Set to true to save the simulation to your Tenderly dashboard if it fails.
+    save: true, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
     generate_access_list: true,
   }
   const sim = await sendSimulation(simulationPayload)
