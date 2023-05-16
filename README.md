@@ -435,6 +435,7 @@ Some notes on the outputs of reports:
 | LST Supply Cap Increase Polygon & Arbitrum                                                                                                                                               | [225.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/225.md)                             | [app](https://app.aave.com/governance/proposal/?proposalId=225) |
 | PolygonBridgeExecutor actionSet("35": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false})  | [225_fx_35_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/225_fx_35_0.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=225) |
 | PolygonBridgeExecutor actionSet("37": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false})  | [225_fx_37_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/225_fx_37_0.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=225) |
+| Risk Parameter Updates for Ethereum v3 (05/09/2023)                                                                                                                                      | [226.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/226.md)                             | [app](https://app.aave.com/governance/proposal/?proposalId=226) |
 
 <!-- ### Reports table end ### -->
 
