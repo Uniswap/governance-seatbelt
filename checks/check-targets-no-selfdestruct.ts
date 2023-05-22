@@ -38,8 +38,9 @@ async function checkNoSelfdestructs(
     const status = await checkNoSelfdestruct(sim, addr, provider)
     const address = toAddressLink(addr, false)
     if (status === 'eoa') info.push(bullet(`${address}: EOA (may have code later)`))
-    else if (status === 'safe') info.push(bullet(`${address}: Contract (no SELFDESTRUCT)`))
-    else info.push(bullet(`${address}: Contract (WITH SELFDESTRUCT)`))
+    else if (status === 'safe') info.push(bullet(`${address}: Contract (looks safe)`))
+    else if (status === 'delegatecall') info.push(bullet(`${address}: Contract (with DELEGATECALL)`))
+    else info.push(bullet(`${address}: Contract (with SELFDESTRUCT)`))
   }
   return info
 }
@@ -52,6 +53,7 @@ const RETURN = 0xf3;
 const REVERT = 0xfd;
 const INVALID = 0xfe;
 const SELFDESTRUCT = 0xff;
+const DELEGATECALL = 0xf4;
 
 const isHalting = (opcode: number): boolean => [ STOP, RETURN, REVERT, INVALID, SELFDESTRUCT ].includes(opcode);
 const isPUSH = (opcode: number): boolean => opcode >= PUSH1 && opcode <= PUSH32;
@@ -63,7 +65,7 @@ async function checkNoSelfdestruct(
   sim: TenderlySimulation,
   addr: string,
   provider: JsonRpcProvider
-): Promise<'safe' | 'eoa' | 'selfdestruct'> {
+): Promise<'safe' | 'eoa' | 'selfdestruct' | 'delegatecall'> {
 
   const code = await provider.getCode(addr)
   if (code === '0x') return 'eoa'
@@ -71,11 +73,14 @@ async function checkNoSelfdestruct(
   // detection logic from https://github.com/MrLuit/selfdestruct-detect
   const bytecode = Buffer.from(code, 'hex')
   let halted = false
+  let delegatecall = false
   for (let index = 0; index < bytecode.length; index++) {
     const opcode = bytecode[index]
     if(opcode === SELFDESTRUCT && !halted) {
         return 'selfdestruct'
-    } else if(opcode === JUMPDEST) {
+    } else if(opcode === DELEGATECALL && !halted) {
+      delegatecall = true
+   } else if(opcode === JUMPDEST) {
         halted = false
     } else if(isHalting(opcode)) {
         halted = true
@@ -84,5 +89,5 @@ async function checkNoSelfdestruct(
     }
   }
   
-  return 'safe'
+  return delegatecall ? 'delegatecall' : 'safe'
 }
