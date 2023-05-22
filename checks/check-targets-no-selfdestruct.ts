@@ -39,7 +39,7 @@ async function checkNoSelfdestructs(
   for (const addr of addresses) {
     const status = await checkNoSelfdestruct(sim, addr, provider)
     const address = toAddressLink(addr, false)
-    if (status === 'eoa') info.push(bullet(`${address}: EOA (verification not applicable)`))
+    if (status === 'eoa') info.push(bullet(`${address}: EOA`))
     else if (status === 'empty') warn.push(bullet(`${address}: EOA (may have code later)`))
     else if (status === 'safe') info.push(bullet(`${address}: Contract (looks safe)`))
     else if (status === 'delegatecall') warn.push(bullet(`${address}: Contract (with DELEGATECALL)`))
