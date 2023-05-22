@@ -39,7 +39,8 @@ async function checkNoSelfdestructs(
   for (const addr of addresses) {
     const status = await checkNoSelfdestruct(sim, addr, provider)
     const address = toAddressLink(addr, false)
-    if (status === 'eoa') warn.push(bullet(`${address}: EOA (may have code later)`))
+    if (status === 'eoa') info.push(bullet(`${address}: EOA (verification not applicable)`))
+    else if (status === 'empty') warn.push(bullet(`${address}: EOA (may have code later)`))
     else if (status === 'safe') info.push(bullet(`${address}: Contract (looks safe)`))
     else if (status === 'delegatecall') warn.push(bullet(`${address}: Contract (with DELEGATECALL)`))
     else error.push(bullet(`${address}: Contract (with SELFDESTRUCT)`))
@@ -67,10 +68,15 @@ async function checkNoSelfdestruct(
   sim: TenderlySimulation,
   addr: string,
   provider: JsonRpcProvider
-): Promise<'safe' | 'eoa' | 'selfdestruct' | 'delegatecall'> {
+): Promise<'safe' | 'eoa' | 'empty' | 'selfdestruct' | 'delegatecall'> {
 
   const code = await provider.getCode(addr)
-  if (code === '0x') return 'eoa'
+  const nonce = await provider.getTransactionCount(addr)
+  // if there is no code and nonce is > 0 then it's an EOA
+  // if nonce is 0 it is an empty account that might have code later
+  // a contract might have nonce > 0, but then it will have code
+  // if it had code, but was selfdestructed, the nonce should be reset to 0
+  if (code === '0x') return nonce > 0 ? 'eoa' : 'empty'
 
   // detection logic from https://github.com/MrLuit/selfdestruct-detect
   const bytecode = Buffer.from(code.substring(2), 'hex')
