@@ -454,6 +454,7 @@ Some notes on the outputs of reports:
 | wMATIC Supply & Borrow Cap Increase Polygon v3                                                                                                                                           | [231.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/231.md)                             | [app](https://app.aave.com/governance/proposal/?proposalId=231) |
 | PolygonBridgeExecutor actionSet("39": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false})  | [231_fx_39_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/231_fx_39_0.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=231) |
 | PolygonBridgeExecutor actionSet("40": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false})  | [231_fx_40_0.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/231_fx_40_0.md)             | [app](https://app.aave.com/governance/proposal/?proposalId=231) |
+| Activate Emode for rETH Aave Ethereum V3                                                                                                                                                 | [232.md](./reports/Aave/0xEC568fffba86c094cf06b22134B23074DFE2252c/232.md)                             | [app](https://app.aave.com/governance/proposal/?proposalId=232) |
 
 <!-- ### Reports table end ### -->
 
