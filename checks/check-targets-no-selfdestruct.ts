@@ -71,7 +71,7 @@ async function checkNoSelfdestruct(
   if (code === '0x') return 'eoa'
 
   // detection logic from https://github.com/MrLuit/selfdestruct-detect
-  const bytecode = Buffer.from(code, 'hex')
+  const bytecode = Buffer.from(code.substring(2), 'hex')
   let halted = false
   let delegatecall = false
   for (let index = 0; index < bytecode.length; index++) {
