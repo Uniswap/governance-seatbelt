@@ -9,8 +9,8 @@ export const checkTargetsNoSelfdestruct: ProposalCheck = {
   name: 'Check all targets do not contain selfdestruct',
   async checkProposal(proposal, sim, deps) {
     const uniqueTargets = proposal.targets.filter((addr, i, targets) => targets.indexOf(addr) === i)
-    const info = await checkNoSelfdestructs(sim, uniqueTargets, deps.provider)
-    return { info, warnings: [], errors: [] }
+    const {info, warn, error} = await checkNoSelfdestructs(sim, uniqueTargets, deps.provider)
+    return { info, warnings: warn, errors: error }
   },
 }
 
@@ -20,8 +20,8 @@ export const checkTargetsNoSelfdestruct: ProposalCheck = {
 export const checkTouchedContractsNoSelfdestruct: ProposalCheck = {
   name: 'Check all touched contracts do not contain selfdestruct',
   async checkProposal(proposal, sim, deps) {
-    const info = await checkNoSelfdestructs(sim, sim.transaction.addresses, deps.provider)
-    return { info, warnings: [], errors: [] }
+    const {info, warn, error} = await checkNoSelfdestructs(sim, sim.transaction.addresses, deps.provider)
+    return { info, warnings: warn, errors: error }
   },
 }
 
@@ -32,17 +32,19 @@ async function checkNoSelfdestructs(
   sim: TenderlySimulation,
   addresses: string[],
   provider: JsonRpcProvider
-): Promise<string[]> {
+): Promise<{info: string[], warn: string[], error: string[]}> {
   const info: string[] = []
+  const warn: string[] = []
+  const error: string[] = []
   for (const addr of addresses) {
     const status = await checkNoSelfdestruct(sim, addr, provider)
     const address = toAddressLink(addr, false)
-    if (status === 'eoa') info.push(bullet(`${address}: EOA (may have code later)`))
+    if (status === 'eoa') warn.push(bullet(`${address}: EOA (may have code later)`))
     else if (status === 'safe') info.push(bullet(`${address}: Contract (looks safe)`))
-    else if (status === 'delegatecall') info.push(bullet(`${address}: Contract (with DELEGATECALL)`))
-    else info.push(bullet(`${address}: Contract (with SELFDESTRUCT)`))
+    else if (status === 'delegatecall') warn.push(bullet(`${address}: Contract (with DELEGATECALL)`))
+    else error.push(bullet(`${address}: Contract (with SELFDESTRUCT)`))
   }
-  return info
+  return { info, warn, error }
 }
 
 const STOP = 0x00;
