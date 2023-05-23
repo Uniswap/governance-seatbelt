@@ -1,8 +1,8 @@
-## PolygonBridgeExecutor actionSet("41": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false})
+## OptimismBridgeExecutor actionSet("18": {"targets":null,"values":null,"signatures":null,"calldatas":null,"withDelegatecalls":null,"executionTime":null,"executed":true,"canceled":false})
 
 _Updated as of block [17319477](https://etherscan.io/block/17319477) at 5/23/2023, 12:09:11 AM ET_
 
-- Simulation: [https://dashboard.tenderly.co/me/simulator/e30ebb3c-83af-49ad-995b-6c5e135582e9](https://dashboard.tenderly.co/me/simulator/e30ebb3c-83af-49ad-995b-6c5e135582e9)
+- Simulation: [https://dashboard.tenderly.co/me/simulator/63e7bb25-79c9-4c5c-ae6a-f06b620e73a8](https://dashboard.tenderly.co/me/simulator/63e7bb25-79c9-4c5c-ae6a-f06b620e73a8)
 
 ### Checks
 
@@ -13,34 +13,25 @@ Info:
 - State changes:
 
 ```diff
-# InitializableImmutableAdminUpgradeabilityProxy at `0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf` with implementation LendingPool at `0x6A8730F54b8C69ab096c43ff217CA0a350726ac7`
-@@ `_reserves` key `0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270`.interestRateStrategyAddress @@
-- 0x78fe5d0427e669ba9f964c3495ff381a805a0487
-+ 0x893411580e590d62ddbca8a703d61cc4a8c7b2b9
-
-@@ `_reserves` key `0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6`.interestRateStrategyAddress @@
-- 0x142dcaec322aaa25141b2597bf348487adbd596d
-+ 0x1d41b83e5bdbb21c4dd924507cbde66cd865d029
-
-@@ `_reserves` key `0x7ceb23fd6bc0add59e62ac25578270cff1b9f619`.interestRateStrategyAddress @@
-- 0x492dcef1fc5253413fc5576b9522840a1a774dce
-+ 0xd792a3779d3c80baee8cf3304d6aeac74bc432be
-
-@@ `_reserves` key `0xc2132d05d31c914a87c6611c10748aeb04b58e8f`.interestRateStrategyAddress @@
-- 0xf4d1352b3e9e99fca6aa20f62fe95192a26c9527
-+ 0xd2c92b5a793e196ab11dbefbe3af6bdded6c3dd5
+# InitializableImmutableAdminUpgradeabilityProxy at `0x794a61358D6845594F94dc1DB02A252b5b4814aD` with implementation L2Pool at `0x764594F8e9757edE877B75716f8077162B251460`
+@@ `_eModeCategories` key `1`.ltv @@
+- 9700
++ 9300
+@@ `_eModeCategories` key `1`.liquidationThreshold @@
+- 9750
++ 9500
 
 ```
 
 ```diff
-# PolygonBridgeExecutor at `0xdc9A35B16DB4e126cFeDC41322b3a36454B1F772`
-@@ `_actionsSets` key `"41"`.executed @@
-- false
-+ true
-
-@@ `_queuedActions` key `0xa15d5ec90e15e72fb12726d658966f448c90a738ec3f368cca5ec75f2a1ca354` @@
+# OptimismBridgeExecutor at `0x7d9103572bE58FfE99dc390E8246f02dcAe6f611`
+@@ `_queuedActions` key `0xcd827841c12c5ce60a1f6b8e8dc06cf71eac0b17b4ff6e08e861e1f63002b989` @@
 - true
 + false
+
+@@ `_actionsSets` key `"18"`.executed @@
+- false
++ true
 
 ```
 
@@ -55,20 +46,19 @@ Info:
 Info:
 
 - Events Emitted:
-  - InitializableImmutableAdminUpgradeabilityProxy at `0x26db2B833021583566323E3b8985999981b9F1F3` with implementation LendingPoolConfigurator at `0xf70A4d422E772926852BA9044026F169e6AD9492`
-    - `ReserveInterestRateStrategyChanged(asset: 0xc2132d05d31c914a87c6611c10748aeb04b58e8f, strategy: 0xd2c92b5a793e196ab11dbefbe3af6bdded6c3dd5)`
-    - `ReserveInterestRateStrategyChanged(asset: 0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6, strategy: 0x1d41b83e5bdbb21c4dd924507cbde66cd865d029)`
-    - `ReserveInterestRateStrategyChanged(asset: 0x7ceb23fd6bc0add59e62ac25578270cff1b9f619, strategy: 0xd792a3779d3c80baee8cf3304d6aeac74bc432be)`
-    - `ReserveInterestRateStrategyChanged(asset: 0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270, strategy: 0x893411580e590d62ddbca8a703d61cc4a8c7b2b9)`
-  - PolygonBridgeExecutor at `0xdc9A35B16DB4e126cFeDC41322b3a36454B1F772`
-    - Undecoded log: `{"name":"","anonymous":false,"inputs":null,"raw":{"address":"0xdc9a35b16db4e126cfedc41322b3a36454b1f772","topics":["0xf5efc4bb09a12b6c9561a7e7ab02938a72a4351316b473d574fdaaa89c43eb9a","0x0000000000000000000000000000000000000000000000000000000000000029","0x000000000000000000000000d73a92be73efbfcf3854433a5fcbabf9c1316073"],"data":"0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"}}`
+  - InitializableImmutableAdminUpgradeabilityProxy at `0x8145eddDf43f50276641b55bd3AD95944510021E` with implementation PoolConfigurator at `0x29081f7aB5a644716EfcDC10D5c926c5fEe9F72B`
+    - `EModeCategoryAdded(categoryId: 1, ltv: 9300, liquidationThreshold: 9500, liquidationBonus: 10100, oracle: 0x0000000000000000000000000000000000000000, label: Stablecoins)`
+  - OptimismBridgeExecutor at `0x7d9103572bE58FfE99dc390E8246f02dcAe6f611`
+    - `ActionsSetExecuted(id: 18, initiatorExecution: 0xd73a92be73efbfcf3854433a5fcbabf9c1316073, returnedData: 0x)`
 
 #### Check all targets are verified on Etherscan ✅ Passed
 
 Info:
 
 - Targets:
+  - 0xd1B3E25fD7C8AE7CADDC6F71b461b79CD4ddcFa3: Contract (not verified)
   - 0x158a6bC04F0828318821baE797f50B0A1299d45b: EOA (verification not applicable)
+  - 0x5f5C02875a8e9B5A26fbd09040ABCfDeb2AA6711: Contract (not verified)
 
 #### Check all touched contracts are verified on Etherscan ✅ Passed
 
@@ -76,13 +66,15 @@ Info:
 
 - Touched address:
   - 0xD73a92Be73EfbFcF3854433A5FcbAbF9c1316073: EOA (verification not applicable)
-  - 0xdc9A35B16DB4e126cFeDC41322b3a36454B1F772: Contract (verified) (PolygonBridgeExecutor)
-  - 0x7e1f23bdFc7287AF276F77B5A867e85cf0377a31: Contract (verified) (AaveV2PolygonIR_20230519)
-  - 0x26db2B833021583566323E3b8985999981b9F1F3: Contract (verified) (InitializableImmutableAdminUpgradeabilityProxy)
-  - 0xf70A4d422E772926852BA9044026F169e6AD9492: Contract (verified) (LendingPoolConfigurator)
-  - 0xd05e3E715d945B59290df0ae8eF85c1BdB684744: Contract (verified) (LendingPoolAddressesProvider)
-  - 0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf: Contract (verified) (InitializableImmutableAdminUpgradeabilityProxy)
-  - 0x6A8730F54b8C69ab096c43ff217CA0a350726ac7: Contract (verified) (LendingPool)
+  - 0x7d9103572bE58FfE99dc390E8246f02dcAe6f611: Contract (verified) (OptimismBridgeExecutor)
+  - 0xF22c8255eA615b3Da6CA5CF5aeCc8956bfF07Aa8: Contract (not verified)
+  - 0x7A9A9c14B35E58ffa1cC84aB421acE0FdcD289E3: Contract (verified) (AaveV3ConfigEngine)
+  - 0x794a61358D6845594F94dc1DB02A252b5b4814aD: Contract (verified) (InitializableImmutableAdminUpgradeabilityProxy)
+  - 0x764594F8e9757edE877B75716f8077162B251460: Contract (verified) (L2Pool)
+  - 0x8145eddDf43f50276641b55bd3AD95944510021E: Contract (verified) (InitializableImmutableAdminUpgradeabilityProxy)
+  - 0x29081f7aB5a644716EfcDC10D5c926c5fEe9F72B: Contract (verified) (PoolConfigurator)
+  - 0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb: Contract (verified) (PoolAddressesProvider)
+  - 0xa72636CbcAa8F5FF95B2cc47F3CDEe83F3294a0B: Contract (verified) (ACLManager)
 
 #### Runs solc against the verified contracts ✅ Passed
 
@@ -93,7 +85,7 @@ Info:
 <details>
 <summary>View Details</summary>
 <details>
-<summary>View warnings for InitializableImmutableAdminUpgradeabilityProxy at `0x26db2B833021583566323E3b8985999981b9F1F3` with implementation LendingPoolConfigurator at `0xf70A4d422E772926852BA9044026F169e6AD9492`</summary>
+<summary>View warnings for PoolConfigurator at `0x29081f7aB5a644716EfcDC10D5c926c5fEe9F72B`</summary>
 
 ```
 INFO:CryticCompile:Source code not available, try to fetch the bytecode only
@@ -102,7 +94,7 @@ INFO:CryticCompile:Source code not available, try to fetch the bytecode only
 </details>
 
 <details>
-<summary>View warnings for LendingPool at `0x6A8730F54b8C69ab096c43ff217CA0a350726ac7`</summary>
+<summary>View warnings for L2Pool at `0x764594F8e9757edE877B75716f8077162B251460`</summary>
 
 ```
 INFO:CryticCompile:Source code not available, try to fetch the bytecode only
@@ -111,7 +103,7 @@ INFO:CryticCompile:Source code not available, try to fetch the bytecode only
 </details>
 
 <details>
-<summary>View warnings for AaveV2PolygonIR_20230519 at `0x7e1f23bdFc7287AF276F77B5A867e85cf0377a31`</summary>
+<summary>View warnings for InitializableImmutableAdminUpgradeabilityProxy at `0x794a61358D6845594F94dc1DB02A252b5b4814aD` with implementation L2Pool at `0x764594F8e9757edE877B75716f8077162B251460`</summary>
 
 ```
 INFO:CryticCompile:Source code not available, try to fetch the bytecode only
@@ -120,7 +112,7 @@ INFO:CryticCompile:Source code not available, try to fetch the bytecode only
 </details>
 
 <details>
-<summary>View warnings for InitializableImmutableAdminUpgradeabilityProxy at `0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf` with implementation LendingPool at `0x6A8730F54b8C69ab096c43ff217CA0a350726ac7`</summary>
+<summary>View warnings for AaveV3ConfigEngine at `0x7A9A9c14B35E58ffa1cC84aB421acE0FdcD289E3`</summary>
 
 ```
 INFO:CryticCompile:Source code not available, try to fetch the bytecode only
@@ -129,7 +121,7 @@ INFO:CryticCompile:Source code not available, try to fetch the bytecode only
 </details>
 
 <details>
-<summary>View warnings for LendingPoolAddressesProvider at `0xd05e3E715d945B59290df0ae8eF85c1BdB684744`</summary>
+<summary>View warnings for OptimismBridgeExecutor at `0x7d9103572bE58FfE99dc390E8246f02dcAe6f611`</summary>
 
 ```
 INFO:CryticCompile:Source code not available, try to fetch the bytecode only
@@ -138,7 +130,7 @@ INFO:CryticCompile:Source code not available, try to fetch the bytecode only
 </details>
 
 <details>
-<summary>View warnings for PolygonBridgeExecutor at `0xdc9A35B16DB4e126cFeDC41322b3a36454B1F772`</summary>
+<summary>View warnings for InitializableImmutableAdminUpgradeabilityProxy at `0x8145eddDf43f50276641b55bd3AD95944510021E` with implementation PoolConfigurator at `0x29081f7aB5a644716EfcDC10D5c926c5fEe9F72B`</summary>
 
 ```
 INFO:CryticCompile:Source code not available, try to fetch the bytecode only
@@ -147,7 +139,16 @@ INFO:CryticCompile:Source code not available, try to fetch the bytecode only
 </details>
 
 <details>
-<summary>View warnings for LendingPoolConfigurator at `0xf70A4d422E772926852BA9044026F169e6AD9492`</summary>
+<summary>View warnings for ACLManager at `0xa72636CbcAa8F5FF95B2cc47F3CDEe83F3294a0B`</summary>
+
+```
+INFO:CryticCompile:Source code not available, try to fetch the bytecode only
+```
+
+</details>
+
+<details>
+<summary>View warnings for PoolAddressesProvider at `0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb`</summary>
 
 ```
 INFO:CryticCompile:Source code not available, try to fetch the bytecode only
@@ -167,7 +168,7 @@ Info:
 <summary>View Details</summary>
 
 <details>
-<summary>Slither report for InitializableImmutableAdminUpgradeabilityProxy at `0x26db2B833021583566323E3b8985999981b9F1F3` with implementation LendingPoolConfigurator at `0xf70A4d422E772926852BA9044026F169e6AD9492`</summary>
+<summary>Slither report for PoolConfigurator at `0x29081f7aB5a644716EfcDC10D5c926c5fEe9F72B`</summary>
 
 ```
 Source code not available, try to fetch the bytecode only
@@ -183,7 +184,7 @@ Traceback (most recent call last):
   File "/home/runner/.local/lib/python3.10/site-packages/slither/solc_parsing/slither_compilation_unit_solc.py", line 205, in parse_top_level_from_loaded_json
     if data_loaded[self.get_key()] == "root":
 KeyError: 'name'
-ERROR:root:Error in 0x26db2B833021583566323E3b8985999981b9F1F3
+ERROR:root:Error in 0x29081f7aB5a644716EfcDC10D5c926c5fEe9F72B
 ERROR:root:Traceback (most recent call last):
   File "/home/runner/.local/lib/python3.10/site-packages/slither/__main__.py", line 837, in main_impl
     ) = process_all(filename, args, detector_classes, printer_classes)
@@ -202,7 +203,7 @@ KeyError: 'name'
 </details>
 
 <details>
-<summary>Slither report for LendingPool at `0x6A8730F54b8C69ab096c43ff217CA0a350726ac7`</summary>
+<summary>Slither report for L2Pool at `0x764594F8e9757edE877B75716f8077162B251460`</summary>
 
 ```
 Source code not available, try to fetch the bytecode only
@@ -218,7 +219,7 @@ Traceback (most recent call last):
   File "/home/runner/.local/lib/python3.10/site-packages/slither/solc_parsing/slither_compilation_unit_solc.py", line 205, in parse_top_level_from_loaded_json
     if data_loaded[self.get_key()] == "root":
 KeyError: 'name'
-ERROR:root:Error in 0x6A8730F54b8C69ab096c43ff217CA0a350726ac7
+ERROR:root:Error in 0x764594F8e9757edE877B75716f8077162B251460
 ERROR:root:Traceback (most recent call last):
   File "/home/runner/.local/lib/python3.10/site-packages/slither/__main__.py", line 837, in main_impl
     ) = process_all(filename, args, detector_classes, printer_classes)
@@ -237,7 +238,7 @@ KeyError: 'name'
 </details>
 
 <details>
-<summary>Slither report for AaveV2PolygonIR_20230519 at `0x7e1f23bdFc7287AF276F77B5A867e85cf0377a31`</summary>
+<summary>Slither report for InitializableImmutableAdminUpgradeabilityProxy at `0x794a61358D6845594F94dc1DB02A252b5b4814aD` with implementation L2Pool at `0x764594F8e9757edE877B75716f8077162B251460`</summary>
 
 ```
 Source code not available, try to fetch the bytecode only
@@ -253,7 +254,7 @@ Traceback (most recent call last):
   File "/home/runner/.local/lib/python3.10/site-packages/slither/solc_parsing/slither_compilation_unit_solc.py", line 205, in parse_top_level_from_loaded_json
     if data_loaded[self.get_key()] == "root":
 KeyError: 'name'
-ERROR:root:Error in 0x7e1f23bdFc7287AF276F77B5A867e85cf0377a31
+ERROR:root:Error in 0x794a61358D6845594F94dc1DB02A252b5b4814aD
 ERROR:root:Traceback (most recent call last):
   File "/home/runner/.local/lib/python3.10/site-packages/slither/__main__.py", line 837, in main_impl
     ) = process_all(filename, args, detector_classes, printer_classes)
@@ -272,7 +273,7 @@ KeyError: 'name'
 </details>
 
 <details>
-<summary>Slither report for InitializableImmutableAdminUpgradeabilityProxy at `0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf` with implementation LendingPool at `0x6A8730F54b8C69ab096c43ff217CA0a350726ac7`</summary>
+<summary>Slither report for AaveV3ConfigEngine at `0x7A9A9c14B35E58ffa1cC84aB421acE0FdcD289E3`</summary>
 
 ```
 Source code not available, try to fetch the bytecode only
@@ -288,7 +289,7 @@ Traceback (most recent call last):
   File "/home/runner/.local/lib/python3.10/site-packages/slither/solc_parsing/slither_compilation_unit_solc.py", line 205, in parse_top_level_from_loaded_json
     if data_loaded[self.get_key()] == "root":
 KeyError: 'name'
-ERROR:root:Error in 0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf
+ERROR:root:Error in 0x7A9A9c14B35E58ffa1cC84aB421acE0FdcD289E3
 ERROR:root:Traceback (most recent call last):
   File "/home/runner/.local/lib/python3.10/site-packages/slither/__main__.py", line 837, in main_impl
     ) = process_all(filename, args, detector_classes, printer_classes)
@@ -307,7 +308,7 @@ KeyError: 'name'
 </details>
 
 <details>
-<summary>Slither report for LendingPoolAddressesProvider at `0xd05e3E715d945B59290df0ae8eF85c1BdB684744`</summary>
+<summary>Slither report for OptimismBridgeExecutor at `0x7d9103572bE58FfE99dc390E8246f02dcAe6f611`</summary>
 
 ```
 Source code not available, try to fetch the bytecode only
@@ -323,7 +324,7 @@ Traceback (most recent call last):
   File "/home/runner/.local/lib/python3.10/site-packages/slither/solc_parsing/slither_compilation_unit_solc.py", line 205, in parse_top_level_from_loaded_json
     if data_loaded[self.get_key()] == "root":
 KeyError: 'name'
-ERROR:root:Error in 0xd05e3E715d945B59290df0ae8eF85c1BdB684744
+ERROR:root:Error in 0x7d9103572bE58FfE99dc390E8246f02dcAe6f611
 ERROR:root:Traceback (most recent call last):
   File "/home/runner/.local/lib/python3.10/site-packages/slither/__main__.py", line 837, in main_impl
     ) = process_all(filename, args, detector_classes, printer_classes)
@@ -342,7 +343,7 @@ KeyError: 'name'
 </details>
 
 <details>
-<summary>Slither report for PolygonBridgeExecutor at `0xdc9A35B16DB4e126cFeDC41322b3a36454B1F772`</summary>
+<summary>Slither report for InitializableImmutableAdminUpgradeabilityProxy at `0x8145eddDf43f50276641b55bd3AD95944510021E` with implementation PoolConfigurator at `0x29081f7aB5a644716EfcDC10D5c926c5fEe9F72B`</summary>
 
 ```
 Source code not available, try to fetch the bytecode only
@@ -358,7 +359,7 @@ Traceback (most recent call last):
   File "/home/runner/.local/lib/python3.10/site-packages/slither/solc_parsing/slither_compilation_unit_solc.py", line 205, in parse_top_level_from_loaded_json
     if data_loaded[self.get_key()] == "root":
 KeyError: 'name'
-ERROR:root:Error in 0xdc9A35B16DB4e126cFeDC41322b3a36454B1F772
+ERROR:root:Error in 0x8145eddDf43f50276641b55bd3AD95944510021E
 ERROR:root:Traceback (most recent call last):
   File "/home/runner/.local/lib/python3.10/site-packages/slither/__main__.py", line 837, in main_impl
     ) = process_all(filename, args, detector_classes, printer_classes)
@@ -377,7 +378,7 @@ KeyError: 'name'
 </details>
 
 <details>
-<summary>Slither report for LendingPoolConfigurator at `0xf70A4d422E772926852BA9044026F169e6AD9492`</summary>
+<summary>Slither report for ACLManager at `0xa72636CbcAa8F5FF95B2cc47F3CDEe83F3294a0B`</summary>
 
 ```
 Source code not available, try to fetch the bytecode only
@@ -393,7 +394,42 @@ Traceback (most recent call last):
   File "/home/runner/.local/lib/python3.10/site-packages/slither/solc_parsing/slither_compilation_unit_solc.py", line 205, in parse_top_level_from_loaded_json
     if data_loaded[self.get_key()] == "root":
 KeyError: 'name'
-ERROR:root:Error in 0xf70A4d422E772926852BA9044026F169e6AD9492
+ERROR:root:Error in 0xa72636CbcAa8F5FF95B2cc47F3CDEe83F3294a0B
+ERROR:root:Traceback (most recent call last):
+  File "/home/runner/.local/lib/python3.10/site-packages/slither/__main__.py", line 837, in main_impl
+    ) = process_all(filename, args, detector_classes, printer_classes)
+  File "/home/runner/.local/lib/python3.10/site-packages/slither/__main__.py", line 101, in process_all
+    ) = process_single(compilation, args, detector_classes, printer_classes)
+  File "/home/runner/.local/lib/python3.10/site-packages/slither/__main__.py", line 79, in process_single
+    slither = Slither(target, ast_format=ast, **vars(args))
+  File "/home/runner/.local/lib/python3.10/site-packages/slither/slither.py", line 114, in __init__
+    parser.parse_top_level_from_loaded_json(ast, path)
+  File "/home/runner/.local/lib/python3.10/site-packages/slither/solc_parsing/slither_compilation_unit_solc.py", line 205, in parse_top_level_from_loaded_json
+    if data_loaded[self.get_key()] == "root":
+KeyError: 'name'
+
+```
+
+</details>
+
+<details>
+<summary>Slither report for PoolAddressesProvider at `0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb`</summary>
+
+```
+Source code not available, try to fetch the bytecode only
+Traceback (most recent call last):
+  File "/home/runner/.local/lib/python3.10/site-packages/slither/__main__.py", line 837, in main_impl
+    ) = process_all(filename, args, detector_classes, printer_classes)
+  File "/home/runner/.local/lib/python3.10/site-packages/slither/__main__.py", line 101, in process_all
+    ) = process_single(compilation, args, detector_classes, printer_classes)
+  File "/home/runner/.local/lib/python3.10/site-packages/slither/__main__.py", line 79, in process_single
+    slither = Slither(target, ast_format=ast, **vars(args))
+  File "/home/runner/.local/lib/python3.10/site-packages/slither/slither.py", line 114, in __init__
+    parser.parse_top_level_from_loaded_json(ast, path)
+  File "/home/runner/.local/lib/python3.10/site-packages/slither/solc_parsing/slither_compilation_unit_solc.py", line 205, in parse_top_level_from_loaded_json
+    if data_loaded[self.get_key()] == "root":
+KeyError: 'name'
+ERROR:root:Error in 0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb
 ERROR:root:Traceback (most recent call last):
   File "/home/runner/.local/lib/python3.10/site-packages/slither/__main__.py", line 837, in main_impl
     ) = process_all(filename, args, detector_classes, printer_classes)
