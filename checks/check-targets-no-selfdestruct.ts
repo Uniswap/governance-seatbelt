@@ -70,8 +70,7 @@ async function checkNoSelfdestruct(
   provider: JsonRpcProvider
 ): Promise<'safe' | 'eoa' | 'empty' | 'selfdestruct' | 'delegatecall'> {
 
-  const code = await provider.getCode(addr)
-  const nonce = await provider.getTransactionCount(addr)
+  const [code, nonce] = await Promise.all([provider.getCode(addr), provider.getTransactionCount(addr)])
   // if there is no code and nonce is > 0 then it's an EOA
   // if nonce is 0 it is an empty account that might have code later
   // a contract might have nonce > 0, but then it will have code
