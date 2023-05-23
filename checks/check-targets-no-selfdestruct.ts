@@ -1,6 +1,6 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { bullet, toAddressLink } from '../presentation/report'
-import { ProposalCheck, TenderlySimulation } from '../types'
+import { ProposalCheck } from '../types'
 
 /**
  * Check all targets with code if they contain selfdestruct.
@@ -78,7 +78,7 @@ async function checkNoSelfdestruct(
   addr: string,
   provider: JsonRpcProvider
 ): Promise<'safe' | 'eoa' | 'empty' | 'selfdestruct' | 'delegatecall' | 'whitelisted'> {
-  if (whitelist.includes(addr.toLocaleLowerCase())) return 'whitelisted'
+  if (whitelist.includes(addr.toLowerCase())) return 'whitelisted'
 
   const [code, nonce] = await Promise.all([provider.getCode(addr), provider.getTransactionCount(addr)])
 
