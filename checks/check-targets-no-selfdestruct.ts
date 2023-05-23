@@ -9,7 +9,11 @@ export const checkTargetsNoSelfdestruct: ProposalCheck = {
   name: 'Check all targets do not contain selfdestruct',
   async checkProposal(proposal, sim, deps) {
     const uniqueTargets = proposal.targets.filter((addr, i, targets) => targets.indexOf(addr) === i)
-    const { info, warn, error } = await checkNoSelfdestructs(sim, uniqueTargets, deps.provider)
+    const { info, warn, error } = await checkNoSelfdestructs(
+      [deps.governor.address, deps.timelock.address].map((a) => a.toLowerCase()),
+      uniqueTargets,
+      deps.provider
+    )
     return { info, warnings: warn, errors: error }
   },
 }
@@ -20,7 +24,11 @@ export const checkTargetsNoSelfdestruct: ProposalCheck = {
 export const checkTouchedContractsNoSelfdestruct: ProposalCheck = {
   name: 'Check all touched contracts do not contain selfdestruct',
   async checkProposal(proposal, sim, deps) {
-    const { info, warn, error } = await checkNoSelfdestructs(sim, sim.transaction.addresses, deps.provider)
+    const { info, warn, error } = await checkNoSelfdestructs(
+      [deps.governor.address, deps.timelock.address].map((a) => a.toLowerCase()),
+      sim.transaction.addresses,
+      deps.provider
+    )
     return { info, warnings: warn, errors: error }
   },
 }
@@ -29,7 +37,7 @@ export const checkTouchedContractsNoSelfdestruct: ProposalCheck = {
  * For a given simulation response, check if a set of addresses contain selfdestruct.
  */
 async function checkNoSelfdestructs(
-  sim: TenderlySimulation,
+  whitelist: string[],
   addresses: string[],
   provider: JsonRpcProvider
 ): Promise<{ info: string[]; warn: string[]; error: string[] }> {
@@ -37,12 +45,13 @@ async function checkNoSelfdestructs(
   const warn: string[] = []
   const error: string[] = []
   for (const addr of addresses) {
-    const status = await checkNoSelfdestruct(sim, addr, provider)
+    const status = await checkNoSelfdestruct(whitelist, addr, provider)
     const address = toAddressLink(addr, false)
     if (status === 'eoa') info.push(bullet(`${address}: EOA`))
     else if (status === 'empty') warn.push(bullet(`${address}: EOA (may have code later)`))
     else if (status === 'safe') info.push(bullet(`${address}: Contract (looks safe)`))
     else if (status === 'delegatecall') warn.push(bullet(`${address}: Contract (with DELEGATECALL)`))
+    else if (status === 'whitelisted') info.push(bullet(`${address}: Whitelisted`))
     else error.push(bullet(`${address}: Contract (with SELFDESTRUCT)`))
   }
   return { info, warn, error }
@@ -65,10 +74,12 @@ const isPUSH = (opcode: number): boolean => opcode >= PUSH1 && opcode <= PUSH32
  * For a given address, check if it's an EOA, a safe contract, or a contract contain selfdestruct.
  */
 async function checkNoSelfdestruct(
-  sim: TenderlySimulation,
+  whitelist: string[],
   addr: string,
   provider: JsonRpcProvider
-): Promise<'safe' | 'eoa' | 'empty' | 'selfdestruct' | 'delegatecall'> {
+): Promise<'safe' | 'eoa' | 'empty' | 'selfdestruct' | 'delegatecall' | 'whitelisted'> {
+  if (whitelist.includes(addr.toLocaleLowerCase())) return 'whitelisted'
+
   const [code, nonce] = await Promise.all([provider.getCode(addr), provider.getTransactionCount(addr)])
 
   // If there is no code and nonce is > 0 then it's an EOA.
