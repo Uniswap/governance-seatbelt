@@ -2,10 +2,7 @@ import {
   checkTargetsVerifiedEtherscan,
   checkTouchedContractsVerifiedEtherscan,
 } from './check-targets-verified-etherscan'
-import {
-  checkTargetsNoSelfdestruct,
-  checkTouchedContractsNoSelfdestruct,
-} from './check-targets-no-selfdestruct'
+import { checkTargetsNoSelfdestruct, checkTouchedContractsNoSelfdestruct } from './check-targets-no-selfdestruct'
 import { checkDecodeCalldata } from './check-decode-calldata'
 import { checkLogs } from './check-logs'
 import { checkSlither } from './check-slither'

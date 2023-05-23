@@ -27,7 +27,6 @@ jobs:
             GOVERNOR_ADDRESS: '0x323A76393544d5ecca80cd6ef2A560C6a395b7E3'
           - DAO_NAME: 'Hop'
             GOVERNOR_ADDRESS: '0xed8Bdb5895B8B7f9Fdb3C087628FD8410E853D48'
-          
 
     name: Check all live proposals
     runs-on: ubuntu-latest
