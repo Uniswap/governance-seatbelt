@@ -34,6 +34,7 @@
     "@aave/contract-helpers": "^1.3.8",
     "@actions/cache": "^3.0.0",
     "@bgd-labs/aave-address-book": "^1.3.0",
+    "@bgd-labs/aave-cli": "^0.0.5",
     "@supercharge/promise-pool": "^2.3.0",
     "bignumber.js": "^9.0.2",
     "bn.js": "^5.2.1",

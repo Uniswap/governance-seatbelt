@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, Block, Contract, providers } from 'ethers'
+import { BigNumberish, Block, Contract, providers } from 'ethers'
 import { PROPOSAL_STATES } from './utils/contracts/aave-governance-v2'
 
 // --- Simulation configurations ---
@@ -34,19 +34,19 @@ export interface SimulationResult {
 }
 
 export interface ProposalStruct {
-  id: BigNumber
+  id: bigint
   creator: string
   executor: string
   targets: string[]
-  values: BigNumber[]
+  values: bigint[]
   signatures: string[]
   calldatas: string[]
-  withDelegateCalls: boolean[]
-  startBlock: BigNumber
-  endBlock: BigNumber
-  executionTime: BigNumber
-  forVotes: BigNumber
-  againstVotes: BigNumber
+  withDelegatecalls: boolean[]
+  startBlock: bigint
+  endBlock: bigint
+  executionTime: bigint
+  forVotes: bigint
+  againstVotes: bigint
   executed: boolean
   canceled: boolean
   strategy: string
@@ -54,16 +54,16 @@ export interface ProposalStruct {
 }
 
 export interface ProposalCreatedEvent {
-  id: BigNumber
+  id: bigint
   creator: string
   executor: string
-  targets: string[]
-  values: BigNumber[]
-  signatures: string[]
-  calldatas: string[]
-  withDelegateCalls: boolean[]
-  startBlock: BigNumber
-  endBlock: BigNumber
+  targets: readonly string[]
+  values: readonly bigint[]
+  signatures: readonly string[]
+  calldatas: readonly string[]
+  withDelegatecalls: readonly boolean[]
+  startBlock: bigint
+  endBlock: bigint
   strategy: string
   ipfsHash: string
 }
@@ -84,7 +84,11 @@ export type ProposalData = {
 
 export interface ProposalCheck {
   name: string
-  checkProposal(proposal: ProposalCreatedEvent, tx: TenderlySimulation, deps: ProposalData): Promise<CheckResult>
+  checkProposal(
+    proposal: { id?: bigint; targets: readonly string[]; withDelegatecalls: readonly boolean[] },
+    tx: TenderlySimulation,
+    deps: ProposalData
+  ): Promise<CheckResult>
 }
 
 export interface AllCheckResults {
@@ -661,6 +665,7 @@ declare global {
       RPC_URL: string
       RPC_POLYGON: string
       RPC_OPTIMISM: string
+      RPC_ARBITRUM: string
 
       OMIT_CACHE: string
       TENDERLY_ACCESS_TOKEN: string

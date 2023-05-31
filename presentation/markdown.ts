@@ -39,17 +39,6 @@ export function toAddressLink(address: string, code: boolean = false): string {
 }
 
 /**
- * Block quotes a string in markdown
- * @param str string to block quote
- */
-function blockQuote(str: string): string {
-  return str
-    .split('\n')
-    .map((s) => '> ' + s)
-    .join('\n')
-}
-
-/**
  * Format a block timestamp which is always in epoch seconds to a human readable string
  * @param blockTimestamp the block timestamp to format
  */
@@ -82,10 +71,9 @@ function humanReadableExecutor(executor: string) {
  * @param checks
  */
 export async function toProposalReport(
-  blocks: { current: Block; start: Block | null; end: Block | null },
   proposal: ProposalCreatedEvent,
   checks: AllCheckResults,
-  sim: TenderlySimulation,
+  sim: any, // TenderlySimulation, TODO: improve type
   subReports: { name: string; link: string }[] = []
 ): Promise<string> {
   const { id, creator, targets, endBlock, startBlock, ipfsHash, executor } = proposal
@@ -93,18 +81,8 @@ export async function toProposalReport(
 
   return `## ${ipfsMeta.title}
 
-_Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blocks.current.number}) at ${formatTime(
-    blocks.current.timestamp
-  )}_
-
 - ID: ${id}
 - Proposer: ${toAddressLink(creator)}
-- Start Block: ${startBlock} (${
-    blocks.start ? formatTime(blocks.start.timestamp) : formatTime(estimateTime(blocks.current, startBlock))
-  })
-- End Block: ${endBlock} (${
-    blocks.end ? formatTime(blocks.end.timestamp) : formatTime(estimateTime(blocks.current, endBlock))
-  })
 - Targets: ${targets.map((target) => toAddressLink(target, true)).join('; ')}
 - Executor:  ${toAddressLink(executor)} (${humanReadableExecutor(executor)})
 - Simulation: [https://dashboard.tenderly.co/me/simulator/${
@@ -136,16 +114,12 @@ ${Object.keys(checks)
  * @param checks
  */
 export async function toSubReport(
-  blocks: { current: Block; start: Block | null; end: Block | null },
   checks: AllCheckResults,
-  sim: TenderlySimulation,
+  sim: any, //TenderlySimulation,
   title: string
 ): Promise<string> {
   return `## ${title}
 
-_Updated as of block [${blocks.current.number}](https://etherscan.io/block/${blocks.current.number}) at ${formatTime(
-    blocks.current.timestamp
-  )}_
 - Simulation: [https://dashboard.tenderly.co/me/simulator/${
     sim.simulation.id
   }](https://dashboard.tenderly.co/me/simulator/${sim.simulation.id})

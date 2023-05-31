@@ -5,21 +5,15 @@
 require('dotenv').config()
 import fs from 'fs'
 import { DAO_NAME, PROPOSAL_FILTER, OMIT_CACHE, AAVE_GOV_V2_ADDRESS } from './utils/constants'
-import { provider, polygonProvider, optimismProvider } from './utils/clients/ethers'
-import { AllCheckResults, ProposalData, SimulationResult, SubSimulation } from './types'
+import { provider, polygonProvider, optimismProvider, arbitrumProvider } from './utils/clients/ethers'
+import { AllCheckResults, ProposalData } from './types'
 import ALL_CHECKS from './checks'
-import { toSubReport, toProposalReport, toCheckSummary } from './presentation/markdown'
+import { toSubReport, toProposalReport } from './presentation/markdown'
 import { aaveGovernanceContract, isProposalStateImmutable, PROPOSAL_STATES } from './utils/contracts/aave-governance-v2'
 import { executor } from './utils/contracts/executor'
 import { PromisePool } from '@supercharge/promise-pool'
-import { simulateProposal } from './utils/simulations/proposal'
-import { getArcPayloads, simulateArc } from './utils/simulations/arc'
-import { getActionSetsChanged, getFxChildPayloads, simulateFxPortal } from './utils/simulations/fxPortal'
-import {
-  getOptimismActionSetsChanged,
-  getOptimismPayloads,
-  simulateOptimismProposal,
-} from './utils/simulations/opCDMProposals'
+
+import { simulateProposal } from '@bgd-labs/aave-cli'
 
 Error.stackTraceLimit = Infinity
 
@@ -74,55 +68,9 @@ async function runSimulation() {
         if (fs.existsSync(getProposalFileName(proposalId)) && skip && !OMIT_CACHE) {
           console.log(`Skipped simulation for ${proposalId}`)
         } else {
-          const { sim, latestBlock, proposal } = await simulateProposal(proposalId)
-          const subSimulations: SubSimulation[] = []
-          const arcPayloads = getArcPayloads(sim)
-          if (arcPayloads.length) {
-            for (const arcPayload of arcPayloads) {
-              subSimulations.push({
-                id: arcPayload.actionSet,
-                type: 'arc',
-                name: `Arc actionSet(${arcPayload.actionSet})`,
-                simulation: await simulateArc(sim, arcPayload.actionSet, arcPayload.timestamp),
-                provider,
-              })
-            }
-          }
-          const fxPayloads = getFxChildPayloads(sim)
-          if (fxPayloads.length) {
-            for (let i = 0; i < fxPayloads.length; i++) {
-              const fxPayload = fxPayloads[i]
-              const simulationResult = await simulateFxPortal(sim, fxPayload.event)
-              const actionSet = getActionSetsChanged(simulationResult)
-              subSimulations.push({
-                id: `${actionSet[0].actionSet.replace(/\"/g, '')}_${i}`,
-                type: 'fxPortal',
-                name: `PolygonBridgeExecutor actionSet(${actionSet
-                  .map((set) => `${set.actionSet}: ${JSON.stringify(set.value)}`)
-                  .join(',')})`,
-                simulation: simulationResult,
-                provider: polygonProvider,
-              })
-            }
-          }
-          const optimismPayloads = getOptimismPayloads(sim)
-          if (optimismPayloads.length) {
-            for (let i = 0; i < optimismPayloads.length; i++) {
-              const optimismPayload = optimismPayloads[i]
-              const simulationResult = await simulateOptimismProposal(sim, optimismPayload)
-              const actionSet = getOptimismActionSetsChanged(simulationResult)
-              subSimulations.push({
-                id: `${actionSet[0].actionSet.replace(/\"/g, '')}_${i}`,
-                type: 'optimism',
-                name: `OptimismBridgeExecutor actionSet(${actionSet
-                  .map((set) => `${set.actionSet}: ${JSON.stringify(set.value)}`)
-                  .join(',')})`,
-                simulation: simulationResult,
-                provider: optimismProvider,
-              })
-            }
-          }
-          return { sim, proposal, latestBlock, subSimulations, provider }
+          const { proposal, simulation, subSimulations } = await simulateProposal(BigInt(proposalId))
+
+          return { simulation, proposal: { ...proposal, state: proposalState }, subSimulations }
         }
       } catch (e) {
         console.log(e)
@@ -130,10 +78,12 @@ async function runSimulation() {
       }
     })
   if (errors.length) throw errors
-  return _results.flat().filter((r) => r) as SimulationResult[]
+  return _results.flat().filter((r) => r) as (Awaited<ReturnType<typeof simulateProposal>> & {
+    proposal: { state: number }
+  })[]
 }
 
-async function generateReports(simOutputs: SimulationResult[]) {
+async function generateReports(simOutputs: Awaited<ReturnType<typeof runSimulation>>) {
   console.log('Starting proposal checks and report generation...')
   const errors: any[] = []
 
@@ -147,7 +97,7 @@ async function generateReports(simOutputs: SimulationResult[]) {
     })
     .process(async (simOutput) => {
       // Run checks
-      const { sim, proposal, latestBlock, subSimulations, provider } = simOutput
+      const { simulation, proposal, subSimulations } = simOutput
       const proposalData: ProposalData = {
         governance: aaveGovernanceContract,
         provider,
@@ -160,21 +110,16 @@ async function generateReports(simOutputs: SimulationResult[]) {
             checkId,
             {
               name: ALL_CHECKS[checkId].name,
-              result: await ALL_CHECKS[checkId].checkProposal(proposal, sim, proposalData),
+              result: await ALL_CHECKS[checkId].checkProposal(proposal, simulation as any, proposalData),
             },
           ])
         )
       )
 
-      // Generate report
-      const [startBlock, endBlock] = await Promise.all([
-        proposal.startBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.startBlock.toNumber()) : null,
-        proposal.endBlock.toNumber() <= latestBlock.number ? provider.getBlock(proposal.endBlock.toNumber()) : null,
-      ])
-
       const subReports: { name: string; link: string }[] = []
       if (subSimulations?.length) {
-        for (const subSimulation of subSimulations) {
+        for (let i = 0; i < subSimulations.length; i++) {
+          const { simulation, name, args, state } = subSimulations[i]
           console.log(`  Running for sub-proposal ${proposal.id} ...`)
           const checkResults: AllCheckResults = Object.fromEntries(
             await Promise.all(
@@ -182,66 +127,34 @@ async function generateReports(simOutputs: SimulationResult[]) {
                 checkId,
                 {
                   name: ALL_CHECKS[checkId].name,
-                  result: await ALL_CHECKS[checkId].checkProposal(proposal, subSimulation.simulation, {
+                  result: await ALL_CHECKS[checkId].checkProposal({ ...args, id: args.proposalId }, simulation as any, {
                     ...proposalData,
-                    provider: subSimulation.provider,
+                    provider:
+                      name === 'Arbitrum'
+                        ? arbitrumProvider
+                        : name === 'Polygon'
+                        ? polygonProvider
+                        : name === 'Optimism'
+                        ? optimismProvider
+                        : provider,
                   }),
                 },
               ])
             )
           )
 
-          if (subSimulation.type === 'arc') {
-            const arcReport = await toSubReport(
-              { start: startBlock, end: endBlock, current: latestBlock },
-              checkResults,
-              subSimulation.simulation,
-              subSimulation.name
-            )
-            const filename = getProposalFileName(proposal.id.toNumber(), `arc_${subSimulation.id}`)
-            fs.writeFileSync(filename, arcReport)
-            // will be rendered in another markdown so the path cannot be relative to the file
-            subReports.push({ link: filename.replace('./', '/'), name: 'ArcTimelockExecution' })
-          }
-
-          if (subSimulation.type === 'fxPortal') {
-            const fxReport = await toSubReport(
-              { start: startBlock, end: endBlock, current: latestBlock },
-              checkResults,
-              subSimulation.simulation,
-              subSimulation.name
-            )
-            const filename = getProposalFileName(proposal.id.toNumber(), `fx_${subSimulation.id}`)
-            fs.writeFileSync(filename, fxReport)
-            // will be rendered in another markdown so the path cannot be relative to the file
-            subReports.push({ link: filename.replace('./', '/'), name: 'PolygonBridgeExecution' })
-          }
-
-          if (subSimulation.type === 'optimism') {
-            const optimismReport = await toSubReport(
-              { start: startBlock, end: endBlock, current: latestBlock },
-              checkResults,
-              subSimulation.simulation,
-              subSimulation.name
-            )
-            const filename = getProposalFileName(proposal.id.toNumber(), `optimism_${subSimulation.id}`)
-            fs.writeFileSync(filename, optimismReport)
-            // will be rendered in another markdown so the path cannot be relative to the file
-            subReports.push({ link: filename.replace('./', '/'), name: 'OptimismBridgeExecution' })
-          }
+          const subReport = await toSubReport(checkResults, simulation, name)
+          const filename = getProposalFileName(Number(proposal.id), `${name}_${args.proposalId || `pending_${i}`}`)
+          fs.writeFileSync(filename, subReport)
+          // will be rendered in another markdown so the path cannot be relative to the file
+          subReports.push({ link: filename.replace('./', '/'), name: 'PolygonBridgeExecution' })
         }
       }
 
-      const report = await toProposalReport(
-        { start: startBlock, end: endBlock, current: latestBlock },
-        proposal,
-        checkResults,
-        sim,
-        subReports
-      )
+      const report = await toProposalReport(proposal, checkResults, simulation, subReports)
 
       // save report
-      fs.writeFileSync(getProposalFileName(proposal.id.toNumber()), report)
+      fs.writeFileSync(getProposalFileName(Number(proposal.id)), report)
 
       cache[proposal.id.toString()] = proposal.state
     })

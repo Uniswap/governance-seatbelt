@@ -1,12 +1,13 @@
 import { Contract, Event, EventFilter, providers } from 'ethers'
-import { HighlightSpanKind } from 'typescript'
-import { RPC_URL, RPC_POLYGON, RPC_OPTIMISM } from '../constants'
+import { RPC_URL, RPC_POLYGON, RPC_OPTIMISM, RPC_ARBITRUM } from '../constants'
 
 export const provider = new providers.StaticJsonRpcProvider(RPC_URL)
 
 export const polygonProvider = new providers.StaticJsonRpcProvider(RPC_POLYGON)
 
 export const optimismProvider = new providers.StaticJsonRpcProvider(RPC_OPTIMISM)
+
+export const arbitrumProvider = new providers.StaticJsonRpcProvider(RPC_ARBITRUM)
 
 export async function getPastLogs(
   fromBlock: number,

@@ -31,8 +31,8 @@ export const checkStateChanges: ProposalCheck = {
       // Check if this is a diff that should be filtered out
       const isGovernance = getAddress(addr) == deps.governance.address
       const isExecutor = getAddress(addr) == deps.executor.address
-      const isGovernanceExecutedSlot = diff.raw[0].key === getAaveGovernanceV2Slots(proposal.id).canceled // canceled and executed are in same slot
-      const isProposalSlot = diff.raw[0].key === getAaveGovernanceV2Slots(proposal.id).proposal
+      const isGovernanceExecutedSlot = diff.raw[0].key === getAaveGovernanceV2Slots(Number(proposal.id)).canceled // canceled and executed are in same slot
+      const isProposalSlot = diff.raw[0].key === getAaveGovernanceV2Slots(Number(proposal.id)).proposal
       const isQueuedTx = diff.soltype?.name.includes('queuedTransactions')
 
       const shouldSkipDiff =

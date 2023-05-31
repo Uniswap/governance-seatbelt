@@ -23,7 +23,7 @@ export const AAVE_GOVERNANCE_V2_ABI = [
   'function execute(uint256) payable',
   'function getGovernanceStrategy() view returns (address)',
   'function getGuardian() view returns (address)',
-  'function getProposalById(uint256) view returns (tuple(uint256 id,address creator,address executor, address[] targets, uint256[] values, string[] signatures, bytes[] calldatas, bool[] withDelegateCalls, uint256 startBlock, uint256 endBlock, uint256 executionTime, uint256 forVotes, uint256 againstVotes, bool executed, bool canceled, address strategy,bytes32 ipfsHash))',
+  'function getProposalById(uint256) view returns (tuple(uint256 id,address creator,address executor, address[] targets, uint256[] values, string[] signatures, bytes[] calldatas, bool[] withDelegatecalls, uint256 startBlock, uint256 endBlock, uint256 executionTime, uint256 forVotes, uint256 againstVotes, bool executed, bool canceled, address strategy,bytes32 ipfsHash))',
   'function getProposalState(uint256) view returns (uint8)',
   'function getProposalsCount() view returns (uint256)',
   'function getVoteOnProposal(uint256,address) view returns (tuple(bool,uint248))',

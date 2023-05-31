@@ -30,7 +30,7 @@ export const checkTrace: ProposalCheck = {
     let selfdestructFound = false
 
     // Checking if there is self destruct opcode in payload called with delegate call
-    for (let [i, delegateCall] of proposal.withDelegateCalls.entries()) {
+    for (let [i, delegateCall] of proposal.withDelegatecalls.entries()) {
       if (delegateCall) {
         // i+1 should be index of the i-th payload, as on index 0 there is `getProposalState` call
         if (
