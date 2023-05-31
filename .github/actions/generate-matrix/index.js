@@ -35018,7 +35018,7 @@ var import_ethers2 = __toESM(require_lib31());
 var import_ethers = __toESM(require_lib31());
 
 // utils/constants.ts
-var RPC_URL = process.env.RPC_URL;
+var RPC_MAINNET = process.env.RPC_MAINNET;
 var RPC_POLYGON = process.env.RPC_POLYGON;
 var RPC_OPTIMISM = process.env.RPC_OPTIMISM;
 var RPC_ARBITRUM = process.env.RPC_ARBITRUM;
@@ -35041,7 +35041,7 @@ if (!DAOs[DAO_NAME]) {
 var AAVE_GOV_V2_ADDRESS = DAOs[DAO_NAME];
 
 // utils/clients/ethers.ts
-var provider = new import_ethers.providers.StaticJsonRpcProvider(RPC_URL);
+var provider = new import_ethers.providers.StaticJsonRpcProvider(RPC_MAINNET);
 var polygonProvider = new import_ethers.providers.StaticJsonRpcProvider(RPC_POLYGON);
 var optimismProvider = new import_ethers.providers.StaticJsonRpcProvider(RPC_OPTIMISM);
 var arbitrumProvider = new import_ethers.providers.StaticJsonRpcProvider(RPC_ARBITRUM);
