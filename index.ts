@@ -147,7 +147,7 @@ async function generateReports(simOutputs: Awaited<ReturnType<typeof runSimulati
           const filename = getProposalFileName(Number(proposal.id), `${name}_${args.proposalId || `pending_${i}`}`)
           fs.writeFileSync(filename, subReport)
           // will be rendered in another markdown so the path cannot be relative to the file
-          subReports.push({ link: filename.replace('./', '/'), name: 'PolygonBridgeExecution' })
+          subReports.push({ link: filename.replace('./', '/'), name })
         }
       }
 
