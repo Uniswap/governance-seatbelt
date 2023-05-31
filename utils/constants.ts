@@ -1,6 +1,6 @@
 // Always required
 export const BLOCK_GAS_LIMIT = 30_000_000
-export const RPC_URL = process.env.RPC_URL
+export const RPC_MAINNET = process.env.RPC_MAINNET
 export const RPC_POLYGON = process.env.RPC_POLYGON
 export const RPC_OPTIMISM = process.env.RPC_OPTIMISM
 export const RPC_ARBITRUM = process.env.RPC_ARBITRUM

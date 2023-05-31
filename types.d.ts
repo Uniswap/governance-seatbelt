@@ -662,7 +662,7 @@ interface RawElement {
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      RPC_URL: string
+      RPC_MAINNET: string
       RPC_POLYGON: string
       RPC_OPTIMISM: string
       RPC_ARBITRUM: string

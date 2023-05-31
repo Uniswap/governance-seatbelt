@@ -47,9 +47,10 @@ jobs:
         uses: ./.github/actions/generate-matrix
         id: generator
         env:
-          RPC_URL: ${{ secrets.RPC_MAINNET }}
+          RPC_MAINNET: ${{ secrets.RPC_MAINNET }}
           RPC_POLYGON: ${{ secrets.RPC_POLYGON }}
           RPC_OPTIMISM: ${{ secrets.RPC_OPTIMISM }}
+          RPC_ARBITRUM: ${{ secrets.RPC_ARBITRUM }}
           DAO_NAME: 'Aave'
           GITHUB_SHA: ${{ github.sha }}
 
@@ -59,9 +60,10 @@ jobs:
         env:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RPC_URL: ${{ secrets.RPC_URL }}
+          RPC_MAINNET: ${{ secrets.RPC_MAINNET }}
           RPC_POLYGON: ${{ secrets.RPC_POLYGON }}
           RPC_OPTIMISM: ${{ secrets.RPC_OPTIMISM }}
+          RPC_ARBITRUM: ${{ secrets.RPC_ARBITRUM }}
           TENDERLY_ACCESS_TOKEN: ${{ secrets.TENDERLY_ACCESS_TOKEN }}
           TENDERLY_PROJECT_SLUG: ${{ secrets.TENDERLY_PROJECT_SLUG }}
           TENDERLY_ACCOUNT: ${{ secrets.TENDERLY_ACCOUNT }}
