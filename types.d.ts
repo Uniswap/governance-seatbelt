@@ -55,7 +55,12 @@ export interface SimulationConfigArbRetryable extends SimulationConfigBase {
   from: string
 }
 
-export type SimulationConfig = SimulationConfigExecuted | SimulationConfigProposed | SimulationConfigNew | SimulationConfigArbL2ToL1 | SimulationConfigArbRetryable
+export type SimulationConfig =
+  | SimulationConfigExecuted
+  | SimulationConfigProposed
+  | SimulationConfigNew
+  | SimulationConfigArbL2ToL1
+  | SimulationConfigArbRetryable
 
 export interface SimulationResult {
   sim: TenderlySimulation

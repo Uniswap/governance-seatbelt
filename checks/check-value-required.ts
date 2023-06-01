@@ -2,6 +2,7 @@ import { Zero } from '@ethersproject/constants'
 import { BigNumber } from '@ethersproject/bignumber'
 import { formatEther } from '@ethersproject/units'
 import { ProposalCheck } from '../types'
+import { getProvider } from '../utils/utils'
 
 /**
  * Reports on whether the caller initiating the `execute` call needs to send ETH with the call.
@@ -26,7 +27,7 @@ export const checkValueRequired: ProposalCheck = {
     }
 
     const valueRequired = formatEther(totalValue)
-    const govBalance = formatEther(await deps.provider.getBalance(deps.governor.address))
+    const govBalance = formatEther(await getProvider(proposal.chainid).getBalance(deps.governor.address))
     const valueSent = formatEther(txValue)
 
     const msg1 = 'The account that executes this proposal will need to send ETH along with the transaction.'

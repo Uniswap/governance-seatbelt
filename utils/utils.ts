@@ -2,6 +2,7 @@ import { defaultAbiCoder } from '@ethersproject/abi'
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
 import { hexStripZeros, hexZeroPad } from '@ethersproject/bytes'
 import { keccak256 } from '@ethersproject/keccak256'
+import { arb1provider, l1provider } from '../utils/clients/ethers'
 
 /**
  * @notice Returns the storage slot for a Solidity mapping with uint keys, given the slot of the mapping itself
@@ -30,4 +31,8 @@ export function getSolidityStorageSlotBytes(mappingSlot: string, key: BigNumberi
 
 export function to32ByteHexString(val: BigNumberish) {
   return hexZeroPad(BigNumber.from(val).toHexString(), 32)
+}
+
+export function getProvider(chainId: string) {
+  return chainId === '42161' ? arb1provider : l1provider
 }

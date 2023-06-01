@@ -46,7 +46,11 @@ export function blockQuote(str: string): string {
  * @param address to be linked
  * @param code whether to link to the code tab
  */
-export function toAddressLink(address: string, code: boolean = false, explorer: string = 'https://etherscan.io'): string {
+export function toAddressLink(
+  address: string,
+  code: boolean = false,
+  explorer: string = 'https://etherscan.io'
+): string {
   return `[\`${address}\`](${explorer}/address/${address}${code ? '#code' : ''})`
 }
 
@@ -110,9 +114,9 @@ function estimateTime(current: Block, block: BigNumber): number {
 
 export function getExplorer(chainid: string): string {
   switch (chainid) {
-    case "1":
+    case '1':
       return 'https://etherscan.io'
-    case "42161":
+    case '42161':
       return 'https://arbiscan.io'
     default:
       return 'https://etherscan.io'

@@ -65,10 +65,10 @@ export async function simulate(config: SimulationConfig) {
 
 function govTypeToNetwork(govType: string) {
   switch (govType) {
-    case "arb":
-      return "42161"
+    case 'arb':
+      return '42161'
     default:
-      return "1"
+      return '1'
   }
 }
 
@@ -539,7 +539,7 @@ async function simulateExecuted(config: SimulationConfigExecuted): Promise<Simul
 
 // This function simulate the L2 -> L1 crosschain proposal execution of arb governor
 // it replace the schedule call with a execute call to L1 timelock,
-// while overriding storage in the L1 timelock to make it executable without delay  
+// while overriding storage in the L1 timelock to make it executable without delay
 async function simulateArbitrumL2ToL1(config: SimulationConfigArbL2ToL1): Promise<SimulationResult> {
   // --- Validate config ---
   const { governorType, targets, values, calldatas, description, signatures, parentId } = config
@@ -599,9 +599,9 @@ async function simulateArbitrumL2ToL1(config: SimulationConfigArbL2ToL1): Promis
   if (governorType === 'oz' || governorType === 'arb') {
     const ITimeLock = new Interface([
       'function schedule(address target, uint256 value, bytes calldata data, bytes32 predecessor, bytes32 salt, uint256 delay) external',
-      'function execute(address target, uint256 value, bytes calldata data, bytes32 predecessor, bytes32 salt, uint256 delay) external'
+      'function execute(address target, uint256 value, bytes calldata data, bytes32 predecessor, bytes32 salt, uint256 delay) external',
     ])
-    const args = ITimeLock.parseTransaction({data: calldatas[0]}).args
+    const args = ITimeLock.parseTransaction({ data: calldatas[0] }).args
     const id = hashOperationOz(args[0], args[1], args[2], args[3], args[4])
     timelockStorageObj[`_timestamps[${id.toHexString()}]`] = simTimestamp.toString()
   }
@@ -615,7 +615,10 @@ async function simulateArbitrumL2ToL1(config: SimulationConfigArbL2ToL1): Promis
     },
   }
   const storageObj = await sendEncodeRequest(stateOverrides)
-  const iface = new ethers.utils.Interface(["function schedule(address,uint256,bytes,bytes32,bytes32,uint256)", "function execute(address,uint256,bytes,bytes32,bytes32)"])
+  const iface = new ethers.utils.Interface([
+    'function schedule(address,uint256,bytes,bytes32,bytes32,uint256)',
+    'function execute(address,uint256,bytes,bytes32,bytes32)',
+  ])
 
   const simulationPayload: TenderlyPayload = {
     network_id: '1',
@@ -626,7 +629,7 @@ async function simulateArbitrumL2ToL1(config: SimulationConfigArbL2ToL1): Promis
     input: calldatas[0].replace(iface.getSighash('schedule'), iface.getSighash('execute')), // replace schedlue to execute
     gas: BLOCK_GAS_LIMIT,
     gas_price: '0',
-    value: "1000000000000000", // retryable submission cost TODO: don't hardcode this
+    value: '1000000000000000', // retryable submission cost TODO: don't hardcode this
     save_if_fails: true, // Set to true to save the simulation to your Tenderly dashboard if it fails.
     save: true, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
     generate_access_list: true, // not required, but useful as a sanity check to ensure consistency in the simulation response
@@ -647,7 +650,7 @@ async function simulateArbitrumL2ToL1(config: SimulationConfigArbL2ToL1): Promis
   return { sim, proposal, latestBlock }
 }
 
-// This function simulate the execution of a retryable ticket on Arbitrum 
+// This function simulate the execution of a retryable ticket on Arbitrum
 async function simulateArbitrumRetryable(config: SimulationConfigArbRetryable): Promise<SimulationResult> {
   // --- Validate config ---
   const { targets, values, calldatas, description, signatures, parentId, from } = config
@@ -695,7 +698,7 @@ async function simulateArbitrumRetryable(config: SimulationConfigArbRetryable): 
     input: calldatas[0],
     gas: BLOCK_GAS_LIMIT,
     gas_price: '0',
-    value: "0",
+    value: '0',
     save_if_fails: true, // Set to true to save the simulation to your Tenderly dashboard if it fails.
     save: true, // Set to true to save the simulation to your Tenderly dashboard if it succeeds.
     generate_access_list: true, // not required, but useful as a sanity check to ensure consistency in the simulation response
@@ -726,7 +729,7 @@ const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max 
  * @notice Given a Tenderly contract object, generates a descriptive human-friendly name for that contract
  * @param contract Tenderly contract object to generate name from
  */
-export function getContractName(contract: TenderlyContract | undefined, defaultName='unknown contract name') {
+export function getContractName(contract: TenderlyContract | undefined, defaultName = 'unknown contract name') {
   if (!contract) return defaultName
   let contractName = contract?.contract_name
 

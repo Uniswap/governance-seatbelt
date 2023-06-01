@@ -51,13 +51,15 @@ export const checkLogs: ProposalCheck = {
         } else {
           // Log is not decoded, report the raw data
           // TODO find a transaction with undecoded logs to know how topics/data are formatted in simulation response
-          const IArbSys = ArbSys__factory.createInterface();
-          // hardcoding ArbSys event decoding with arbitrum sdk 
-          if (log.raw.topics[0] === IArbSys.getEventTopic('L2ToL1Tx')){
-            const decoded = IArbSys.parseLog(log.raw);
-            const parsedInputs = decoded.eventFragment.inputs.map((i, index) => `${i.name}: ${decoded.args[index]}`).join(', ')
+          const IArbSys = ArbSys__factory.createInterface()
+          // hardcoding ArbSys event decoding with arbitrum sdk
+          if (log.raw.topics[0] === IArbSys.getEventTopic('L2ToL1Tx')) {
+            const decoded = IArbSys.parseLog(log.raw)
+            const parsedInputs = decoded.eventFragment.inputs
+              .map((i, index) => `${i.name}: ${decoded.args[index]}`)
+              .join(', ')
             info.push(bullet(`\`${decoded.name}(${parsedInputs})\``, 1))
-          }else{
+          } else {
             info.push(bullet(`Undecoded log: \`${JSON.stringify(log)}\``, 1))
           }
         }
