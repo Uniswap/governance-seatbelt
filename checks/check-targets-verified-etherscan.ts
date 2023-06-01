@@ -1,6 +1,7 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { bullet, toAddressLink, getExplorer } from '../presentation/report'
 import { ProposalCheck, TenderlySimulation } from '../types'
+import { getProvider } from '../utils/utils'
 
 /**
  * Check all targets with code are verified on Etherscan
@@ -9,7 +10,7 @@ export const checkTargetsVerifiedEtherscan: ProposalCheck = {
   name: 'Check all targets are verified on Etherscan',
   async checkProposal(proposal, sim, deps) {
     const uniqueTargets = proposal.targets.filter((addr, i, targets) => targets.indexOf(addr) === i)
-    const info = await checkVerificationStatuses(sim, uniqueTargets, deps.provider)
+    const info = await checkVerificationStatuses(sim, uniqueTargets, getProvider(proposal.chainid))
     return { info, warnings: [], errors: [] }
   },
 }
@@ -20,7 +21,7 @@ export const checkTargetsVerifiedEtherscan: ProposalCheck = {
 export const checkTouchedContractsVerifiedEtherscan: ProposalCheck = {
   name: 'Check all touched contracts are verified on Etherscan',
   async checkProposal(proposal, sim, deps) {
-    const info = await checkVerificationStatuses(sim, sim.transaction.addresses, deps.provider)
+    const info = await checkVerificationStatuses(sim, sim.transaction.addresses, getProvider(proposal.chainid))
     return { info, warnings: [], errors: [] }
   },
 }

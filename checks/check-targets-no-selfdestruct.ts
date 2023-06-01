@@ -1,43 +1,47 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
-import { bullet, toAddressLink } from '../presentation/report'
+import { bullet, toAddressLink, getExplorer } from '../presentation/report'
 import { ProposalCheck } from '../types'
+import { getProvider } from '../utils/utils'
+import { provider } from '../utils/clients/ethers'
 
 /**
- * Check all targets with code if they contain selfdestruct.
+ * Check all targets with code if they contain selfdestruct
  */
 export const checkTargetsNoSelfdestruct: ProposalCheck = {
   name: 'Check all targets do not contain selfdestruct',
   async checkProposal(proposal, sim, deps) {
     const uniqueTargets = proposal.targets.filter((addr, i, targets) => targets.indexOf(addr) === i)
-    const { info, warn, error } = await checkNoSelfdestructs(
-      [deps.governor.address, deps.timelock.address],
-      uniqueTargets,
-      deps.provider
-    )
+    const governorChainId = provider.network.chainId
+    const trustedAddrs: { [chainid: string]: string[] } = {}
+    trustedAddrs[governorChainId] = [deps.governor.address, deps.timelock.address]
+    const { info, warn, error } = await checkNoSelfdestructs(trustedAddrs, uniqueTargets, getProvider(proposal.chainid))
     return { info, warnings: warn, errors: error }
   },
 }
 
 /**
- * Check all touched contracts with code if they contain selfdestruct.
+ * Check all touched contracts with code if they contain selfdestruct
  */
 export const checkTouchedContractsNoSelfdestruct: ProposalCheck = {
   name: 'Check all touched contracts do not contain selfdestruct',
   async checkProposal(proposal, sim, deps) {
+    const governorChainId = provider.network.chainId
+    const trustedAddrs: { [chainid: string]: string[] } = {}
+    trustedAddrs[governorChainId] = [deps.governor.address, deps.timelock.address]
     const { info, warn, error } = await checkNoSelfdestructs(
-      [deps.governor.address, deps.timelock.address],
+      trustedAddrs,
       sim.transaction.addresses,
-      deps.provider
+      getProvider(proposal.chainid)
     )
     return { info, warnings: warn, errors: error }
   },
 }
 
 /**
- * For a given simulation response, check if a set of addresses contain selfdestruct.
+ * For a given simulation response, check if a set of addresses contain selfdestruct
  */
 async function checkNoSelfdestructs(
-  trustedAddrs: string[],
+  trustedAddrs: { [chainid: string]: string[] },
   addresses: string[],
   provider: JsonRpcProvider
 ): Promise<{ info: string[]; warn: string[]; error: string[] }> {
@@ -46,7 +50,7 @@ async function checkNoSelfdestructs(
   const error: string[] = []
   for (const addr of addresses) {
     const status = await checkNoSelfdestruct(trustedAddrs, addr, provider)
-    const address = toAddressLink(addr, false)
+    const address = toAddressLink(addr, false, getExplorer(provider.network.chainId.toString()))
     if (status === 'eoa') info.push(bullet(`${address}: EOA`))
     else if (status === 'empty') warn.push(bullet(`${address}: EOA (may have code later)`))
     else if (status === 'safe') info.push(bullet(`${address}: Contract (looks safe)`))
@@ -71,24 +75,27 @@ const isHalting = (opcode: number): boolean => [STOP, RETURN, REVERT, INVALID, S
 const isPUSH = (opcode: number): boolean => opcode >= PUSH1 && opcode <= PUSH32
 
 /**
- * For a given address, check if it's an EOA, a safe contract, or a contract contain selfdestruct.
+ * For a given address, check if it's an EOA, a safe contract, or a contract contain selfdestruct
  */
 async function checkNoSelfdestruct(
-  trustedAddrs: string[],
+  whitelist: { [chainid: string]: string[] },
   addr: string,
   provider: JsonRpcProvider
 ): Promise<'safe' | 'eoa' | 'empty' | 'selfdestruct' | 'delegatecall' | 'trusted'> {
-  if (trustedAddrs.map(addr => addr.toLowerCase()).includes(addr.toLowerCase())) return 'trusted'
+  if (
+    whitelist[provider.network.chainId] &&
+    whitelist[provider.network.chainId].map((a) => a.toLowerCase()).includes(addr.toLowerCase())
+  )
+    return 'trusted'
 
   const [code, nonce] = await Promise.all([provider.getCode(addr), provider.getTransactionCount(addr)])
-
-  // If there is no code and nonce is > 0 then it's an EOA.
-  // If nonce is 0 it is an empty account that might have code later.
-  // A contract might have nonce > 0, but then it will have code.
-  // If it had code, but was selfdestructed, the nonce should be reset to 0.
+  // if there is no code and nonce is > 0 then it's an EOA
+  // if nonce is 0 it is an empty account that might have code later
+  // a contract might have nonce > 0, but then it will have code
+  // if it had code, but was selfdestructed, the nonce should be reset to 0
   if (code === '0x') return nonce > 0 ? 'eoa' : 'empty'
 
-  // Detection logic from https://github.com/MrLuit/selfdestruct-detect
+  // detection logic from https://github.com/MrLuit/selfdestruct-detect
   const bytecode = Buffer.from(code.substring(2), 'hex')
   let halted = false
   let delegatecall = false
