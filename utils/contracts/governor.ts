@@ -23,8 +23,8 @@ export async function inferGovernorType(address: string): Promise<GovernorType> 
   } catch (err) {}
 
   // TODO: Infer Arb Governor type
-  if(getAddress(address) === '0x789fC99093B09aD01C34DC7251D0C89ce743e5a4') return 'arb'
-  if(getAddress(address) === '0xf07DeD9dC292157749B6Fd268E37DF6EA38395B9') return 'arb'
+  if (getAddress(address) === '0x789fC99093B09aD01C34DC7251D0C89ce743e5a4') return 'arb'
+  if (getAddress(address) === '0xf07DeD9dC292157749B6Fd268E37DF6EA38395B9') return 'arb'
 
   return 'oz'
 }
