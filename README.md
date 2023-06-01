@@ -2,7 +2,8 @@
 
 This repository is a modified version of the Uniswap governance-seatbelt that supports Arbitrum Crosschain Governance.
 
-To test it out, configure .env and run 
+To test it out, configure .env and run
+
 ```
 // To simulate AIP 1.2
 SIM_NAME=arbcore-aip1.2 yarn start
