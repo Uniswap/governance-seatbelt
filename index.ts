@@ -45,6 +45,7 @@ async function simL2toL1(sr: SimulationResult, simname: string) {
   const parentId = proposal.id!
 
   const rawlog = sim.transaction.transaction_info.logs?.map((l) => l.raw)
+  if(!rawlog) return []
   const L2ToL1TxEvents = parseTypedLogs(ArbSys__factory, rawlog as any, 'L2ToL1Tx')
 
   const simresults = []
@@ -76,6 +77,7 @@ async function simRetryable(sr: SimulationResult, simname: string) {
   const parentId = proposal.id!
 
   const rawlog = sim.transaction.transaction_info.logs?.map((l) => l.raw)
+  if(!rawlog) return []
   const bridgeMessages = parseTypedLogs(Bridge__factory, rawlog as any, 'MessageDelivered')
   const inboxMessages = parseTypedLogs(Inbox__factory, rawlog as any, 'InboxMessageDelivered(uint256,bytes)')
   if (bridgeMessages.length !== inboxMessages.length) {

@@ -395,6 +395,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
     // this need to be L1 block number but simBlock is L2 block number
     // cannot use 0, but also need be less than current, so using 1 as a dummy value here
     governorStateOverrides = {
+      [`${proposalCoreKey}.voteStart._deadline`]: '1',
       [`${proposalCoreKey}.voteEnd._deadline`]: '1',
       [`${proposalCoreKey}.canceled`]: 'false',
       [`${proposalCoreKey}.executed`]: 'false',
