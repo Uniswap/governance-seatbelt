@@ -511,11 +511,51 @@ async function simulateExecuted(config: SimulationConfigExecuted): Promise<Simul
   const proposalExecutedEvent = proposalExecutedLogs.filter((log) => {
     return getProposalId(log.args as unknown as ProposalEvent).eq(proposalId)
   })[0]
-  if (!proposalExecutedEvent) throw new Error(`Proposal execution log for #${proposalId} not found in governor logs`)
+  let proposalExecutedTransactionHash
+  if (!proposalExecutedEvent) {
+    if (governorType === 'arb') {
+      // This is a workaround for a known issue with the Arbitrum governor when the transaction
+      // is directly executed in the timelock instead of going through the governor.
+      const timelock = new ethers.Contract(
+        await governor.timelock(),
+        [
+          'event CallExecuted(bytes32 indexed id, uint256 indexed index, address target, uint256 value, bytes data)',
+          'event CallScheduled(bytes32 indexed id, uint256 indexed index, address target, uint256 value, bytes data, bytes32 predecessor, uint256 delay)',
+        ],
+        provider
+      )
+      const [proposalQueuedLogs, callScheduledLogs, callExecutedLogs] = await Promise.all([
+        governor.queryFilter(governor.filters.ProposalQueued(), ...blockRange),
+        timelock.queryFilter(timelock.filters.CallScheduled(), ...blockRange),
+        timelock.queryFilter(timelock.filters.CallExecuted(), ...blockRange),
+      ])
+      const proposalQueuedEvent = proposalQueuedLogs.filter((log) => {
+        return getProposalId(log.args as unknown as ProposalEvent).eq(proposalId)
+      })[0]
+      // We use the first timelock call id scheduled when the proposal was queued to find the execution log
+      // note that if multiple proposals are queued in the same transaction, this may track the wrong proposal
+      const callScheduledEvent = callScheduledLogs.filter((log) => {
+        return log.transactionHash === proposalQueuedEvent.transactionHash
+      })[0]
+      const callId = (callScheduledEvent.args as unknown as ProposalEvent).id
+      const callExecutedEvent = callExecutedLogs.filter((log) => {
+        return log.args!.id === callId
+      })[0]
+      if (!callExecutedEvent) {
+        throw new Error(`Proposal execution log for #${proposalId} not found in governor logs`)
+      } else {
+        proposalExecutedTransactionHash = callExecutedEvent.transactionHash
+      }
+    } else {
+      throw new Error(`Proposal execution log for #${proposalId} not found in governor logs`)
+    }
+  } else {
+    proposalExecutedTransactionHash = proposalExecutedEvent.transactionHash
+  }
 
   // --- Simulate it ---
   // Prepare tenderly payload. Since this proposal was already executed, we directly use that transaction data
-  const tx = await provider.getTransaction(proposalExecutedEvent.transactionHash)
+  const tx = await provider.getTransaction(proposalExecutedTransactionHash)
   const simulationPayload: TenderlyPayload = {
     network_id: String(tx.chainId) as TenderlyPayload['network_id'],
     block_number: tx.blockNumber,
