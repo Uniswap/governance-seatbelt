@@ -4,7 +4,7 @@ import { JsonRpcProvider } from '@ethersproject/providers'
 
 // --- Simulation configurations ---
 // TODO Consider refactoring to an enum instead of string.
-export type GovernorType = 'oz' | 'bravo'
+export type GovernorType = 'oz' | 'bravo' | 'alpha'
 
 interface SimulationConfigBase {
   type: 'executed' | 'proposed' | 'new'

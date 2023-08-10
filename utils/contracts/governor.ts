@@ -4,6 +4,7 @@ import { toUtf8Bytes } from '@ethersproject/strings'
 import { keccak256 } from '@ethersproject/keccak256'
 import { defaultAbiCoder } from '@ethersproject/abi'
 import { provider } from '../clients/ethers'
+import { governorAlpha, getAlphaSlots } from './governor-alpha'
 import { governorBravo, getBravoSlots } from './governor-bravo'
 import { governorOz, getOzSlots } from './governor-oz'
 import { timelock } from './timelock'
@@ -11,6 +12,8 @@ import { GovernorType, ProposalEvent, ProposalStruct } from '../../types'
 
 // --- Exported methods ---
 export async function inferGovernorType(address: string): Promise<GovernorType> {
+  if (address === '0xB3a87172F555ae2a2AB79Be60B336D2F7D0187f0') return 'alpha'
+
   const abi = ['function initialProposalId() external view returns (uint256)']
   const governor = new Contract(address, abi, provider)
 
@@ -26,6 +29,7 @@ export async function inferGovernorType(address: string): Promise<GovernorType> 
 }
 
 export function getGovernor(governorType: GovernorType, address: string) {
+  if (governorType === 'alpha') return governorAlpha(address)
   if (governorType === 'bravo') return governorBravo(address)
   if (governorType === 'oz') return governorOz(address)
   throw new Error(`Unknown governor type: ${governorType}`)
@@ -37,6 +41,7 @@ export async function getProposal(
   proposalId: BigNumberish
 ): Promise<ProposalStruct> {
   const governor = getGovernor(governorType, address)
+  if (governorType === 'alpha') return governor.proposals(proposalId)
   if (governorType === 'bravo') return governor.proposals(proposalId)
 
   // Piece together the struct for OZ Governors.
@@ -63,12 +68,14 @@ export async function getProposal(
 
 export async function getTimelock(governorType: GovernorType, address: string) {
   const governor = getGovernor(governorType, address)
+  if (governorType === 'alpha') return timelock(await governor.timelock())
   if (governorType === 'bravo') return timelock(await governor.admin())
   return timelock(await governor.timelock())
 }
 
 export async function getVotingToken(governorType: GovernorType, address: string, proposalId: BigNumberish) {
   const governor = getGovernor(governorType, address)
+  if (governorType === 'alpha') return erc20(await governor.pool()) // Only supports POOL.
   if (governorType === 'bravo') {
     // Get voting token and total supply
     const govSlots = getBravoSlots(proposalId)
@@ -81,6 +88,7 @@ export async function getVotingToken(governorType: GovernorType, address: string
 }
 
 export function getGovSlots(governorType: GovernorType, proposalId: BigNumberish) {
+  if (governorType === 'alpha') return getAlphaSlots(proposalId)
   if (governorType === 'bravo') return getBravoSlots(proposalId)
   return getOzSlots(proposalId)
 }
@@ -90,6 +98,14 @@ export async function getProposalIds(
   address: string,
   latestBlockNum: number
 ): Promise<BigNumber[]> {
+  if (governorType === 'alpha') {
+    // Fetch all proposal IDs
+    const governor = governorAlpha(address)
+    const proposalCreatedLogs = await governor.queryFilter(governor.filters.ProposalCreated(), 0, latestBlockNum)
+    const allProposalIds = proposalCreatedLogs.map((logs) => (logs.args as unknown as ProposalEvent).id!)
+    return allProposalIds
+  }
+
   if (governorType === 'bravo') {
     // Fetch all proposal IDs
     const governor = governorBravo(address)
@@ -129,6 +145,7 @@ export async function generateProposalId(
     description: '',
   }
 ): Promise<BigNumber> {
+  if (governorType === 'alpha') throw new Error('generateProposalId not supported for GovernorAlpha')
   // Fetch proposal count from the contract and increment it by 1.
   if (governorType === 'bravo') {
     const count: BigNumber = await governorBravo(address).proposalCount()
