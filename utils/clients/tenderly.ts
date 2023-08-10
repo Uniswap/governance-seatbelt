@@ -296,7 +296,10 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
 
   // For Bravo governors, we use the block right after the proposal ends, and for OZ
   // governors we arbitrarily use the next block number.
-  const simBlock = governorType === 'bravo' ? proposal.endBlock!.add(1) : BigNumber.from(latestBlock.number + 1)
+  const simBlock =
+    governorType === 'bravo' || governorType === 'alpha'
+      ? proposal.endBlock!.add(1)
+      : BigNumber.from(latestBlock.number + 1)
 
   // For OZ governors we are given the earliest possible execution time. For Bravo governors, we
   // Compute the approximate earliest possible execution time based on governance parameters. This
@@ -306,7 +309,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   // proposals call methods that pass in a start timestamp that must be lower than the current
   // block timestamp (represented by the `simTimestamp` variable below)
   const simTimestamp =
-    governorType === 'bravo'
+    governorType === 'bravo' || governorType === 'alpha'
       ? BigNumber.from(latestBlock.timestamp).add(simBlock.sub(proposal.endBlock!).mul(12))
       : proposal.endTime!.add(1)
   const eta = simTimestamp // set proposal eta to be equal to the timestamp we simulate at
@@ -332,7 +335,17 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
 
   const proposalIdBn = BigNumber.from(proposalId)
   let governorStateOverrides: Record<string, string> = {}
-  if (governorType === 'bravo') {
+  if (governorType === 'alpha') {
+    const proposalKey = `proposals[${proposalIdBn.toString()}]`
+    governorStateOverrides = {
+      proposalCount: proposalId.toString(),
+      [`${proposalKey}.eta`]: eta.toString(),
+      [`${proposalKey}.canceled`]: 'false',
+      [`${proposalKey}.executed`]: 'false',
+      [`${proposalKey}.forVotes`]: votingTokenSupply.toString(),
+      [`${proposalKey}.againstVotes`]: '0',
+    }
+  } else if (governorType === 'bravo') {
     const proposalKey = `proposals[${proposalIdBn.toString()}]`
     governorStateOverrides = {
       proposalCount: proposalId.toString(),
@@ -377,7 +390,9 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   // ensure Tenderly properly parses the simulation payload
   const descriptionHash = keccak256(toUtf8Bytes(description))
   const executeInputs =
-    governorType === 'bravo' ? [proposalId.toString()] : [targets, values, calldatas, descriptionHash]
+    governorType === 'bravo' || governorType === 'alpha'
+      ? [proposalId.toString()]
+      : [targets, values, calldatas, descriptionHash]
 
   let simulationPayload: TenderlyPayload = {
     network_id: '1',

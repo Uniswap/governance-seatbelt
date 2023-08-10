@@ -78,7 +78,7 @@ async function checkNoSelfdestruct(
   addr: string,
   provider: JsonRpcProvider
 ): Promise<'safe' | 'eoa' | 'empty' | 'selfdestruct' | 'delegatecall' | 'trusted'> {
-  if (trustedAddrs.map(addr => addr.toLowerCase()).includes(addr.toLowerCase())) return 'trusted'
+  if (trustedAddrs.map((addr) => addr.toLowerCase()).includes(addr.toLowerCase())) return 'trusted'
 
   const [code, nonce] = await Promise.all([provider.getCode(addr), provider.getTransactionCount(addr)])
 
