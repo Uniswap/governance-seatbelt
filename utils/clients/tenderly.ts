@@ -645,7 +645,7 @@ async function simulateArbitrumL2ToL1(config: SimulationConfigArbL2ToL1): Promis
   if (governorType === 'oz' || governorType === 'arb') {
     const args = ITimeLock.parseTransaction({ data: calldatas[0] }).args
     let id;
-    if(args[0].length > 0) {
+    if(Array.isArray(args[0]) && args[0].length > 0) {
       id = hashOperationBatchOz(args[0], args[1], args[2], args[3], args[4])
     } else {
       id = hashOperationOz(args[0], args[1], args[2], args[3], args[4])
