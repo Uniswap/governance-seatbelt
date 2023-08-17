@@ -630,20 +630,26 @@ async function simulateArbitrumL2ToL1(config: SimulationConfigArbL2ToL1): Promis
       defaultAbiCoder.encode(['address', 'uint256', 'string', 'bytes', 'uint256'], [target, val, sig, calldata, eta])
     )
   })
-
+  
   // Generate the state object needed to mark the transactions as queued in the Timelock's storage
   const timelockStorageObj: Record<string, string> = {}
   txHashes.forEach((hash) => {
     timelockStorageObj[`queuedTransactions[${hash}]`] = 'true'
   })
-
+  const ITimeLock = new Interface([
+    'function schedule(address target, uint256 value, bytes calldata data, bytes32 predecessor, bytes32 salt, uint256 delay) external',
+    'function execute(address target, uint256 value, bytes calldata data, bytes32 predecessor, bytes32 salt) external',
+    'function scheduleBatch(address[] target, uint256[] value, bytes[] calldata data, bytes32 predecessor, bytes32 salt, uint256 delay) external',
+    'function executeBatch(address[] target, uint256[] value, bytes[] calldata data, bytes32 predecessor, bytes32 salt) external',
+  ])
   if (governorType === 'oz' || governorType === 'arb') {
-    const ITimeLock = new Interface([
-      'function schedule(address target, uint256 value, bytes calldata data, bytes32 predecessor, bytes32 salt, uint256 delay) external',
-      'function execute(address target, uint256 value, bytes calldata data, bytes32 predecessor, bytes32 salt, uint256 delay) external',
-    ])
     const args = ITimeLock.parseTransaction({ data: calldatas[0] }).args
-    const id = hashOperationOz(args[0], args[1], args[2], args[3], args[4])
+    let id;
+    if(args[0].length > 0) {
+      id = hashOperationBatchOz(args[0], args[1], args[2], args[3], args[4])
+    } else {
+      id = hashOperationOz(args[0], args[1], args[2], args[3], args[4])
+    }
     timelockStorageObj[`_timestamps[${id.toHexString()}]`] = simTimestamp.toString()
   }
 
@@ -656,10 +662,6 @@ async function simulateArbitrumL2ToL1(config: SimulationConfigArbL2ToL1): Promis
     },
   }
   const storageObj = await sendEncodeRequest(stateOverrides)
-  const iface = new ethers.utils.Interface([
-    'function schedule(address,uint256,bytes,bytes32,bytes32,uint256)',
-    'function execute(address,uint256,bytes,bytes32,bytes32)',
-  ])
 
   const simulationPayload: TenderlyPayload = {
     network_id: '1',
@@ -667,7 +669,9 @@ async function simulateArbitrumL2ToL1(config: SimulationConfigArbL2ToL1): Promis
     block_number: latestBlock.number,
     from: DEFAULT_FROM,
     to: timelock,
-    input: calldatas[0].replace(iface.getSighash('schedule'), iface.getSighash('execute')), // replace schedlue to execute
+    input: calldatas[0]
+      .replace(ITimeLock.getSighash('schedule'), ITimeLock.getSighash('execute'))
+      .replace(ITimeLock.getSighash('scheduleBatch'), ITimeLock.getSighash('executeBatch')), // replace schedule to execute
     gas: BLOCK_GAS_LIMIT,
     gas_price: '0',
     value: '1000000000000000', // retryable submission cost TODO: don't hardcode this
