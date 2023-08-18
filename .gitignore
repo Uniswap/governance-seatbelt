@@ -3,6 +3,7 @@ node_modules
 reports/
 .env
 .env.local
+.DS_Store
 
 # hardhat
 artifacts/
@@ -14,3 +15,4 @@ crytic-export/
 # other
 trace*.json
 tenderly*.json
+
