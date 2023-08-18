@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/Uniswap/governance-seatbelt#readme",
   "dependencies": {
+    "@ensdomains/ensjs": "^3.0.0-alpha.61",
     "@octokit/action": "^3.15.2",
     "@types/node": "^16.7.13",
     "dotenv": "^10.0.0",
