@@ -3,7 +3,6 @@ node_modules
 reports/
 .env
 .env.local
-new-response.json
 .DS_Store
 
 # hardhat
