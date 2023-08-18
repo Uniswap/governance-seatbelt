@@ -33,3 +33,7 @@ export const SIM_NAME = process.env.SIM_NAME ? process.env.SIM_NAME : null
 export const DAO_NAME = process.env.DAO_NAME ? process.env.DAO_NAME : null
 export const GOVERNOR_ADDRESS = process.env.GOVERNOR_ADDRESS ? process.env.GOVERNOR_ADDRESS : null
 export const REPORTS_BRANCH = 'reports'
+
+export const ARBITRUM_PRECOMPILES = new Set([
+    "0x0000000000000000000000000000000000000064", // ArbSys
+])

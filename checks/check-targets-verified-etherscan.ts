@@ -2,6 +2,7 @@ import { JsonRpcProvider } from '@ethersproject/providers'
 import { bullet, toAddressLink, getExplorer } from '../presentation/report'
 import { ProposalCheck, TenderlySimulation } from '../types'
 import { getProvider } from '../utils/utils'
+import { ARBITRUM_PRECOMPILES } from '../utils/constants'
 
 /**
  * Check all targets with code are verified on Etherscan
@@ -40,6 +41,7 @@ async function checkVerificationStatuses(
     const address = toAddressLink(addr, false, getExplorer(sim.simulation.network_id))
     if (status === 'eoa') info.push(bullet(`${address}: EOA (verification not applicable)`))
     else if (status === 'verified') info.push(bullet(`${address}: Contract (verified)`))
+    else if (ARBITRUM_PRECOMPILES.has(addr)) info.push(`${address}: Arbitrum Precompile (verification not applicable)`)
     else info.push(bullet(`${address}: Contract (not verified)`))
   }
   return info
