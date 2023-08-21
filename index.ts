@@ -103,8 +103,8 @@ async function simRetryable(sr: SimulationResult, simname: string) {
     })
   }
   const simresults = []
+  let offset = 10000
   for (const { inboxMessageEvent, bridgeMessageEvent } of messages) {
-    let offset = 10000
     if (bridgeMessageEvent.kind === InboxMessageKind.L1MessageType_submitRetryableTx) {
       const parser = new SubmitRetryableMessageDataParser()
       const parsedRetryable = parser.parse(inboxMessageEvent.data)
