@@ -1,11 +1,8 @@
 /**
- * @notice Sample simulation configuration file for a proposal that does not exist on-chain.
- * This proposal configures ENS records so the Uniswap DAO Grants Voltz an additional use grant.
- * Be aware this is identical to an already executed proposal: https://app.uniswap.org/#/vote/2/11?chain=mainnet
+ * @notice Sample simulation configuration file for the Celo bridge reconfiguration proposal.
  */
 import { SimulationConfigNew } from '../types'
 import { Interface } from '@ethersproject/abi'
-import { labelhash } from '@ensdomains/ensjs/utils/labels'
 import { namehash } from '@ensdomains/ensjs/utils/normalise'
 
 
@@ -29,7 +26,7 @@ const call1 = {
     // Key.
     '42220',
     // Value.
-    '0xf5F4496219F31CDCBa6130B5402873624585615a, 0xf7e46b233abd1edaad8dbbbda12129b97b071025',
+    '0xf5F4496219F31CDCBa6130B5402873624585615a, 0xAfE208a311B21f13EF87E33A90049fC17A7acDEc',
   ]),
   value: 0,
   signature: '',
