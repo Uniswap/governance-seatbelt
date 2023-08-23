@@ -5,7 +5,7 @@ import { SimulationConfigNew } from '../types'
 import { Interface } from '@ethersproject/abi'
 import ArbitrumDelayedInboxAbi from '../utils/abis/ArbitrumDelayedInboxAbi.json' assert { type: 'json' }
 import ArbTokenAbi from '../utils/abis/ArbTokenAbi.json' assert { type: 'json' }
-import { parseUnits } from 'ethers/lib/utils'
+import { formatEther, parseUnits } from 'ethers/lib/utils'
 
 // Get interfaces to facilitate encoding the calls we want to execute.
 const DelayedInboxInterface = new Interface(ArbitrumDelayedInboxAbi)
@@ -24,6 +24,8 @@ const gauntletAmount = parseUnits('150000', 18)
 const openBlockAmount = parseUnits('15000', 18)
 const multisigAmount = parseUnits('1835000', 18)
 
+const ethAmount = formatEther('380800000000000')
+console.log({ ethAmount })
 // get encoded function calls
 const openBlockCallBytes = ArbTokenInterface.encodeFunctionData('transfer', [openBlockAddress, openBlockAmount])
 const gauntletCallBytes = ArbTokenInterface.encodeFunctionData('transfer', [gauntletAddress, gauntletAmount])
@@ -47,7 +49,7 @@ const call1 = {
     timelockAliasAddress,
     // gasLimit uint256
     200000,
-    // maxFeePerGas uinst256
+    // maxFeePerGas uint256
     1000000000,
     // data
     openBlockCallBytes
@@ -72,7 +74,7 @@ const call2 = {
     timelockAliasAddress,
     // gasLimit uint256
     200000,
-    // maxFeePerGas uinst256
+    // maxFeePerGas uint256
     1000000000,
     // data
     gauntletCallBytes
@@ -97,7 +99,7 @@ const call3 = {
     timelockAliasAddress,
     // gasLimit uint256
     200000,
-    // maxFeePerGas uinst256
+    // maxFeePerGas uint256
     1000000000,
     // data
     multisigCallBytes
@@ -117,5 +119,5 @@ export const config: SimulationConfigNew = {
   values: calls.map(item => item.value), // Array of values with each call.
   signatures: calls.map(item => item.signature), // Array of function signatures. Leave empty if generating calldata with ethers like we do here.
   calldatas: calls.map(item => item.calldata), // Array of encoded calldatas.
-  description: 'Deploy and Populate new subdomain',
+  description: 'Send ARB to three recipients',
 }
