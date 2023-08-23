@@ -1,5 +1,5 @@
 /**
- * @notice Sample simulation configuration file for the Celo bridge reconfiguration proposal.
+ * @notice Sample simulation configuration file for the arb lm distribution proposal.
  */
 import { SimulationConfigNew } from '../types'
 import { Interface } from '@ethersproject/abi'
@@ -33,7 +33,7 @@ console.log({ openBlockCallBytes, gauntletCallBytes, multisigCallBytes })
 
 // send OpenBlock their ARB
 const call1 = {
-  target: delayedInboxAddress, // ENS Public Resolver.
+  target: delayedInboxAddress,
   calldata: DelayedInboxInterface.encodeFunctionData('createRetryableTicket', [
     // to string address
     arbTokenAddress,
@@ -58,7 +58,7 @@ const call1 = {
 
 // send Gauntlet their ARB
 const call2 = {
-  target: delayedInboxAddress, // ENS Public Resolver.
+  target: delayedInboxAddress,
   calldata: DelayedInboxInterface.encodeFunctionData('createRetryableTicket', [
     // to string address
     arbTokenAddress,
@@ -83,7 +83,7 @@ const call2 = {
 
 // send Multisig its ARB
 const call3 = {
-  target: delayedInboxAddress, // ENS Public Resolver.
+  target: delayedInboxAddress,
   calldata: DelayedInboxInterface.encodeFunctionData('createRetryableTicket', [
     // to string address
     arbTokenAddress,
