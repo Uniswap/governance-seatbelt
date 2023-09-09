@@ -118,7 +118,7 @@ const moonbeam = ensPublicResolverInterface.encodeFunctionData('setText', [
   // Node.
   subnameHash,
   // Key.
-  '288',
+  '1284',
   // Value.
   '0xf5F4496219F31CDCBa6130B5402873624585615a, 0x91FbCAe76de0b852519C26D9f8CA865b5027eeFA',
 ])
@@ -128,7 +128,7 @@ const celo = ensPublicResolverInterface.encodeFunctionData('setText', [
   // Node.
   subnameHash,
   // Key.
-  '288',
+  '42220',
   // Value.
   '0xf5F4496219F31CDCBa6130B5402873624585615a, 0x79a530c8e2fA8748B7B40dd3629C0520c2cCf03f',
 ])
