@@ -51,7 +51,7 @@ const avalanche = ensPublicResolverInterface.encodeFunctionData('setText', [
   // Key.
   '43114',
   // Value.
-  '0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f, 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f',
+  '0xeb0BCF27D1Fb4b25e708fBB815c421Aeb51eA9fc, 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f',
 ])
 
 // generate base bytes
@@ -61,7 +61,7 @@ const base = ensPublicResolverInterface.encodeFunctionData('setText', [
   // Key.
   '8453',
   // Value.
-  '0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f, 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f',
+  '0x866E82a600A1414e583f7F13623F1aC5d58b0Afa, 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f',
 ])
 
 // generate binance bytes
@@ -93,6 +93,7 @@ const gnosis = ensPublicResolverInterface.encodeFunctionData('setText', [
   // Value.
   '0xf5F4496219F31CDCBa6130B5402873624585615a, 0x7146c626be7ee5e70747aa75e295439e643fc034',
 ])
+
 // generate Boba bytes
 const boba = ensPublicResolverInterface.encodeFunctionData('setText', [
   // Node.
