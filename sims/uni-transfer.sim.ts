@@ -1,6 +1,5 @@
 /**
- * @notice Sample simulation configuration file for a proposal that does not exist on-chain.
- * This proposal simulates transferring UNI to a recipient.
+ * @notice Simulation configuration file for proposal 51.
  */
 import { SimulationConfigNew } from '../types'
 import { ERC20_ABI } from '../utils/contracts/erc20'
@@ -9,8 +8,8 @@ import { parseUnits } from '@ethersproject/units'
 
 // Token transfer parameters.
 const token = '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984' // UNI token address.
-const to = '0xdead00000000000000000000000000000000dead'
-const amount = parseUnits('100', 18) // transfer 100 UNI, which has 18 decimals
+const to = '0xe571dC7A558bb6D68FfE264c3d7BB98B0C6C73fC' // UF Treasury Safe
+const amount = parseUnits('10685984.71', 18) // transfer 10.685m UNI, which has 18 decimals
 
 // Get interface to facilitate encoding the calls we want to execute.
 const erc20Interface = new Interface(ERC20_ABI)
@@ -32,5 +31,5 @@ export const config: SimulationConfigNew = {
   values: [call1.value], // Array of values with each call.
   signatures: [call1.signature], // Array of function signatures. Leave empty if generating calldata with ethers like we do here.
   calldatas: [call1.calldata], // Array of encoded calldatas.
-  description: 'Transfer 100 UNI to 0xdead',
+  description: 'Transfer 10.685m UNI to UF Treasury',
 }
