@@ -152,6 +152,10 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
       [`${proposalKey}.forVotes`]: votingTokenSupply.toString(),
       [`${proposalKey}.againstVotes`]: '0',
       [`${proposalKey}.abstainVotes`]: '0',
+      [`${proposalKey}.targets.length`]: targets.length.toString(),
+      [`${proposalKey}.values.length`]: targets.length.toString(),
+      [`${proposalKey}.signatures.length`]: targets.length.toString(),
+      [`${proposalKey}.calldatas.length`]: targets.length.toString(),
     }
 
     targets.forEach((target, i) => {
