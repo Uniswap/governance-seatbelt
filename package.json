@@ -44,5 +44,9 @@
   },
   "devDependencies": {
     "prettier": "^2.3.2"
+  },
+  "volta": {
+    "node": "18.17.0",
+    "yarn": "1.22.21"
   }
 }
