@@ -109,19 +109,47 @@ function getSignature(call: FluffyCall) {
  * Given a target, signature, and call, generate a human-readable description
  */
 function getDescription(target: string, sig: string, call: FluffyCall) {
-  let description = `On contract \`${target}\`, call `
+  console.log('Target', target)
+  console.log('Sig', sig)
+  console.log('Call', call)
+
+  let description = ``
+
   if (!call.decoded_input) return `${description} \`${call.input}\` (not decoded)`
 
-  description += `\`${sig}\` with arguments `
-  call.decoded_input?.forEach((arg, i) => {
-    if (i !== 0) description += ', '
-    description += '`'
-    description += arg.soltype.name ? `${arg.soltype.name}=` : ''
-    description += arg.value
-    description += '`'
-  })
+  if (call.function_name === 'deployAndUpgradeTo') {
+    description += `Deploy and upgrade new implementation for [cUSDCv3](https://etherscan.io/address/${call.decoded_input[0].value}) `
+    description += `via [Configurator](https://etherscan.io/address/${target})`
+  } else if (call.function_name === 'sendMessageToChild') {
+    description += getMessageDecoding(call)
+  } else {
+    description = `[Configurator](https://etherscan.io/address/${target}).`
+    description += `\`${call.function_name}\`(["cUSDCv3"](https://etherscan.io/address/${call.decoded_input[0].value}),`
+    description += `\`${call.decoded_input[1].value}\`)`
+  }
+  // call.decoded_input?.forEach((arg, i) => {
+  //   if (i !== 0) description += ', '
+  //   description += '`'
+  //   description += arg.soltype.name ? `${arg.soltype.name}=` : ''
+  //   description += arg.value
+  //   description += '`'
+  // })
 
-  return `${description} (generic)`
+  return `${description}`
+}
+
+function getMessageDecoding(call: FluffyCall) {
+  let description = ''
+  if (!call.decoded_input) return `${description} \`${call.input}\` (not decoded)`
+  if (!call.calls) return `${description} \`${call.input}\` (not decoded)`
+
+  console.log('Dawood: ', call.calls[0].decoded_input)
+  // description += `\`${call.function_name}\`(["cUSDCv3"](https://etherscan.io/address/${call.decoded_input[0].value}),`
+  // description += `\`${call.decoded_input[1].value}\`)`
+
+  description += `Bridge wrapped actions to Polygon with [BridgeReceiver](https://polygonscan.com/address/${call.decoded_input[0].value})`
+
+  return description
 }
 
 /**
