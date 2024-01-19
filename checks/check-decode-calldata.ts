@@ -4,9 +4,19 @@ import { formatUnits } from '@ethersproject/units'
 import { ProposalCheck, FluffyCall } from '../types'
 import { ERC20_ABI, fetchTokenMetadata } from '../utils/contracts/erc20'
 import { bullet } from '../presentation/report'
+import fs from 'fs'
 
 const ierc20 = new Interface(ERC20_ABI)
+const jsonString = fs.readFileSync('./lookup/root.json', 'utf-8')
+const jsonData = JSON.parse(jsonString)
 
+interface JsonStructure {
+  [network: string]: {
+    [asset: string]: {
+      [contract: string]: string
+    }
+  }
+}
 /**
  * Decodes proposal target calldata into a human-readable format
  */
@@ -116,15 +126,16 @@ function getDescription(target: string, sig: string, call: FluffyCall) {
   let description = ``
 
   if (!call.decoded_input) return `${description} \`${call.input}\` (not decoded)`
+  const result = findKeyByValue(jsonData, target)
 
   if (call.function_name === 'deployAndUpgradeTo') {
-    description += `Deploy and upgrade new implementation for [cUSDCv3](https://etherscan.io/address/${call.decoded_input[0].value}) `
-    description += `via [Configurator](https://etherscan.io/address/${target})`
+    description += `Deploy and upgrade new implementation for ["${result?.asset}"](https://etherscan.io/address/${call.decoded_input[0].value}) `
+    description += `via [${result?.contract}](https://etherscan.io/address/${target})`
   } else if (call.function_name === 'sendMessageToChild') {
     description += getMessageDecoding(call)
   } else {
-    description = `[Configurator](https://etherscan.io/address/${target}).`
-    description += `\`${call.function_name}\`(["cUSDCv3"](https://etherscan.io/address/${call.decoded_input[0].value}),`
+    description = `[${result?.contract}](https://etherscan.io/address/${target}).`
+    description += `\`${call.function_name}\`(["${result?.asset}"](https://etherscan.io/address/${call.decoded_input[0].value}),`
     description += `\`${call.decoded_input[1].value}\`)`
   }
   // call.decoded_input?.forEach((arg, i) => {
@@ -150,6 +161,28 @@ function getMessageDecoding(call: FluffyCall) {
   description += `Bridge wrapped actions to Polygon with [BridgeReceiver](https://polygonscan.com/address/${call.decoded_input[0].value})`
 
   return description
+}
+
+function findKeyByValue(
+  json: JsonStructure,
+  targetValue: string
+): { network: string; asset: string; contract: string } | null {
+  for (const networkKey in json) {
+    const network = json[networkKey]
+
+    for (const assetKey in network) {
+      const asset = network[assetKey]
+
+      for (const contractKey in asset) {
+        const contractAddress = asset[contractKey]
+
+        if (contractAddress.toLowerCase() === targetValue.toLowerCase()) {
+          return { network: networkKey, asset: assetKey, contract: contractKey }
+        }
+      }
+    }
+  }
+  return null
 }
 
 /**
