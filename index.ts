@@ -51,7 +51,8 @@ async function main() {
 
     // Fetch all proposal IDs
     governorType = await inferGovernorType(GOVERNOR_ADDRESS)
-    const proposalIds = await getProposalIds(governorType, GOVERNOR_ADDRESS, latestBlock.number)
+    // const proposalIds = await getProposalIds(governorType, GOVERNOR_ADDRESS, latestBlock.number)
+    const proposalIds: BigNumber[] = [BigNumber.from('211')]
     governor = getGovernor(governorType, GOVERNOR_ADDRESS)
 
     // If we aren't simulating all proposals, filter down to just the active ones. For now we
@@ -110,7 +111,7 @@ async function main() {
           checkId,
           {
             name: ALL_CHECKS[checkId].name,
-            result: await ALL_CHECKS[checkId].checkProposal(proposal, sim, proposalData),
+            result: await ALL_CHECKS[checkId].checkProposal(proposal, sim, proposalData as any),
           },
         ])
       )
