@@ -119,9 +119,9 @@ function getSignature(call: FluffyCall) {
  * Given a target, signature, and call, generate a human-readable description
  */
 function getDescription(target: string, sig: string, call: FluffyCall) {
-  console.log('Target', target)
-  console.log('Sig', sig)
-  console.log('Call', call)
+  // console.log('Target', target)
+  // console.log('Sig', sig)
+  // console.log('Call', call)
 
   let description = ``
 
@@ -132,7 +132,7 @@ function getDescription(target: string, sig: string, call: FluffyCall) {
     description += `Deploy and upgrade new implementation for ["${result?.asset}"](https://etherscan.io/address/${call.decoded_input[0].value}) `
     description += `via [${result?.contract}](https://etherscan.io/address/${target})`
   } else if (call.function_name === 'sendMessageToChild') {
-    description += getMessageDecoding(call)
+    description += getMessageDecoding(call, result)
   } else {
     description = `[${result?.contract}](https://etherscan.io/address/${target}).`
     description += `\`${call.function_name}\`(["${result?.asset}"](https://etherscan.io/address/${call.decoded_input[0].value}),`
@@ -149,16 +149,16 @@ function getDescription(target: string, sig: string, call: FluffyCall) {
   return `${description}`
 }
 
-function getMessageDecoding(call: FluffyCall) {
+function getMessageDecoding(call: FluffyCall, result: { network: string; asset: string; contract: string } | null) {
   let description = ''
   if (!call.decoded_input) return `${description} \`${call.input}\` (not decoded)`
   if (!call.calls) return `${description} \`${call.input}\` (not decoded)`
 
-  console.log('Dawood: ', call.calls[0].decoded_input)
+  // console.log('Dawood: ', call.calls[0].decoded_input)
   // description += `\`${call.function_name}\`(["cUSDCv3"](https://etherscan.io/address/${call.decoded_input[0].value}),`
   // description += `\`${call.decoded_input[1].value}\`)`
 
-  description += `Bridge wrapped actions to Polygon with [BridgeReceiver](https://polygonscan.com/address/${call.decoded_input[0].value})`
+  description += `Bridge wrapped actions to Polygon with [${result?.contract}](https://polygonscan.com/address/${call.decoded_input[0].value})`
 
   return description
 }
