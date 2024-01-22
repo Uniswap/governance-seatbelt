@@ -41,6 +41,7 @@ import {
   TenderlySimulation,
 } from '../../types'
 import { writeFileSync } from 'fs'
+import { updateTargetLookup } from '../../targetLookup'
 
 const TENDERLY_FETCH_OPTIONS = { type: 'json', headers: { 'X-Access-Key': TENDERLY_ACCESS_TOKEN } }
 const DEFAULT_FROM = '0xD73a92Be73EfbFcF3854433A5FcbAbF9c1316073' // arbitrary EOA not used on-chain
@@ -239,6 +240,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
     },
   }
   const sim = await sendSimulation(simulationPayload)
+  updateTargetLookup(targets, signatures, calldatas, proposalId.toNumber())
   writeFileSync('new-response.json', JSON.stringify(sim, null, 2))
   return { sim, proposal, latestBlock }
 }
@@ -432,6 +434,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   simulationPayload.value = totalValue.toString()
   simulationPayload.state_objects![from].balance = totalValue.toString()
   sim = await sendSimulation(simulationPayload)
+  updateTargetLookup(targets, sigs, calldatas, BigNumber.from(proposalId).toNumber())
   return { sim, proposal: formattedProposal, latestBlock }
 }
 
@@ -485,6 +488,7 @@ async function simulateExecuted(config: SimulationConfigExecuted): Promise<Simul
     ...proposal,
     id: BigNumber.from(proposalId), // Make sure we always have an ID field
   }
+  updateTargetLookup(proposal.targets, proposal.signatures, proposal.calldatas, BigNumber.from(proposalId).toNumber())
   return { sim, proposal: formattedProposal, latestBlock }
 }
 
