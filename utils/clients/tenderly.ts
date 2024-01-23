@@ -53,6 +53,7 @@ const DEFAULT_FROM = '0xD73a92Be73EfbFcF3854433A5FcbAbF9c1316073' // arbitrary E
  * @param config Configuration object
  */
 export async function simulate(config: SimulationConfig) {
+  console.log('in simulation, config type', config.type)
   if (config.type === 'executed') return await simulateExecuted(config)
   else if (config.type === 'proposed') return await simulateProposed(config)
   else return await simulateNew(config)
@@ -240,7 +241,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
     },
   }
   const sim = await sendSimulation(simulationPayload)
-  updateTargetLookup(targets, signatures, calldatas, proposalId.toNumber())
+  updateTargetLookup(targets, signatures, calldatas, proposalId.toNumber(), sim.contracts)
   writeFileSync('new-response.json', JSON.stringify(sim, null, 2))
   return { sim, proposal, latestBlock }
 }
@@ -417,6 +418,8 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   }
 
   let sim = await sendSimulation(simulationPayload)
+  updateTargetLookup(targets, sigs, calldatas, BigNumber.from(proposalId).toNumber(), sim.contracts)
+
   const totalValue = values.reduce((sum, cur) => sum.add(cur), Zero)
 
   // Sim succeeded, or failure was not due to an ETH balance issue, so return the simulation.
@@ -434,7 +437,6 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   simulationPayload.value = totalValue.toString()
   simulationPayload.state_objects![from].balance = totalValue.toString()
   sim = await sendSimulation(simulationPayload)
-  updateTargetLookup(targets, sigs, calldatas, BigNumber.from(proposalId).toNumber())
   return { sim, proposal: formattedProposal, latestBlock }
 }
 
@@ -483,12 +485,18 @@ async function simulateExecuted(config: SimulationConfigExecuted): Promise<Simul
     generate_access_list: true,
   }
   const sim = await sendSimulation(simulationPayload)
+  updateTargetLookup(
+    proposal.targets,
+    proposal.signatures,
+    proposal.calldatas,
+    BigNumber.from(proposalId).toNumber(),
+    sim.contracts
+  )
 
   const formattedProposal: ProposalEvent = {
     ...proposal,
     id: BigNumber.from(proposalId), // Make sure we always have an ID field
   }
-  updateTargetLookup(proposal.targets, proposal.signatures, proposal.calldatas, BigNumber.from(proposalId).toNumber())
   return { sim, proposal: formattedProposal, latestBlock }
 }
 

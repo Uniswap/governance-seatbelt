@@ -1,4 +1,5 @@
 import fs from 'fs'
+import { TenderlyContract } from './types'
 
 interface LookupData {
   [address: string]: {
@@ -22,7 +23,8 @@ export function updateTargetLookup(
   addresses: string[],
   functions: string[],
   calldata: string[],
-  proposalID: number
+  proposalID: number,
+  contracts: TenderlyContract[]
 ): void {
   let lookupData: LookupData = {}
 
@@ -51,19 +53,32 @@ export function updateTargetLookup(
     //     proposals: {},
     //   }
     // }
-
-    lookupData[address] ||= { contractName: '', functions: {}, proposals: [] }
+    let matchingContract = contracts.find((contract) => contract.address === address)
+    lookupData[address] ||= {
+      contractName: matchingContract?.contract_name || 'Unknown Contract Name',
+      functions: {},
+      proposals: [],
+    }
     lookupData[address].functions[functionName] ||= {
       description: functionName,
       descriptionTemplate: '',
       proposals: {},
     }
 
+    // Debugging logs
+    console.log(`Processing address: ${address}, proposalID: ${proposalID}`)
+    console.log('Existing proposals:', lookupData[address].proposals)
+    console.log('Existing functions proposals:', lookupData[address].functions[functionName].proposals)
+
     if (!lookupData[address].proposals.includes(proposalID)) {
       lookupData[address].proposals.push(proposalID)
+      console.log('Added proposalID to proposals array')
+    } else {
+      console.log('ProposalID already exists in proposals array')
     }
 
     lookupData[address].functions[functionName].proposals[proposalID.toString()] = callData
+    lookupData[address].contractName = matchingContract?.contract_name || 'Unknown Contract Name'
   }
 
   fs.writeFileSync(targetLookupFilePath, JSON.stringify(lookupData, null, 2), 'utf-8')
