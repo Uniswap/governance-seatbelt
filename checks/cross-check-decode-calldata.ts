@@ -1,4 +1,3 @@
-import { abis } from './../abis/abis'
 import { ProposalCheck, ProposalData } from '@/types'
 import { Interface, AbiCoder } from '@ethersproject/abi'
 import fs from 'fs'
@@ -28,7 +27,7 @@ interface LookupData {
 export const crossCheckDecodeCalldata: ProposalCheck = {
   name: 'Decodes target calldata into a human-readable format',
   async checkProposal(proposal, sim, deps: ProposalData) {
-    const { targets: addresses, signatures: functions, calldatas: calldata } = proposal
+    const { targets: targets, signatures: signatures, calldatas: calldatas } = proposal
 
     const proposalID = proposal.id?.toNumber() || 0
 
@@ -41,65 +40,67 @@ export const crossCheckDecodeCalldata: ProposalCheck = {
       lookupData = JSON.parse(fileContent)
     }
 
-    for (let i = 0; i < addresses.length; i++) {
-      const target = addresses[i]
-      const functionName = functions[i]
-      const callData = calldata[i]
+    for (const [i, target] of targets.entries()) {
+      try {
+        const functionName = signatures[i]
+        const calldata = calldatas[i]
 
-      let matchingContract = contracts.find((contract) => contract.address === target)
-      lookupData[target] ||= {
-        contractName: matchingContract?.contract_name || 'Unknown Contract Name',
-        functions: {},
-        proposals: [],
-      }
-      lookupData[target].functions[functionName] ||= {
-        description: functionName,
-        descriptionTemplate: '',
-        proposals: {},
-      }
+        let matchingContract = contracts.find((contract) => contract.address === target)
+        lookupData[target] ||= {
+          contractName: matchingContract?.contract_name || 'Unknown Contract Name',
+          functions: {},
+          proposals: [],
+        }
+        lookupData[target].functions[functionName] ||= {
+          description: functionName,
+          descriptionTemplate: '',
+          proposals: {},
+        }
 
-      // Debugging logs
-      const abi = abis[target.toLowerCase()]
+        // Debugging logs
+        const abi = await getContractAbiFromFile(target)
 
-      if (!abi) {
-        console.log('No ABI found for address:', target)
-        throw new Error('No ABI found for address ' + target)
-      }
-      const iface = new Interface(abi.abi)
+        if (!abi) {
+          console.log('No ABI found for address:', target)
+          throw new Error('No ABI found for address ' + target)
+        }
+        const iface = new Interface(abi)
 
-      const fun = iface.getFunction(functionName)
-      const parsedData = iface._decodeParams(fun.inputs, callData)
-      // const parsedData = iface.decodeFunctionData(functionName, callData)
-      await storeContractNameAndAbi(target)
-      console.log('target:', target)
-      console.log('function:', functionName)
-      console.log(
-        'Decoded data:',
-        parsedData.map((data) => data.toString()),
-      )
-
-      const abiCoder = new AbiCoder()
-
-      if (functionName.startsWith('sendMessageToChild')) {
-        const parsedDataToBridge = parsedData.at(1).toString()
-        console.log('Decoded data to bridge:', parsedDataToBridge)
-        const decoded = abiCoder.decode(['address[]', 'uint256[]', 'string[]', 'bytes[]'], parsedDataToBridge)
+        const fun = iface.getFunction(functionName)
+        const parsedData = iface._decodeParams(fun.inputs, calldata)
+        // const parsedData = iface.decodeFunctionData(functionName, callData)
+        console.log('target:', target)
+        console.log('function:', functionName)
         console.log(
-          'Decoded data to bridge:',
-
-          decoded.map((data) => data),
+          'Decoded data:',
+          parsedData.map((data) => data.toString()),
         )
-      }
 
-      if (!lookupData[target].proposals.includes(proposalID)) {
-        lookupData[target].proposals.push(proposalID)
-        console.log('Added proposalID to proposals array')
-      } else {
-        console.log('ProposalID already exists in proposals array')
-      }
+        const abiCoder = new AbiCoder()
 
-      lookupData[target].functions[functionName].proposals[proposalID.toString()] = callData
-      lookupData[target].contractName = matchingContract?.contract_name || 'Unknown Contract Name'
+        if (functionName.startsWith('sendMessageToChild')) {
+          const parsedDataToBridge = parsedData.at(1).toString()
+          console.log('Decoded data to bridge:', parsedDataToBridge)
+          const decoded = abiCoder.decode(['address[]', 'uint256[]', 'string[]', 'bytes[]'], parsedDataToBridge)
+          console.log(
+            'Decoded data to bridge:',
+
+            decoded.map((data) => data),
+          )
+        }
+
+        if (!lookupData[target].proposals.includes(proposalID)) {
+          lookupData[target].proposals.push(proposalID)
+          console.log('Added proposalID to proposals array')
+        } else {
+          console.log('ProposalID already exists in proposals array')
+        }
+
+        lookupData[target].functions[functionName].proposals[proposalID.toString()] = calldata
+        lookupData[target].contractName = matchingContract?.contract_name || 'Unknown Contract Name'
+      } catch (e) {
+        console.log('Error decoding calldata:', targets[i], signatures[i], calldatas[i])
+      }
     }
 
     fs.writeFileSync(targetLookupFilePath, JSON.stringify(lookupData, null, 2), 'utf-8')
@@ -108,6 +109,19 @@ export const crossCheckDecodeCalldata: ProposalCheck = {
   },
 }
 
+async function getContractAbiFromFile(addr: string) {
+  const address = addr.toLowerCase()
+  // read abi from file in contracts folder
+  const abiFilePath = `./contracts/${address}.json`
+  if (fs.existsSync(abiFilePath)) {
+    const fileContent = fs.readFileSync(abiFilePath, 'utf-8')
+    const abiFile = JSON.parse(fileContent)
+    return abiFile.abi
+  } else {
+    await storeContractNameAndAbi(address)
+    return getContractAbiFromFile(address)
+  }
+}
 async function storeContractNameAndAbi(addr: string) {
   const address = addr.toLowerCase()
   const { contractName, abi } = await getContractNameAndAbi(address)
@@ -116,6 +130,7 @@ async function storeContractNameAndAbi(addr: string) {
   fs.writeFileSync(abiFilePath, abiFileContent, 'utf-8')
 }
 async function getContractNameAndAbi(address: string) {
+  console.log('Fetching contract name and ABI for address:', address)
   const contractResponse = await fetchUrl(
     `https://api.etherscan.io/api?module=contract&action=getsourcecode&address=${address}&apikey=${process.env.ETHERSCAN_API_KEY}`,
   )
@@ -128,14 +143,24 @@ async function getContractNameAndAbi(address: string) {
     )
     const implResult = implResponse.result[0]
 
+    const abi = implResult.ABI
+    if (!abi) {
+      console.log('No ABI found for address:', address, implResponse)
+      throw new Error('No ABI found for address ' + address)
+    }
     return {
       contractName: implResult.ContractName,
-      abi: implResult.ABI || [],
+      abi: abi,
     }
   }
 
+  const abi = contractResult.ABI
+  if (!abi) {
+    console.log('No ABI found for address:', address, contractResponse)
+    throw new Error('No ABI found for address ' + address)
+  }
   return {
     contractName: contractResult.ContractName,
-    abi: contractResult.ABI || [],
+    abi: abi,
   }
 }
