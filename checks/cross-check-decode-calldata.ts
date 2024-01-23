@@ -1,4 +1,6 @@
+import { abis } from './../abis/abis'
 import { ProposalCheck, ProposalData } from '@/types'
+import { Interface } from '@ethersproject/abi'
 import fs from 'fs'
 
 interface LookupData {
@@ -37,51 +39,48 @@ export const crossCheckDecodeCalldata: ProposalCheck = {
     }
 
     for (let i = 0; i < addresses.length; i++) {
-      const address = addresses[i]
+      const target = addresses[i]
       const functionName = functions[i]
       const callData = calldata[i]
 
-      // if (!lookupData[address]) {
-      //   lookupData[address] = {
-      //     contractName: '',
-      //     functions: {},
-      //     proposals: [],
-      //   }
-      // }
-
-      // if (!lookupData[address].functions[functionName]) {
-      //   lookupData[address].functions[functionName] = {
-      //     description: functionName,
-      //     descriptionTemplate: '',
-      //     proposals: {},
-      //   }
-      // }
-      let matchingContract = contracts.find((contract) => contract.address === address)
-      lookupData[address] ||= {
+      let matchingContract = contracts.find((contract) => contract.address === target)
+      lookupData[target] ||= {
         contractName: matchingContract?.contract_name || 'Unknown Contract Name',
         functions: {},
         proposals: [],
       }
-      lookupData[address].functions[functionName] ||= {
+      lookupData[target].functions[functionName] ||= {
         description: functionName,
         descriptionTemplate: '',
         proposals: {},
       }
 
       // Debugging logs
-      console.log(`Processing address: ${address}, proposalID: ${proposalID}`)
-      console.log('Existing proposals:', lookupData[address].proposals)
-      console.log('Existing functions proposals:', lookupData[address].functions[functionName].proposals)
+      const abi = abis[target.toLowerCase()]
+      if (!abi) {
+        console.log('No ABI found for address:', target)
+        throw new Error('No ABI found for address ' + target)
+      }
+      const iface = new Interface(abi.abi)
+      const fun = iface.getFunction(functionName)
+      const parsedData = iface._decodeParams(fun.inputs, callData)
+      // const parsedData = iface.decodeFunctionData(functionName, callData)
+      console.log('target:', target)
+      console.log('function:', functionName)
+      console.log(
+        'Decoded data:',
+        parsedData.map((data) => data.toString()),
+      )
 
-      if (!lookupData[address].proposals.includes(proposalID)) {
-        lookupData[address].proposals.push(proposalID)
+      if (!lookupData[target].proposals.includes(proposalID)) {
+        lookupData[target].proposals.push(proposalID)
         console.log('Added proposalID to proposals array')
       } else {
         console.log('ProposalID already exists in proposals array')
       }
 
-      lookupData[address].functions[functionName].proposals[proposalID.toString()] = callData
-      lookupData[address].contractName = matchingContract?.contract_name || 'Unknown Contract Name'
+      lookupData[target].functions[functionName].proposals[proposalID.toString()] = callData
+      lookupData[target].contractName = matchingContract?.contract_name || 'Unknown Contract Name'
     }
 
     fs.writeFileSync(targetLookupFilePath, JSON.stringify(lookupData, null, 2), 'utf-8')
