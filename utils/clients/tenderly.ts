@@ -41,7 +41,6 @@ import {
   TenderlySimulation,
 } from '../../types'
 import { writeFileSync } from 'fs'
-import { updateTargetLookup } from '../../targetLookup'
 
 const TENDERLY_FETCH_OPTIONS = { type: 'json', headers: { 'X-Access-Key': TENDERLY_ACCESS_TOKEN } }
 const DEFAULT_FROM = '0xD73a92Be73EfbFcF3854433A5FcbAbF9c1316073' // arbitrary EOA not used on-chain
@@ -123,7 +122,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
   const txHashes = targets.map((target, i) => {
     const [val, sig, calldata] = [values[i], signatures[i], calldatas[i]]
     return keccak256(
-      defaultAbiCoder.encode(['address', 'uint256', 'string', 'bytes', 'uint256'], [target, val, sig, calldata, eta])
+      defaultAbiCoder.encode(['address', 'uint256', 'string', 'bytes', 'uint256'], [target, val, sig, calldata, eta]),
     )
   })
 
@@ -241,7 +240,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
     },
   }
   const sim = await sendSimulation(simulationPayload)
-  updateTargetLookup(targets, signatures, calldatas, proposalId.toNumber(), sim.contracts)
+
   writeFileSync('new-response.json', JSON.stringify(sim, null, 2))
   return { sim, proposal, latestBlock }
 }
@@ -318,7 +317,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const txHashes = targets.map((target, i) => {
     const [val, sig, calldata] = [values[i], sigs[i], calldatas[i]]
     return keccak256(
-      defaultAbiCoder.encode(['address', 'uint256', 'string', 'bytes', 'uint256'], [target, val, sig, calldata, eta])
+      defaultAbiCoder.encode(['address', 'uint256', 'string', 'bytes', 'uint256'], [target, val, sig, calldata, eta]),
     )
   })
 
@@ -418,7 +417,6 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   }
 
   let sim = await sendSimulation(simulationPayload)
-  updateTargetLookup(targets, sigs, calldatas, BigNumber.from(proposalId).toNumber(), sim.contracts)
 
   const totalValue = values.reduce((sum, cur) => sum.add(cur), Zero)
 
@@ -485,13 +483,6 @@ async function simulateExecuted(config: SimulationConfigExecuted): Promise<Simul
     generate_access_list: true,
   }
   const sim = await sendSimulation(simulationPayload)
-  updateTargetLookup(
-    proposal.targets,
-    proposal.signatures,
-    proposal.calldatas,
-    BigNumber.from(proposalId).toNumber(),
-    sim.contracts
-  )
 
   const formattedProposal: ProposalEvent = {
     ...proposal,
@@ -593,7 +584,7 @@ async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<T
     }
     console.warn(err)
     console.warn(
-      `Simulation request failed with the above error, retrying in ~${delay} milliseconds. See request payload below`
+      `Simulation request failed with the above error, retrying in ~${delay} milliseconds. See request payload below`,
     )
     console.log(JSON.stringify(payload))
     await sleep(delay + randomInt(0, 1000))

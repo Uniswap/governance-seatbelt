@@ -53,7 +53,7 @@ async function main() {
     governorType = await inferGovernorType(GOVERNOR_ADDRESS)
     // const proposalIds = await getProposalIds(governorType, GOVERNOR_ADDRESS, latestBlock.number)
     // const proposalIds: BigNumber[] = [BigNumber.from('213')]
-    const proposalIdsArr = [209, 208, 207, 206, 205, 204, 203, 202, 201, 200]
+    const proposalIdsArr = [211, 210, 209] // [211, 210, 209, 208, 207, 206, 205, 204, 203, 202, 201, 200]
     const proposalIds = proposalIdsArr.map((id) => BigNumber.from(id))
 
     governor = getGovernor(governorType, GOVERNOR_ADDRESS)
@@ -78,7 +78,7 @@ async function main() {
     console.log(
       `Simulating ${numProposals} ${DAO_NAME} proposals: IDs of ${simProposalsIds
         .map((id) => formatProposalId(governorType, id))
-        .join(', ')}`
+        .join(', ')}`,
     )
 
     for (const simProposal of simProposals) {
@@ -116,8 +116,8 @@ async function main() {
             name: ALL_CHECKS[checkId].name,
             result: await ALL_CHECKS[checkId].checkProposal(proposal, sim, proposalData),
           },
-        ])
-      )
+        ]),
+      ),
     )
 
     // Generate markdown report.
@@ -134,7 +134,7 @@ async function main() {
       { start: startBlock, end: endBlock, current: latestBlock },
       proposal,
       checkResults,
-      dir
+      dir,
     )
   }
   console.log('Done!')
