@@ -130,6 +130,8 @@ async function storeContractNameAndAbi(addr: string) {
   fs.writeFileSync(abiFilePath, abiFileContent, 'utf-8')
 }
 async function getContractNameAndAbi(address: string) {
+  // Add delay to avoid rate limiting from etherscan api
+  await delay(2000)
   console.log('Fetching contract name and ABI for address:', address)
   const contractResponse = await fetchUrl(
     `https://api.etherscan.io/api?module=contract&action=getsourcecode&address=${address}&apikey=${process.env.ETHERSCAN_API_KEY}`,
@@ -163,4 +165,8 @@ async function getContractNameAndAbi(address: string) {
     contractName: contractResult.ContractName,
     abi: abi,
   }
+}
+
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }

@@ -53,7 +53,7 @@ async function main() {
     governorType = await inferGovernorType(GOVERNOR_ADDRESS)
     // const proposalIds = await getProposalIds(governorType, GOVERNOR_ADDRESS, latestBlock.number)
     // const proposalIds: BigNumber[] = [BigNumber.from('213')]
-    const proposalIdsArr = [211] // [211, 210, 209, 208, 207, 206, 205, 204, 203, 202, 201, 200]
+    const proposalIdsArr = [207, 206, 205, 204, 203, 202, 201, 200] // [211, 210, 209, 208, 207, 206, 205, 204, 203, 202, 201, 200]
     const proposalIds = proposalIdsArr.map((id) => BigNumber.from(id))
 
     governor = getGovernor(governorType, GOVERNOR_ADDRESS)
