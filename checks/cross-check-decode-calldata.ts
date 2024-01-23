@@ -1,6 +1,6 @@
 import { abis } from './../abis/abis'
 import { ProposalCheck, ProposalData } from '@/types'
-import { Interface } from '@ethersproject/abi'
+import { Interface, AbiCoder } from '@ethersproject/abi'
 import fs from 'fs'
 
 interface LookupData {
@@ -57,11 +57,13 @@ export const crossCheckDecodeCalldata: ProposalCheck = {
 
       // Debugging logs
       const abi = abis[target.toLowerCase()]
+
       if (!abi) {
         console.log('No ABI found for address:', target)
         throw new Error('No ABI found for address ' + target)
       }
       const iface = new Interface(abi.abi)
+
       const fun = iface.getFunction(functionName)
       const parsedData = iface._decodeParams(fun.inputs, callData)
       // const parsedData = iface.decodeFunctionData(functionName, callData)
@@ -71,6 +73,19 @@ export const crossCheckDecodeCalldata: ProposalCheck = {
         'Decoded data:',
         parsedData.map((data) => data.toString()),
       )
+
+      const abiCoder = new AbiCoder()
+
+      if (functionName.startsWith('sendMessageToChild')) {
+        const parsedDataToBridge = parsedData.at(1).toString()
+        console.log('Decoded data to bridge:', parsedDataToBridge)
+        const decoded = abiCoder.decode(['address[]', 'uint256[]', 'string[]', 'bytes[]'], parsedDataToBridge)
+        console.log(
+          'Decoded data to bridge:',
+
+          decoded.map((data) => data),
+        )
+      }
 
       if (!lookupData[target].proposals.includes(proposalID)) {
         lookupData[target].proposals.push(proposalID)
