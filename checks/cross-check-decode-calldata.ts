@@ -1,11 +1,11 @@
-import { ProposalCheck, ProposalData } from '@/types'
-import { Interface, AbiCoder } from '@ethersproject/abi'
+import { ProposalCheck, ProposalData, ProposalEvent, TenderlyContract } from '@/types'
+import { Interface, AbiCoder, FunctionFragment } from '@ethersproject/abi'
 import fs from 'fs'
 import mftch, { FETCH_OPT } from 'micro-ftch'
 // @ts-ignore
 const fetchUrl = mftch.default
 
-interface LookupData {
+interface TargetLookupData {
   [address: string]: {
     contractName: string
     functions: {
@@ -13,7 +13,7 @@ interface LookupData {
         description: string
         descriptionTemplate: string
         proposals: {
-          [proposalNumber: string]: string
+          [proposalNumber: string]: string[]
         }
       }
     }
@@ -29,11 +29,8 @@ export const crossCheckDecodeCalldata: ProposalCheck = {
   async checkProposal(proposal, sim, deps: ProposalData) {
     const { targets: targets, signatures: signatures, calldatas: calldatas } = proposal
 
-    const proposalID = proposal.id?.toNumber() || 0
-
-    const { contracts } = sim
     const targetLookupFilePath = './lookup/verifyLookup.json'
-    let lookupData: LookupData = {}
+    let lookupData: TargetLookupData = {}
 
     if (fs.existsSync(targetLookupFilePath)) {
       const fileContent = fs.readFileSync(targetLookupFilePath, 'utf-8')
@@ -41,72 +38,90 @@ export const crossCheckDecodeCalldata: ProposalCheck = {
     }
 
     for (const [i, target] of targets.entries()) {
-      try {
-        const functionName = signatures[i]
-        const calldata = calldatas[i]
+      const functionName = signatures[i]
+      const calldata = calldatas[i]
 
-        let matchingContract = contracts.find((contract) => contract.address === target)
-        lookupData[target] ||= {
-          contractName: matchingContract?.contract_name || 'Unknown Contract Name',
-          functions: {},
-          proposals: [],
-        }
-        lookupData[target].functions[functionName] ||= {
-          description: functionName,
-          descriptionTemplate: '',
-          proposals: {},
-        }
-
-        // Debugging logs
-        const abi = await getContractAbiFromFile(target)
-
-        if (!abi) {
-          console.log('No ABI found for address:', target)
-          throw new Error('No ABI found for address ' + target)
-        }
-        const iface = new Interface(abi)
-
-        const fun = iface.getFunction(functionName)
-        const parsedData = iface._decodeParams(fun.inputs, calldata)
-        // const parsedData = iface.decodeFunctionData(functionName, callData)
-        console.log('target:', target)
-        console.log('function:', functionName)
-        console.log(
-          'Decoded data:',
-          parsedData.map((data) => data.toString()),
-        )
-
-        const abiCoder = new AbiCoder()
-
-        if (functionName.startsWith('sendMessageToChild')) {
-          const parsedDataToBridge = parsedData.at(1).toString()
-          console.log('Decoded data to bridge:', parsedDataToBridge)
-          const decoded = abiCoder.decode(['address[]', 'uint256[]', 'string[]', 'bytes[]'], parsedDataToBridge)
-          console.log(
-            'Decoded data to bridge:',
-
-            decoded.map((data) => data),
-          )
-        }
-
-        if (!lookupData[target].proposals.includes(proposalID)) {
-          lookupData[target].proposals.push(proposalID)
-          console.log('Added proposalID to proposals array')
-        } else {
-          console.log('ProposalID already exists in proposals array')
-        }
-
-        lookupData[target].functions[functionName].proposals[proposalID.toString()] = calldata
-        lookupData[target].contractName = matchingContract?.contract_name || 'Unknown Contract Name'
-      } catch (e) {
-        console.log('Error decoding calldata:', targets[i], signatures[i], calldatas[i])
-      }
+      await storeTargetInfo(proposal, lookupData, target, functionName, calldata)
     }
 
     fs.writeFileSync(targetLookupFilePath, JSON.stringify(lookupData, null, 2), 'utf-8')
 
     return { info: [], warnings: [], errors: [] }
   },
+}
+
+async function storeTargetInfo(
+  proposal: ProposalEvent,
+  targetLookupData: TargetLookupData,
+  target: string,
+  signature: string, // can be empty string
+  calldata: string,
+) {
+  const proposalId = proposal.id?.toNumber() || 0
+  try {
+    // Debugging logs
+    const abi = await getContractAbiFromFile(target)
+
+    if (!abi) {
+      console.log('No ABI found for address:', target)
+      throw new Error('No ABI found for address ' + target)
+    }
+    const iface = new Interface(abi)
+
+    let decodedCalldata
+
+    let fun: FunctionFragment
+    if (signature.trim()) {
+      fun = iface.getFunction(signature)
+      decodedCalldata = iface._decodeParams(fun.inputs, calldata)
+    } else {
+      fun = iface.getFunction(calldata.slice(0, 10))
+      const data = calldata.slice(10)
+      console.error('data:', data)
+      decodedCalldata = iface._decodeParams(fun.inputs, `0x${data}`)
+    }
+
+    const functionSignature = `${fun.name}(${fun.inputs.map((input) => input.type).join(',')})`
+
+    targetLookupData[target] ||= {
+      contractName: '',
+      functions: {},
+      proposals: [],
+    }
+    targetLookupData[target].functions[functionSignature] ||= {
+      description: functionSignature,
+      descriptionTemplate: '',
+      proposals: {},
+    }
+
+    const abiCoder = new AbiCoder()
+
+    if (functionSignature.startsWith('sendMessageToChild')) {
+      const parsedDataToBridge = decodedCalldata.at(1).toString()
+      console.log('Decoded data to bridge:', parsedDataToBridge)
+      const decoded = abiCoder.decode(['address[]', 'uint256[]', 'string[]', 'bytes[]'], parsedDataToBridge)
+      console.log(
+        'Decoded data to bridge:',
+
+        decoded.map((data) => data),
+      )
+    }
+
+    if (!targetLookupData[target].proposals.includes(proposalId)) {
+      targetLookupData[target].proposals.push(proposalId)
+      console.log('Added proposalID to proposals array')
+    } else {
+      console.log('ProposalID already exists in proposals array')
+    }
+
+    console.log(`Decoded target: ${target} signature: ${functionSignature} calldata:${decodedCalldata}`)
+    targetLookupData[target].functions[functionSignature].proposals[proposalId.toString()] = decodedCalldata.map(
+      (data) => data.toString(),
+    )
+  } catch (e) {
+    console.error(e)
+    console.log(`Error decoding proposal: ${proposalId} target: ${target} signature: ${signature} calldata:${calldata}`)
+  }
 }
 
 async function getContractAbiFromFile(addr: string) {
