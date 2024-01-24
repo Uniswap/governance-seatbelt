@@ -4,6 +4,7 @@ import {
 } from './check-targets-verified-etherscan'
 import { checkTargetsNoSelfdestruct, checkTouchedContractsNoSelfdestruct } from './check-targets-no-selfdestruct'
 import { checkDecodeCalldata } from './check-decode-calldata'
+import { crossCheckDecodeCalldata } from './cross-check-decode-calldata'
 import { checkLogs } from './check-logs'
 import { checkSlither } from './check-slither'
 import { checkSolc } from './check-solc'
@@ -26,6 +27,7 @@ const ALL_CHECKS: {
   // which is consumed by slither. This prevents us from having to compile the contracts twice.
   checkSolc,
   checkSlither,
+  crossCheckDecodeCalldata,
 }
 
 export default ALL_CHECKS
