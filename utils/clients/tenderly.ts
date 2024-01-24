@@ -52,7 +52,6 @@ const DEFAULT_FROM = '0xD73a92Be73EfbFcF3854433A5FcbAbF9c1316073' // arbitrary E
  * @param config Configuration object
  */
 export async function simulate(config: SimulationConfig) {
-  console.log('in simulation, config type', config.type)
   if (config.type === 'executed') return await simulateExecuted(config)
   else if (config.type === 'proposed') return await simulateProposed(config)
   else return await simulateNew(config)
@@ -122,7 +121,7 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
   const txHashes = targets.map((target, i) => {
     const [val, sig, calldata] = [values[i], signatures[i], calldatas[i]]
     return keccak256(
-      defaultAbiCoder.encode(['address', 'uint256', 'string', 'bytes', 'uint256'], [target, val, sig, calldata, eta]),
+      defaultAbiCoder.encode(['address', 'uint256', 'string', 'bytes', 'uint256'], [target, val, sig, calldata, eta])
     )
   })
 
@@ -240,7 +239,6 @@ async function simulateNew(config: SimulationConfigNew): Promise<SimulationResul
     },
   }
   const sim = await sendSimulation(simulationPayload)
-
   writeFileSync('new-response.json', JSON.stringify(sim, null, 2))
   return { sim, proposal, latestBlock }
 }
@@ -317,7 +315,7 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   const txHashes = targets.map((target, i) => {
     const [val, sig, calldata] = [values[i], sigs[i], calldatas[i]]
     return keccak256(
-      defaultAbiCoder.encode(['address', 'uint256', 'string', 'bytes', 'uint256'], [target, val, sig, calldata, eta]),
+      defaultAbiCoder.encode(['address', 'uint256', 'string', 'bytes', 'uint256'], [target, val, sig, calldata, eta])
     )
   })
 
@@ -417,7 +415,6 @@ async function simulateProposed(config: SimulationConfigProposed): Promise<Simul
   }
 
   let sim = await sendSimulation(simulationPayload)
-
   const totalValue = values.reduce((sum, cur) => sum.add(cur), Zero)
 
   // Sim succeeded, or failure was not due to an ETH balance issue, so return the simulation.
@@ -584,7 +581,7 @@ async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<T
     }
     console.warn(err)
     console.warn(
-      `Simulation request failed with the above error, retrying in ~${delay} milliseconds. See request payload below`,
+      `Simulation request failed with the above error, retrying in ~${delay} milliseconds. See request payload below`
     )
     console.log(JSON.stringify(payload))
     await sleep(delay + randomInt(0, 1000))
