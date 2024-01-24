@@ -53,7 +53,7 @@ async function main() {
     governorType = await inferGovernorType(GOVERNOR_ADDRESS)
     // const proposalIds = await getProposalIds(governorType, GOVERNOR_ADDRESS, latestBlock.number)
     // const proposalIds: BigNumber[] = [BigNumber.from('213')]
-    const proposalIdsArr = [211, 210, 209, 208, 207, 206, 205, 204, 203, 202, 201, 200] // [211, 210, 209, 208, 207, 206, 205, 204, 203, 202, 201, 200]
+    const proposalIdsArr = [202, 201, 200] // [211, 210, 209, 208, 207, 206, 205, 204, 203, 202, 201, 200]
     const proposalIds = proposalIdsArr.map((id) => BigNumber.from(id))
 
     governor = getGovernor(governorType, GOVERNOR_ADDRESS)
@@ -108,9 +108,13 @@ async function main() {
     // Run checks
     const { sim, proposal, latestBlock, config } = simOutput
     console.log(`  Running for proposal ID ${formatProposalId(governorType, proposal.id!)}...`)
+    const checksToRun = Object.keys(ALL_CHECKS).filter(
+      (k) => !process.env.CHECKS_ENABLED || process.env.CHECKS_ENABLED.split(',').includes(k),
+    )
+    console.log(`Running ${checksToRun.length} checks: ${checksToRun.join(', ')} for proposal ID ${proposal.id!}`)
     const checkResults: AllCheckResults = Object.fromEntries(
       await Promise.all(
-        Object.keys(ALL_CHECKS).map(async (checkId) => [
+        checksToRun.map(async (checkId) => [
           checkId,
           {
             name: ALL_CHECKS[checkId].name,
