@@ -4,7 +4,7 @@
 
 import dotenv from 'dotenv'
 dotenv.config()
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber, constants, Contract } from 'ethers'
 import { DAO_NAME, GOVERNOR_ADDRESS, SIM_NAME } from './utils/constants'
 import { provider } from './utils/clients/ethers'
 import { simulate } from './utils/clients/tenderly'
@@ -51,10 +51,10 @@ async function main() {
 
     // Fetch all proposal IDs
     governorType = await inferGovernorType(GOVERNOR_ADDRESS)
-    const proposalIds = await getProposalIds(governorType, GOVERNOR_ADDRESS, latestBlock.number)
+    // const proposalIds = await getProposalIds(governorType, GOVERNOR_ADDRESS, latestBlock.number)
     // const proposalIds: BigNumber[] = [BigNumber.from('213')]
-    // const proposalIdsArr = [211, 210, 209, 208, 207, 206, 205, 204, 203, 202, 201, 200, 199, 198, 197] // [211, 210, 209, 208, 207, 206, 205, 204, 203, 202, 201, 200]
-    // const proposalIds = proposalIdsArr.map((id) => BigNumber.from(id))
+    const proposalIdsArr = [171] // [211, 210, 209, 208, 207, 206, 205, 204, 203, 202, 201, 200]
+    const proposalIds = proposalIdsArr.map((id) => BigNumber.from(id))
 
     governor = getGovernor(governorType, GOVERNOR_ADDRESS)
 
