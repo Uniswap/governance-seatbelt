@@ -3,10 +3,9 @@ import { BigNumber } from '@ethersproject/bignumber'
 import fs from 'fs'
 import mftch from 'micro-ftch'
 import { ProposalCheck, ProposalData } from './../../types'
-import { getContractNameAndAbiFromFile } from './abi-utils'
-import { getFunctionSignature } from './calldata-decode-util'
+import { getContractNameAndAbiFromFile, getFunctionSignature } from './abi-utils'
 import { CometChains, ExecuteTransactionsInfo, TargetLookupData } from './compound-types'
-import { getDecodedBytesForBase } from './l2-utils'
+import { getDecodedBytesForArbitrum, getDecodedBytesForBase, getDecodedBytesForPolygon } from './l2-utils'
 // @ts-ignore
 const fetchUrl = mftch.default
 
@@ -24,7 +23,9 @@ async function updateLookupFile(chain: CometChains, proposalId: number, transact
   for (const [i, targetNoCase] of targets.entries()) {
     const target = targetNoCase.toLowerCase()
     if (target === '0x4dbd4fc535ac27206064b68ffcf827b0a60bab3f') {
-      // arbitrum
+      const arbitrumTransactionsInfo = await getDecodedBytesForArbitrum(target, signatures[i], calldatas[i])
+      console.log('arbitrumTransactionsInfo:', arbitrumTransactionsInfo)
+      await updateLookupFile(CometChains.arbitrum, proposalId, arbitrumTransactionsInfo)
       continue
     }
     if (target === '0x866e82a600a1414e583f7f13623f1ac5d58b0afa') {
@@ -34,7 +35,9 @@ async function updateLookupFile(chain: CometChains, proposalId: number, transact
       continue
     }
     if (target === '0xfe5e5d361b2ad62c541bab87c45a0b9b018389a2') {
-      // polygon
+      const polygonTransactionsInfo = await getDecodedBytesForPolygon(target, signatures[i], calldatas[i])
+      console.log('polygonTransactionsInfo:', polygonTransactionsInfo)
+      await updateLookupFile(CometChains.polygon, proposalId, polygonTransactionsInfo)
       continue
     }
 

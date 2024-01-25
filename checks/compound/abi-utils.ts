@@ -1,3 +1,4 @@
+import { FunctionFragment } from '@ethersproject/abi'
 import fs from 'fs'
 import mftch from 'micro-ftch'
 import { CometChains } from './compound-types'
@@ -86,4 +87,8 @@ function getExplorerApiUrl(chain: CometChains, address: string) {
   } else {
     throw new Error('Unknown chain: ' + chain)
   }
+}
+
+export function getFunctionSignature(fun: FunctionFragment) {
+  return `${fun.name}(${fun.inputs.map((input) => input.type).join(',')})`
 }

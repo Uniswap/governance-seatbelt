@@ -1,16 +1,15 @@
-import { AbiCoder } from '@ethersproject/abi'
+import { AbiCoder, Interface } from '@ethersproject/abi'
 import { BigNumber } from '@ethersproject/bignumber'
-import { getDecodedCallData } from './calldata-decode-util'
+import { getContractNameAndAbiFromFile, getFunctionSignature } from './abi-utils'
 import { CometChains, ExecuteTransactionsInfo } from './compound-types'
 
-async function getDecodedBytesForArbitrum(
+export async function getDecodedBytesForArbitrum(
   target: string,
   signature: string,
   calldata: string,
 ): Promise<ExecuteTransactionsInfo> {
   const sentMessageSignature = 'createRetryableTicket(address,uint256,uint256,address,address,uint256,uint256,bytes)'
-  const decodedCalldata = await getDecodedCallData({
-    chain: CometChains.arbitrum,
+  const decodedCalldata = await getDecodedCallDataSentToBridge({
     target,
     signature,
     calldata,
@@ -26,8 +25,7 @@ export async function getDecodedBytesForBase(
   calldata: string,
 ): Promise<ExecuteTransactionsInfo> {
   const sentMessageSignature = 'sendMessage(address,bytes,uint32)'
-  const decodedCalldata = await getDecodedCallData({
-    chain: CometChains.mainnet,
+  const decodedCalldata = await getDecodedCallDataSentToBridge({
     target,
     signature,
     calldata,
@@ -37,14 +35,13 @@ export async function getDecodedBytesForBase(
   return extractTransactionsFromBridgedData(parsedDataToBridge)
 }
 
-async function getDecodedBytesForPolygon(
+export async function getDecodedBytesForPolygon(
   target: string,
   signature: string,
   calldata: string,
 ): Promise<ExecuteTransactionsInfo> {
   const sentMessageSignature = 'sendMessageToChild(address,bytes)'
-  const decodedCalldata = await getDecodedCallData({
-    chain: CometChains.polygon,
+  const decodedCalldata = await getDecodedCallDataSentToBridge({
     target,
     signature,
     calldata,
@@ -64,4 +61,22 @@ function extractTransactionsFromBridgedData(parsedDataToBridge: any) {
     signatures: (decoded.at(2) as string[]).map((signature) => signature),
     calldatas: (decoded.at(3) as string[]).map((calldata) => calldata),
   }
+}
+
+export async function getDecodedCallDataSentToBridge(args: {
+  target: string
+  signature: string
+  calldata: string
+  sentMessageSignature: string
+}) {
+  const { target, signature, calldata, sentMessageSignature } = args
+  const contractNameAndAbi = await getContractNameAndAbiFromFile(CometChains.mainnet, target)
+  const iface = new Interface(contractNameAndAbi.abi)
+  const fun = iface.getFunction(signature)
+  const decodedCalldata = iface._decodeParams(fun.inputs, calldata)
+  const functionSignature = getFunctionSignature(fun)
+  if (functionSignature !== sentMessageSignature) {
+    throw new Error(`Function signature is not ${sentMessageSignature}. It is ${functionSignature}`)
+  }
+  return decodedCalldata
 }

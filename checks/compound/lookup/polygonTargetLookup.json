@@ -1,0 +1,68 @@
+{
+  "0x83e0f742cacbe66349e3701b171ee2487a26e738": {
+    "contractName": "Configurator",
+    "functions": {
+      "setBorrowPerYearInterestRateSlopeLow(address,uint64)": {
+        "description": "setBorrowPerYearInterestRateSlopeLow(address,uint64)",
+        "descriptionTemplate": "",
+        "proposals": {
+          "209": [
+            "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
+            "53000000000000000"
+          ]
+        }
+      },
+      "setBorrowPerYearInterestRateSlopeHigh(address,uint64)": {
+        "description": "setBorrowPerYearInterestRateSlopeHigh(address,uint64)",
+        "descriptionTemplate": "",
+        "proposals": {
+          "209": [
+            "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
+            "1800000000000000000"
+          ]
+        }
+      },
+      "setSupplyPerYearInterestRateSlopeLow(address,uint64)": {
+        "description": "setSupplyPerYearInterestRateSlopeLow(address,uint64)",
+        "descriptionTemplate": "",
+        "proposals": {
+          "209": [
+            "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
+            "48000000000000000"
+          ]
+        }
+      },
+      "setSupplyPerYearInterestRateSlopeHigh(address,uint64)": {
+        "description": "setSupplyPerYearInterestRateSlopeHigh(address,uint64)",
+        "descriptionTemplate": "",
+        "proposals": {
+          "209": [
+            "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
+            "1600000000000000000"
+          ]
+        }
+      }
+    },
+    "proposals": [
+      209
+    ]
+  },
+  "0xd712ace4ca490d4f3e92992ecf3de12251b975f9": {
+    "contractName": "CometProxyAdmin",
+    "functions": {
+      "deployAndUpgradeTo(address,address)": {
+        "description": "deployAndUpgradeTo(address,address)",
+        "descriptionTemplate": "",
+        "proposals": {
+          "209": [
+            "0x83E0F742cAcBE66349E3701B171eE2487a26e738",
+            "0xF25212E676D1F7F89Cd72fFEe66158f541246445"
+          ]
+        }
+      }
+    },
+    "proposals": [
+      209
+    ]
+  }
+}
