@@ -1,10 +1,8 @@
-import { FunctionFragment, Interface } from '@ethersproject/abi'
-import { BigNumber } from '@ethersproject/bignumber'
 import fs from 'fs'
 import mftch from 'micro-ftch'
 import { ProposalCheck, ProposalData } from './../../types'
-import { getContractNameAndAbiFromFile, getFunctionSignature } from './abi-utils'
-import { CometChains, ExecuteTransactionsInfo, TargetLookupData } from './compound-types'
+import { getContractNameAndAbiFromFile, getFunctionFragmentAndDecodedCalldata, getFunctionSignature } from './abi-utils'
+import { CometChains, ExecuteTransactionInfo, ExecuteTransactionsInfo, TargetLookupData } from './compound-types'
 import { getDecodedBytesForArbitrum, getDecodedBytesForBase, getDecodedBytesForPolygon } from './l2-utils'
 // @ts-ignore
 const fetchUrl = mftch.default
@@ -22,30 +20,31 @@ async function updateLookupFile(chain: CometChains, proposalId: number, transact
 
   for (const [i, targetNoCase] of targets.entries()) {
     const target = targetNoCase.toLowerCase()
+    const transactionInfo: ExecuteTransactionInfo = {
+      target,
+      signature: signatures[i],
+      calldata: calldatas[i],
+      value: values?.[i],
+    }
     if (target === '0x4dbd4fc535ac27206064b68ffcf827b0a60bab3f') {
-      const arbitrumTransactionsInfo = await getDecodedBytesForArbitrum(target, signatures[i], calldatas[i])
+      const arbitrumTransactionsInfo = await getDecodedBytesForArbitrum(proposalId, transactionInfo)
       console.log('arbitrumTransactionsInfo:', arbitrumTransactionsInfo)
       await updateLookupFile(CometChains.arbitrum, proposalId, arbitrumTransactionsInfo)
       continue
     }
     if (target === '0x866e82a600a1414e583f7f13623f1ac5d58b0afa') {
-      const baseTransactionsInfo = await getDecodedBytesForBase(target, signatures[i], calldatas[i])
+      const baseTransactionsInfo = await getDecodedBytesForBase(proposalId, transactionInfo)
       console.log('baseTransactionsInfo:', baseTransactionsInfo)
       await updateLookupFile(CometChains.base, proposalId, baseTransactionsInfo)
       continue
     }
     if (target === '0xfe5e5d361b2ad62c541bab87c45a0b9b018389a2') {
-      const polygonTransactionsInfo = await getDecodedBytesForPolygon(target, signatures[i], calldatas[i])
+      const polygonTransactionsInfo = await getDecodedBytesForPolygon(proposalId, transactionInfo)
       console.log('polygonTransactionsInfo:', polygonTransactionsInfo)
       await updateLookupFile(CometChains.polygon, proposalId, polygonTransactionsInfo)
       continue
     }
 
-    const signature = signatures[i]
-    const calldata = calldatas[i]
-    const value = values?.[i]
-
-    const transactionInfo = { target, value, signature, calldata }
     await storeTargetInfo(chain, proposalId, lookupData, transactionInfo)
   }
 
@@ -73,7 +72,7 @@ async function storeTargetInfo(
   chain: CometChains,
   proposalId: number,
   targetLookupData: TargetLookupData,
-  transactionInfo: { target: string; value: BigNumber; signature: string; calldata: string },
+  transactionInfo: ExecuteTransactionInfo,
 ) {
   const { target, value, signature, calldata } = transactionInfo
   if (value?.toString() && value?.toString() !== '0') {
@@ -92,20 +91,8 @@ async function storeTargetInfo(
       console.log('No ABI found for address:', target)
       throw new Error('No ABI found for address ' + target)
     }
-    const iface = new Interface(contractNameAndAbi.abi)
 
-    let decodedCalldata
-
-    let fun: FunctionFragment
-    if (signature.trim()) {
-      fun = iface.getFunction(signature)
-      decodedCalldata = iface._decodeParams(fun.inputs, calldata)
-    } else {
-      fun = iface.getFunction(calldata.slice(0, 10))
-      const data = calldata.slice(10)
-      console.error('data:', data)
-      decodedCalldata = iface._decodeParams(fun.inputs, `0x${data}`)
-    }
+    const { fun, decodedCalldata } = await getFunctionFragmentAndDecodedCalldata(proposalId, chain, transactionInfo)
 
     const functionSignature = getFunctionSignature(fun)
 

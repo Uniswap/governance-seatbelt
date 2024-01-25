@@ -61,10 +61,21 @@
             "1600000000000000000"
           ]
         }
+      },
+      "setConfiguration(address,tuple)": {
+        "description": "setConfiguration(address,tuple)",
+        "descriptionTemplate": "",
+        "proposals": {
+          "160": [
+            "0xA5EDBDD9646f8dFF606d7448e414884C7d905dCA",
+            "0x3fB4d38ea7EC20D91917c09591490Eeda38Cf88A,0x78E6317DD6D43DdbDa00Dce32C2CbaFc99361a9d,0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8,0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3,0x1B2E88cC7365d90e7E81392432482925BD8437E9,800000000000000000,32500000000000000,400000000000000000,0,800000000000000000,35000000000000004,250000000000000000,15000000000000000,800000000000000000,1000000000000000,402083333333,0,10000000000,100000000,5000000000000,0x912CE59144191C1204E64559FE8253a0e49E6548,0xb2A824043730FE05F3DA2efaFa1CBbe83fa548D6,18,550000000000000064,600000000000000000,930000000000000000,4000000000000000000000000,0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a,0xDB98056FecFff59D032aB628337A4887110df3dB,18,400000000000000000,450000000000000000,930000000000000000,50000000000000000000000,0x82aF49447D8a07e3bd95BD0d56f35241523fBab1,0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612,18,780000000000000000,850000000000000000,950000000000000000,5000000000000000000000,0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f,0xd0C7101eACbB49F3deCcCc166d238410D6D46d57,8,700000000000000000,770000000000000000,950000000000000000,30000000000"
+          ]
+        }
       }
     },
     "proposals": [
-      207
+      207,
+      160
     ]
   },
   "0xd10b40ff1d92e2267d099da3509253d9da4d715e": {
@@ -74,6 +85,10 @@
         "description": "deployAndUpgradeTo(address,address)",
         "descriptionTemplate": "",
         "proposals": {
+          "160": [
+            "0xb21b06D71c75973babdE35b49fFDAc3F82Ad3775",
+            "0xA5EDBDD9646f8dFF606d7448e414884C7d905dCA"
+          ],
           "207": [
             "0xb21b06D71c75973babdE35b49fFDAc3F82Ad3775",
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf"
@@ -82,7 +97,26 @@
       }
     },
     "proposals": [
-      207
+      207,
+      160
+    ]
+  },
+  "0x88730d254a2f7e6ac8388c3198afd694ba9f7fae": {
+    "contractName": "CometRewards",
+    "functions": {
+      "setRewardConfig(address,address)": {
+        "description": "setRewardConfig(address,address)",
+        "descriptionTemplate": "",
+        "proposals": {
+          "160": [
+            "0xA5EDBDD9646f8dFF606d7448e414884C7d905dCA",
+            "0x354A6dA3fcde098F8389cad84b0182725c6C91dE"
+          ]
+        }
+      }
+    },
+    "proposals": [
+      160
     ]
   }
 }

@@ -4154,7 +4154,9 @@
     },
     "proposals": [
       104,
-      109
+      109,
+      166,
+      167
     ]
   },
   "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": {
@@ -4178,6 +4180,14 @@
         "description": "approve(address,uint256)",
         "descriptionTemplate": "",
         "proposals": {
+          "151": [
+            "0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf",
+            "10000000000"
+          ],
+          "160": [
+            "0xcEe284F754E854890e311e3280b767F80797180d",
+            "10000000000"
+          ],
           "171": [
             "0x3154Cf16ccdb4C6d922629664174b904d80F2C35",
             "10000000000"

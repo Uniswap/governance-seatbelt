@@ -41,10 +41,54 @@
             "1600000000000000000"
           ]
         }
+      },
+      "setConfiguration(address,tuple)": {
+        "description": "setConfiguration(address,tuple)",
+        "descriptionTemplate": "",
+        "proposals": {
+          "151": [
+            "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
+            "0xCC3E7c85Bb0EE4f09380e041fee95a0caeDD4a02,0x8Ab717CAC3CbC4934E63825B88442F5810aAF6e5,0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174,0xfE4A8cc5b5B2366C1B58Bea3858e81843581b2F7,0xbdE8F31D2DdDA895264e27DD990faB3DC87b372d,800000000000000000,32500000000000000,400000000000000000,0,800000000000000000,35000000000000004,250000000000000000,15000000000000000,600000000000000000,1000000000000000,0,402083333333,1000000000000,100000000,5000000000000,0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619,0xF9680D99D6C9589e2a93a78A04A279e509205945,18,775000000000000000,825000000000000000,950000000000000000,11000000000000000000000,0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6,0xDE31F8bFBD8c84b5360CFACCa3539B938dd78ae6,8,700000000000000000,750000000000000000,950000000000000000,40000000000,0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270,0xAB594600376Ec9fD91F8e885dADF0CE036862dE0,18,650000000000000000,700000000000000000,930000000000000000,10000000000000000000000000"
+          ]
+        }
+      },
+      "updateAssetSupplyCap(address,address,uint128)": {
+        "description": "updateAssetSupplyCap(address,address,uint128)",
+        "descriptionTemplate": "",
+        "proposals": {
+          "161": [
+            "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
+            "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+            "20000000000000000000000000"
+          ]
+        }
+      },
+      "setBaseTrackingSupplySpeed(address,uint64)": {
+        "description": "setBaseTrackingSupplySpeed(address,uint64)",
+        "descriptionTemplate": "",
+        "proposals": {
+          "161": [
+            "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
+            "401967592592"
+          ]
+        }
+      },
+      "addAsset(address,tuple)": {
+        "description": "addAsset(address,tuple)",
+        "descriptionTemplate": "",
+        "proposals": {
+          "172": [
+            "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
+            "0xfa68FB4628DFF1028CFEc22b4162FCcd0d45efb6,0x5d37E4b374E6907de8Fc7fb33EE3b0af403C7403,18,550000000000000000,600000000000000000,930000000000000000,6000000000000000000000000"
+          ]
+        }
       }
     },
     "proposals": [
-      209
+      209,
+      151,
+      161,
+      172
     ]
   },
   "0xd712ace4ca490d4f3e92992ecf3de12251b975f9": {
@@ -54,6 +98,18 @@
         "description": "deployAndUpgradeTo(address,address)",
         "descriptionTemplate": "",
         "proposals": {
+          "151": [
+            "0x83E0F742cAcBE66349E3701B171eE2487a26e738",
+            "0xF25212E676D1F7F89Cd72fFEe66158f541246445"
+          ],
+          "161": [
+            "0x83E0F742cAcBE66349E3701B171eE2487a26e738",
+            "0xF25212E676D1F7F89Cd72fFEe66158f541246445"
+          ],
+          "172": [
+            "0x83E0F742cAcBE66349E3701B171eE2487a26e738",
+            "0xF25212E676D1F7F89Cd72fFEe66158f541246445"
+          ],
           "209": [
             "0x83E0F742cAcBE66349E3701B171eE2487a26e738",
             "0xF25212E676D1F7F89Cd72fFEe66158f541246445"
@@ -62,7 +118,10 @@
       }
     },
     "proposals": [
-      209
+      209,
+      151,
+      161,
+      172
     ]
   }
 }

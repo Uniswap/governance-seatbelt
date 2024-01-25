@@ -7,6 +7,13 @@ export interface ExecuteTransactionsInfo {
   values: BigNumber[]
 }
 
+export interface ExecuteTransactionInfo {
+  target: string
+  signature: string
+  calldata: string
+  value?: BigNumber
+}
+
 export interface TargetLookupData {
   [address: string]: {
     contractName: string
