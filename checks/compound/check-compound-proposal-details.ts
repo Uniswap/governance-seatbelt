@@ -103,7 +103,7 @@ async function storeTargetInfo(
     }
     targetLookupData[target].functions[functionSignature] ||= {
       description: functionSignature,
-      descriptionTemplate: '',
+      transactionFormatter: '',
       proposals: {},
     }
 

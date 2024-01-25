@@ -4,7 +4,7 @@
     "functions": {
       "setBorrowPerYearInterestRateBase(address,uint64)": {
         "description": "setBorrowPerYearInterestRateBase(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "Configurator.setBorrowPerYearInterestRateBase(address,uint64)",
         "proposals": {
           "162": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -26,7 +26,7 @@
       },
       "setBorrowPerYearInterestRateSlopeLow(address,uint64)": {
         "description": "setBorrowPerYearInterestRateSlopeLow(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "Configurator.setBorrowPerYearInterestRateSlopeLow(address,uint64)",
         "proposals": {
           "162": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -52,7 +52,7 @@
       },
       "setBorrowPerYearInterestRateSlopeHigh(address,uint64)": {
         "description": "setBorrowPerYearInterestRateSlopeHigh(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "Configurator.setBorrowPerYearInterestRateSlopeHigh(address,uint64)",
         "proposals": {
           "162": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -82,7 +82,7 @@
       },
       "setSupplyPerYearInterestRateSlopeLow(address,uint64)": {
         "description": "setSupplyPerYearInterestRateSlopeLow(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "162": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -104,7 +104,7 @@
       },
       "setSupplyPerYearInterestRateSlopeHigh(address,uint64)": {
         "description": "setSupplyPerYearInterestRateSlopeHigh(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "162": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -130,7 +130,7 @@
       },
       "setBaseTrackingBorrowSpeed(address,uint64)": {
         "description": "setBaseTrackingBorrowSpeed(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "124": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -156,7 +156,7 @@
       },
       "updateAssetSupplyCap(address,address,uint128)": {
         "description": "updateAssetSupplyCap(address,address,uint128)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "116": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -217,7 +217,7 @@
       },
       "setFactory(address,address)": {
         "description": "setFactory(address,address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "132": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -231,7 +231,7 @@
       },
       "updateAssetLiquidationFactor(address,address,uint64)": {
         "description": "updateAssetLiquidationFactor(address,address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "140": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -252,7 +252,7 @@
       },
       "setConfiguration(address,tuple)": {
         "description": "setConfiguration(address,tuple)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "144": [
             "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
@@ -262,7 +262,7 @@
       },
       "setStoreFrontPriceFactor(address,uint64)": {
         "description": "setStoreFrontPriceFactor(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "152": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -276,7 +276,7 @@
       },
       "setBorrowKink(address,uint64)": {
         "description": "setBorrowKink(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "162": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -294,7 +294,7 @@
       },
       "setSupplyKink(address,uint64)": {
         "description": "setSupplyKink(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "162": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -308,7 +308,7 @@
       },
       "setBaseTrackingSupplySpeed(address,uint64)": {
         "description": "setBaseTrackingSupplySpeed(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "168": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -326,7 +326,7 @@
       },
       "addAsset(address,tuple)": {
         "description": "addAsset(address,tuple)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "192": [
             "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
@@ -368,7 +368,7 @@
     "functions": {
       "deployAndUpgradeTo(address,address)": {
         "description": "deployAndUpgradeTo(address,address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "116": [
             "0x316f9708bB98af7dA9c68C1C3b5e79039cD336E3",
@@ -506,7 +506,7 @@
     "functions": {
       "sendMessageToChild(address,bytes)": {
         "description": "sendMessageToChild(address,bytes)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "151": [
             "0x18281dfC4d00905DA1aaA6731414EABa843c468A",
@@ -569,7 +569,7 @@
     "functions": {
       "_setCompSpeeds(address[],uint256[],uint256[])": {
         "description": "_setCompSpeeds(address[],uint256[],uint256[])",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "67": [
             "",
@@ -660,7 +660,7 @@
       },
       "_grantComp(address,uint256)": {
         "description": "_grantComp(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "49": [
             "0x91400bE76b7171Cf932Ae252390d2b60e2C73013",
@@ -730,7 +730,7 @@
       },
       "_setCollateralFactor(address,uint256)": {
         "description": "_setCollateralFactor(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "44": [
             "0x158079Ee67Fce2f58472A96584A73C7Ab9AC95c1",
@@ -852,7 +852,7 @@
       },
       "_setMarketBorrowCaps(address[],uint256[])": {
         "description": "_setMarketBorrowCaps(address[],uint256[])",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "53": [
             "0x95b4eF2869eBD94BEb4eEE400a99824BF5DC325b",
@@ -894,7 +894,7 @@
       },
       "_setBorrowPaused(address,bool)": {
         "description": "_setBorrowPaused(address,bool)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "44": [
             "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4",
@@ -908,7 +908,7 @@
       },
       "_setMintPaused(address,bool)": {
         "description": "_setMintPaused(address,bool)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "44": [
             "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4",
@@ -934,7 +934,7 @@
       },
       "_setPriceOracle(address)": {
         "description": "_setPriceOracle(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "45": [
             "0x4007B71e01424b2314c020fB0344b03A7C499E1A"
@@ -967,7 +967,7 @@
       },
       "_supportMarket(address)": {
         "description": "_supportMarket(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "45": [
             "0x12392F67bdf24faE0AF363c24aC620a2f67DAd86"
@@ -994,7 +994,7 @@
       },
       "_setContributorCompSpeed(address,uint256)": {
         "description": "_setContributorCompSpeed(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "51": [
             "0x9B68c14e936104e9a7a24c712BEecdc220002984",
@@ -1056,7 +1056,7 @@
       },
       "_setPauseGuardian(address)": {
         "description": "_setPauseGuardian(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "57": [
             "0xbbf3f1421D886E9b2c5D716B5192aC998af2012c"
@@ -1065,7 +1065,7 @@
       },
       "fixBadAccruals(address[],uint256[])": {
         "description": "fixBadAccruals(address[],uint256[])",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "65": [
             "0xB3BD459e0598ddE1FE84B1d0a1430BE175B5D5be,0xC5119DB28aDde44A8e1453E733381025a2910f7d,0x309d413391e975B553B7B8D19bC11F8a6c2eB889,0x261fe0Fc430c4Ce4158EBE9258e7F9c646fEA448,0xdf6faDA48f5963a8977eC2BCD7b264434CE294f6,0x2e4ae4d3bD0Af45040b4F17e0BB7E6dC548626B1,0x3af015f6e3aC79D217198f00ef36AF099D223e29,0xaB5a193A11f779fe105E8edf9815a0b514B013CA,0xf3f5C252e8ACd60671f92c7F72cf33661221Ef42,0x01B037084EbA7E4519dbFC9BA026ae696746E033,0x9657BD100802434797d0fb21c356B0871C24485B,0x712d0f306956a6A4b4F9319aD9B9de48c5345996,0x98d105874052dDeF7150AFB661190df5f8c3a719,0xf946CDAEcF5A15440e500E61A0c1d179A93652ad,0x8E9c0eA7e72531BA2F7014f3b39783Ac4a26E34a,0xA7B95D2a2D10028cC4450e453151181cBCAc74FC,0x3b3f3EA865293f004E01c35B9e8BA80DAabc8a72,0x0246C1e74EE54Af89c50BFEfFDDdbad0F0d63da2,0xe68176A9D8A4323Ea3FaB649B30E00d0A6a87d15,0xFa24DE5410581625Ca749D615191Bd33e0366a8f,0x75E4c0FFb05c07798e22605b607e2c8717A1e885,0x26A6dC267e276Fded7b40251C8fc08B1b40df367,0x621Ec0b18317049583aC828461cdb4031AD2a76a,0x8f4138b15A1Eb898380D29b677B417dCAfd2bBFE,0x34BbC9a46B09283698ba7Aa1c273E8B4E9F7bcC3,0x25B651A210f0Cd42D1540F885489caE8C9FF0FCC,0xfF628B747C4E70825AF24e3d59748bac477dcbF6,0x5d6DC617D38655254Ea718044D37451E75144357,0x10bf1Dcb5ab7860baB1C3320163C6dddf8DCC0e4,0x60A71287353f3ac632F3e75Fd1be532850aA5f4D,0x53F79a391C638D03e9ED0823dF82e1E72E5F616a,0x90F7Fe74192F18e0020EB04de550cb2BDBc7cd4f,0x093599e111A14aaEFEf98573f26a7AA2Cc58eBff,0xA5d223c176daAB154a3134369D1C0478c5e6FecF,0x6c9eda0c8ce90CCaF6F88C0fB7511447FB92b3Fe,0x7F9D39De53a3036463146e91E921cC9FbfCb2De4,0x8FD2515a5B29E61220Ee080D484D1F2ea4C46E6B,0xB35E71b6A5aebB07dFc3aA705968411ebdBC003f,0x107e78d87005a76b1dc787C2e3DD7986bb47568B,0x94AAF5Ceb457057AC4d1588257988D487272984F,0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296,0xe03fFE4cCe71b39Ae1A8580AA94AA40bA611c820,0x11690B00Fef3091f37Dd0F88e36c838Cd344547f,0x7d6149aD9A573A6E2Ca6eBf7D4897c1B766841B4,0xF6c3c3621F42Ec1F1CD1207Bb1571d93646Ab29A,0xd19B7946621FE75bA15Ce23ED90D0Af8C962e6d8,0x8de962fDc6521A426389AAD89E1C067c8f816004,0x212D3c9ad48926ED3e7ef538CAaDDb5D10E8Eb9e,0xa92766340B0742d4AF8C065443640EFdfd18a9A3,0x6DdCA709e0d29fdD03Be35553c77c08f81a3F9e1,0x83B8987b2f48B6B7220fFC6E83fa0F129B9D5149,0x9C84bE7Ba23a5034C56d0289EeFB6C083e96dD94,0xD2E7d58850D058668Ee67fad262760E5b05Ed2a4,0xb265aC5Bc12a97bC359b0Ca0870f8b1cEC6369E9,0xba2ef5189B762bd4C9E7f0b50fBBaB65193935e8,0xe095DE809090531D343D046B2Fd3Abf28419D3d0,0x99265b66461539efD0334901DbB5a2d7f082687A,0x86BBC49A00bDE4d64CdE650F6ca8CC0f138fD344,0x87279585d52f534A2d2E453518cD7890c5762d19,0x2eCdc1191514B7e1eD44587822DFfAF7C670D6aE,0x138F85de34EC8057EC206788a064f842cd64Ce9E,0xc63fc0aE83555e2553762EdD887433573F77CFc2,0x2b3b15Cb2304223D1A8ca28c17258775Bd5B0826,0x8c1A4C98C470900567FB9e764243c89cDa79400C,0xF8d9EcFB5Ddd99A6E0ccABC54A440205Cd40e448,0x728e7f512E01E7811037985dDFb15F9bFeF517a8,0x6E13BE05021E83318Fae9f29F2f57CacAccB62A3,0x124E1FafCadc2c017a17B4bBBBfFF3867b7dEE35,0x0006e4548AED4502ec8c844567840Ce6eF1013f5,0x82a726178Ab68d446e079901f2CA95f83DDe37d4,0x339B00277F32265B5a46599Ad30495b0e921EB6f,0xEbE5c14F6AC0ce53640CeBFe6D213674DC08D440,0x0730fD7D15fA9a40a6C7B2bbb4B8CE9ee6E6d08B,0xDe122ae193F46D67C239aE0c7DaE644f9931a772",
@@ -1075,7 +1075,7 @@
       },
       "_setSeizePaused(bool)": {
         "description": "_setSeizePaused(bool)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "120": [
             "true"
@@ -1192,7 +1192,7 @@
     "functions": {
       "createRetryableTicket(address,uint256,uint256,address,address,uint256,uint256,bytes)": {
         "description": "createRetryableTicket(address,uint256,uint256,address,address,uint256,uint256,bytes)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "160": [
             "0x42480C37B249e33aABaf4c22B20235656bd38068",
@@ -1282,7 +1282,7 @@
     "functions": {
       "sendMessage(address,bytes,uint32)": {
         "description": "sendMessage(address,bytes,uint32)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "174": [
             "0x18281dfC4d00905DA1aaA6731414EABa843c468A",
@@ -1314,7 +1314,7 @@
     "functions": {
       "approve(address,uint256)": {
         "description": "approve(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "79": [
             "0xCD18eAa163733Da39c232722cBC4E8940b1D8888",
@@ -1376,7 +1376,7 @@
       },
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "79": [
             "0x2B384212EDc04Ae8bB41738D05BA20E33277bf33",
@@ -1506,7 +1506,7 @@
     "functions": {
       "depositFor(address,address,bytes)": {
         "description": "depositFor(address,address,bytes)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "151": [
             "0x45939657d1CA34A8FA39A924B71D28Fe8431e581",
@@ -1543,7 +1543,7 @@
     "functions": {
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "202": [
             "0x9c9dC2110240391d4BEe41203bDFbD19c279B429",
@@ -1553,7 +1553,7 @@
       },
       "migrateFromLegacyReputationToken()": {
         "description": "migrateFromLegacyReputationToken()",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": []
         }
@@ -1569,7 +1569,7 @@
     "functions": {
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "58": [
             "0x2Abfc5e72C2144750A332e06dA376d067cC71605",
@@ -1592,7 +1592,7 @@
     "functions": {
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "202": [
             "0x9c9dC2110240391d4BEe41203bDFbD19c279B429",
@@ -1602,7 +1602,7 @@
       },
       "approve(address,uint256)": {
         "description": "approve(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "59": [
             "0x0634ca1D878a050eB525ed08852Cc3BaD7f5a1DC",
@@ -1621,7 +1621,7 @@
     "functions": {
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "202": [
             "0x9c9dC2110240391d4BEe41203bDFbD19c279B429",
@@ -1631,7 +1631,7 @@
       },
       "approve(address,uint256)": {
         "description": "approve(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": [
             "0x3D6eEf6A92b15361697698695334E98C5db91D6b",
@@ -1650,7 +1650,7 @@
     "functions": {
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "202": [
             "0x9c9dC2110240391d4BEe41203bDFbD19c279B429",
@@ -1668,7 +1668,7 @@
     "functions": {
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "202": [
             "0x9c9dC2110240391d4BEe41203bDFbD19c279B429",
@@ -1686,7 +1686,7 @@
     "functions": {
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "104": [
             "0xe8F0c9059b8Db5B863d48dB8e8C1A09f97D3B991",
@@ -1704,7 +1704,7 @@
       },
       "approve(address,uint256)": {
         "description": "approve(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "151": [
             "0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf",
@@ -1736,7 +1736,7 @@
     "functions": {
       "_setVotingDelay(uint256)": {
         "description": "_setVotingDelay(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "43": [
             "13140"
@@ -1745,7 +1745,7 @@
       },
       "_setVotingPeriod(uint256)": {
         "description": "_setVotingPeriod(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "43": [
             "19710"
@@ -1754,7 +1754,7 @@
       },
       "_setProposalThreshold(uint256)": {
         "description": "_setProposalThreshold(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "52": [
             "65000000000000000000000"
@@ -1769,7 +1769,7 @@
       },
       "_setWhitelistGuardian(address)": {
         "description": "_setWhitelistGuardian(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "60": [
             "0xbbf3f1421D886E9b2c5D716B5192aC998af2012c"
@@ -1790,7 +1790,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "44": [
             "1000000000000000000"
@@ -1799,7 +1799,7 @@
       },
       "_reduceReserves(uint256)": {
         "description": "_reduceReserves(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "708880250"
@@ -1817,7 +1817,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "45": [
             "75000000000000000"
@@ -1838,7 +1838,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "46": [
             "250000000000000000"
@@ -1859,7 +1859,7 @@
     "functions": {
       "_become(address)": {
         "description": "_become(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "50": [
             "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B"
@@ -1876,7 +1876,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "53": [
             "250000000000000000"
@@ -1893,7 +1893,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "54": [
             "250000000000000000"
@@ -1910,7 +1910,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "54": [
             "250000000000000000"
@@ -1927,7 +1927,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "54": [
             "250000000000000000"
@@ -1944,7 +1944,7 @@
     "functions": {
       "_reduceReserves(uint256)": {
         "description": "_reduceReserves(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "59": [
             "6817797961061626144874170"
@@ -1953,7 +1953,7 @@
       },
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "109": [
             "100000000000000000"
@@ -1962,7 +1962,7 @@
       },
       "redeem(uint256)": {
         "description": "redeem(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "3347050774458"
@@ -1981,7 +1981,7 @@
     "functions": {
       "fund()": {
         "description": "fund()",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "59": []
         }
@@ -1996,7 +1996,7 @@
     "functions": {
       "_become(address)": {
         "description": "_become(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "62": [
             "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B"
@@ -2013,7 +2013,7 @@
     "functions": {
       "_become(address)": {
         "description": "_become(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "63": [
             "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B"
@@ -2030,7 +2030,7 @@
     "functions": {
       "_become(address)": {
         "description": "_become(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "64": [
             "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B"
@@ -2047,7 +2047,7 @@
     "functions": {
       "_become(address)": {
         "description": "_become(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "65": [
             "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B"
@@ -2068,7 +2068,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "73": [
             "250000000000000000"
@@ -2085,7 +2085,7 @@
     "functions": {
       "createStream(address,uint256,address,uint256,uint256)": {
         "description": "createStream(address,uint256,address,uint256,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "79": [
             "0x57C970568668087c05352456a3F59B58B0330066",
@@ -2170,7 +2170,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "83": [
             "250000000000000000"
@@ -2185,7 +2185,7 @@
       },
       "_reduceReserves(uint256)": {
         "description": "_reduceReserves(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "6324340499474616104642"
@@ -2205,7 +2205,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "86": [
             "250000000000000000"
@@ -2222,7 +2222,7 @@
     "functions": {
       "_reduceReserves(uint256)": {
         "description": "_reduceReserves(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "104": [
             "79764360000"
@@ -2231,7 +2231,7 @@
       },
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "109": [
             "37500000000000000"
@@ -2269,7 +2269,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "109": [
             "150000000000000000"
@@ -2278,7 +2278,7 @@
       },
       "_setInterestRateModel(address)": {
         "description": "_setInterestRateModel(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "122": [
             "0xF9583618169920c544Ec89795a346F487cB5a227"
@@ -2296,7 +2296,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "109": [
             "150000000000000000"
@@ -2313,7 +2313,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "109": [
             "37500000000000000"
@@ -2330,7 +2330,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "109": [
             "200000000000000000"
@@ -2339,7 +2339,7 @@
       },
       "_reduceReserves(uint256)": {
         "description": "_reduceReserves(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": [
             "555555000000000000000000"
@@ -2357,7 +2357,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "109": [
             "200000000000000000"
@@ -2366,7 +2366,7 @@
       },
       "_reduceReserves(uint256)": {
         "description": "_reduceReserves(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": [
             "1694915000000000000000000"
@@ -2384,7 +2384,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "109": [
             "200000000000000000"
@@ -2393,7 +2393,7 @@
       },
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "112": [
             "0x2B384212EDc04Ae8bB41738D05BA20E33277bf33",
@@ -2403,7 +2403,7 @@
       },
       "_setInterestRateModel(address)": {
         "description": "_setInterestRateModel(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "130": [
             "0xd956188795ca6F4A74092ddca33E0Ea4cA3a1395"
@@ -2412,7 +2412,7 @@
       },
       "redeem(uint256)": {
         "description": "redeem(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "9087425872149"
@@ -2432,7 +2432,7 @@
     "functions": {
       "_become(address)": {
         "description": "_become(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "112": [
             "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B"
@@ -2449,7 +2449,7 @@
     "functions": {
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "112": [
             "0x6918fE32bB0CCfba961C554699c1B506eD0Bd458",
@@ -2467,7 +2467,7 @@
     "functions": {
       "_setInterestRateModel(address)": {
         "description": "_setInterestRateModel(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "130": [
             "0xd88B94128Ff2B8Cf2d7886cd1C1E46757418cA2A"
@@ -2484,7 +2484,7 @@
     "functions": {
       "_reduceReserves(uint256)": {
         "description": "_reduceReserves(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "515499155166335008592"
@@ -2501,7 +2501,7 @@
     "functions": {
       "_reduceReserves(uint256)": {
         "description": "_reduceReserves(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "26684572352947457780274"
@@ -2518,7 +2518,7 @@
     "functions": {
       "approve(address,uint256)": {
         "description": "approve(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "0xBda109309f9FafA6Dd6A9CB9f1Df4085B27Ee8eF",
@@ -2536,7 +2536,7 @@
     "functions": {
       "cash(uint256)": {
         "description": "cash(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "26855744800384711915777"
@@ -2553,7 +2553,7 @@
     "functions": {
       "approve(address,uint256)": {
         "description": "approve(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "0x221657776846890989a759BA2973e427DfF5C9bB",
@@ -2571,7 +2571,7 @@
     "functions": {
       "setRewardConfig(address,address)": {
         "description": "setRewardConfig(address,address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "144": [
             "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
@@ -2589,14 +2589,14 @@
     "functions": {
       "deposit()": {
         "description": "deposit()",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "144": []
         }
       },
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "144": [
             "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
@@ -2614,7 +2614,7 @@
     "functions": {
       "setSubnodeRecord(bytes32,bytes32,address,address,uint64)": {
         "description": "setSubnodeRecord(bytes32,bytes32,address,address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "148": [
             "0x835063cb5d9be2abff6e5960d1b21dc40959f6203b301bee8366afa131b7367a",
@@ -2643,7 +2643,7 @@
     "functions": {
       "setText(bytes32,string,string)": {
         "description": "setText(bytes32,string,string)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "148": [
             "0x7dcf87198fd673716e5a32b206d9379c4fcbad8875073f52bfd0656759bf89ed",
@@ -2687,7 +2687,7 @@
     "functions": {
       "outboundTransferCustomRefund(address,address,address,uint256,uint256,uint256,bytes)": {
         "description": "outboundTransferCustomRefund(address,address,address,uint256,uint256,uint256,bytes)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "160": [
             "0xc00e94Cb662C3520282E6f5717214004A7f26888",
@@ -2710,7 +2710,7 @@
     "functions": {
       "depositForBurn(uint256,uint32,bytes32,address)": {
         "description": "depositForBurn(uint256,uint32,bytes32,address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "178": [
             "10000000000",
@@ -2730,14 +2730,14 @@
     "functions": {
       "acceptOwnership()": {
         "description": "acceptOwnership()",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": []
         }
       },
       "deposit(tuple[])": {
         "description": "deposit(tuple[])",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": [
             "0x0D8775F648430679A709E98d2b0Cb6250d2887EF,555555000000000000000000,0xE41d2489571d322189246DaFA5ebDe1F4699F498,1694915000000000000000000"
@@ -2746,7 +2746,7 @@
       },
       "resume()": {
         "description": "resume()",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": []
         }
@@ -2761,7 +2761,7 @@
     "functions": {
       "acceptOwnership()": {
         "description": "acceptOwnership()",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": []
         }
@@ -2776,7 +2776,7 @@
     "functions": {
       "acceptOwnership()": {
         "description": "acceptOwnership()",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": []
         }
@@ -2791,7 +2791,7 @@
     "functions": {
       "approve(address,uint256)": {
         "description": "approve(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": [
             "0x3D6eEf6A92b15361697698695334E98C5db91D6b",
@@ -2809,7 +2809,7 @@
     "functions": {
       "_grantComp(address,uint256)": {
         "description": "_grantComp(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "49": [
             "0x91400bE76b7171Cf932Ae252390d2b60e2C73013",
@@ -2871,7 +2871,7 @@
       },
       "_setContributorCompSpeed(address,uint256)": {
         "description": "_setContributorCompSpeed(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "51": [
             "0x9B68c14e936104e9a7a24c712BEecdc220002984",
@@ -2933,7 +2933,7 @@
       },
       "_supportMarket(address)": {
         "description": "_supportMarket(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "45": [
             "0x12392F67bdf24faE0AF363c24aC620a2f67DAd86"
@@ -2960,7 +2960,7 @@
       },
       "_setPriceOracle(address)": {
         "description": "_setPriceOracle(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "45": [
             "0x4007B71e01424b2314c020fB0344b03A7C499E1A"
@@ -2993,7 +2993,7 @@
       },
       "_setMarketBorrowCaps(address[],uint256[])": {
         "description": "_setMarketBorrowCaps(address[],uint256[])",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "53": [
             "0x95b4eF2869eBD94BEb4eEE400a99824BF5DC325b",
@@ -3035,7 +3035,7 @@
       },
       "_setCollateralFactor(address,uint256)": {
         "description": "_setCollateralFactor(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "44": [
             "0x158079Ee67Fce2f58472A96584A73C7Ab9AC95c1",
@@ -3153,7 +3153,7 @@
       },
       "_setPauseGuardian(address)": {
         "description": "_setPauseGuardian(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "57": [
             "0xbbf3f1421D886E9b2c5D716B5192aC998af2012c"
@@ -3162,7 +3162,7 @@
       },
       "_setBorrowPaused(address,bool)": {
         "description": "_setBorrowPaused(address,bool)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "44": [
             "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4",
@@ -3176,7 +3176,7 @@
       },
       "_setMintPaused(address,bool)": {
         "description": "_setMintPaused(address,bool)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "44": [
             "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4",
@@ -3202,7 +3202,7 @@
       },
       "fixBadAccruals(address[],uint256[])": {
         "description": "fixBadAccruals(address[],uint256[])",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "65": [
             "0xB3BD459e0598ddE1FE84B1d0a1430BE175B5D5be,0xC5119DB28aDde44A8e1453E733381025a2910f7d,0x309d413391e975B553B7B8D19bC11F8a6c2eB889,0x261fe0Fc430c4Ce4158EBE9258e7F9c646fEA448,0xdf6faDA48f5963a8977eC2BCD7b264434CE294f6,0x2e4ae4d3bD0Af45040b4F17e0BB7E6dC548626B1,0x3af015f6e3aC79D217198f00ef36AF099D223e29,0xaB5a193A11f779fe105E8edf9815a0b514B013CA,0xf3f5C252e8ACd60671f92c7F72cf33661221Ef42,0x01B037084EbA7E4519dbFC9BA026ae696746E033,0x9657BD100802434797d0fb21c356B0871C24485B,0x712d0f306956a6A4b4F9319aD9B9de48c5345996,0x98d105874052dDeF7150AFB661190df5f8c3a719,0xf946CDAEcF5A15440e500E61A0c1d179A93652ad,0x8E9c0eA7e72531BA2F7014f3b39783Ac4a26E34a,0xA7B95D2a2D10028cC4450e453151181cBCAc74FC,0x3b3f3EA865293f004E01c35B9e8BA80DAabc8a72,0x0246C1e74EE54Af89c50BFEfFDDdbad0F0d63da2,0xe68176A9D8A4323Ea3FaB649B30E00d0A6a87d15,0xFa24DE5410581625Ca749D615191Bd33e0366a8f,0x75E4c0FFb05c07798e22605b607e2c8717A1e885,0x26A6dC267e276Fded7b40251C8fc08B1b40df367,0x621Ec0b18317049583aC828461cdb4031AD2a76a,0x8f4138b15A1Eb898380D29b677B417dCAfd2bBFE,0x34BbC9a46B09283698ba7Aa1c273E8B4E9F7bcC3,0x25B651A210f0Cd42D1540F885489caE8C9FF0FCC,0xfF628B747C4E70825AF24e3d59748bac477dcbF6,0x5d6DC617D38655254Ea718044D37451E75144357,0x10bf1Dcb5ab7860baB1C3320163C6dddf8DCC0e4,0x60A71287353f3ac632F3e75Fd1be532850aA5f4D,0x53F79a391C638D03e9ED0823dF82e1E72E5F616a,0x90F7Fe74192F18e0020EB04de550cb2BDBc7cd4f,0x093599e111A14aaEFEf98573f26a7AA2Cc58eBff,0xA5d223c176daAB154a3134369D1C0478c5e6FecF,0x6c9eda0c8ce90CCaF6F88C0fB7511447FB92b3Fe,0x7F9D39De53a3036463146e91E921cC9FbfCb2De4,0x8FD2515a5B29E61220Ee080D484D1F2ea4C46E6B,0xB35E71b6A5aebB07dFc3aA705968411ebdBC003f,0x107e78d87005a76b1dc787C2e3DD7986bb47568B,0x94AAF5Ceb457057AC4d1588257988D487272984F,0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296,0xe03fFE4cCe71b39Ae1A8580AA94AA40bA611c820,0x11690B00Fef3091f37Dd0F88e36c838Cd344547f,0x7d6149aD9A573A6E2Ca6eBf7D4897c1B766841B4,0xF6c3c3621F42Ec1F1CD1207Bb1571d93646Ab29A,0xd19B7946621FE75bA15Ce23ED90D0Af8C962e6d8,0x8de962fDc6521A426389AAD89E1C067c8f816004,0x212D3c9ad48926ED3e7ef538CAaDDb5D10E8Eb9e,0xa92766340B0742d4AF8C065443640EFdfd18a9A3,0x6DdCA709e0d29fdD03Be35553c77c08f81a3F9e1,0x83B8987b2f48B6B7220fFC6E83fa0F129B9D5149,0x9C84bE7Ba23a5034C56d0289EeFB6C083e96dD94,0xD2E7d58850D058668Ee67fad262760E5b05Ed2a4,0xb265aC5Bc12a97bC359b0Ca0870f8b1cEC6369E9,0xba2ef5189B762bd4C9E7f0b50fBBaB65193935e8,0xe095DE809090531D343D046B2Fd3Abf28419D3d0,0x99265b66461539efD0334901DbB5a2d7f082687A,0x86BBC49A00bDE4d64CdE650F6ca8CC0f138fD344,0x87279585d52f534A2d2E453518cD7890c5762d19,0x2eCdc1191514B7e1eD44587822DFfAF7C670D6aE,0x138F85de34EC8057EC206788a064f842cd64Ce9E,0xc63fc0aE83555e2553762EdD887433573F77CFc2,0x2b3b15Cb2304223D1A8ca28c17258775Bd5B0826,0x8c1A4C98C470900567FB9e764243c89cDa79400C,0xF8d9EcFB5Ddd99A6E0ccABC54A440205Cd40e448,0x728e7f512E01E7811037985dDFb15F9bFeF517a8,0x6E13BE05021E83318Fae9f29F2f57CacAccB62A3,0x124E1FafCadc2c017a17B4bBBBfFF3867b7dEE35,0x0006e4548AED4502ec8c844567840Ce6eF1013f5,0x82a726178Ab68d446e079901f2CA95f83DDe37d4,0x339B00277F32265B5a46599Ad30495b0e921EB6f,0xEbE5c14F6AC0ce53640CeBFe6D213674DC08D440,0x0730fD7D15fA9a40a6C7B2bbb4B8CE9ee6E6d08B,0xDe122ae193F46D67C239aE0c7DaE644f9931a772",
@@ -3212,7 +3212,7 @@
       },
       "_setCompSpeeds(address[],uint256[],uint256[])": {
         "description": "_setCompSpeeds(address[],uint256[],uint256[])",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "67": [
             "",
@@ -3298,7 +3298,7 @@
       },
       "_setSeizePaused(bool)": {
         "description": "_setSeizePaused(bool)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "120": [
             "true"
@@ -3410,7 +3410,7 @@
     "functions": {
       "_become(address)": {
         "description": "_become(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "50": [
             "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B"
@@ -3427,7 +3427,7 @@
     "functions": {
       "_setProposalThreshold(uint256)": {
         "description": "_setProposalThreshold(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "52": [
             "65000000000000000000000"
@@ -3442,7 +3442,7 @@
       },
       "_setVotingDelay(uint256)": {
         "description": "_setVotingDelay(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "43": [
             "13140"
@@ -3451,7 +3451,7 @@
       },
       "_setVotingPeriod(uint256)": {
         "description": "_setVotingPeriod(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "43": [
             "19710"
@@ -3460,7 +3460,7 @@
       },
       "_setWhitelistGuardian(address)": {
         "description": "_setWhitelistGuardian(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "60": [
             "0xbbf3f1421D886E9b2c5D716B5192aC998af2012c"
@@ -3481,7 +3481,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "53": [
             "250000000000000000"
@@ -3498,7 +3498,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "54": [
             "250000000000000000"
@@ -3515,7 +3515,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "54": [
             "250000000000000000"
@@ -3532,7 +3532,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "54": [
             "250000000000000000"
@@ -3549,7 +3549,7 @@
     "functions": {
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "58": [
             "0x2Abfc5e72C2144750A332e06dA376d067cC71605",
@@ -3567,7 +3567,7 @@
     "functions": {
       "_reduceReserves(uint256)": {
         "description": "_reduceReserves(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "59": [
             "6817797961061626144874170"
@@ -3576,7 +3576,7 @@
       },
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "109": [
             "100000000000000000"
@@ -3585,7 +3585,7 @@
       },
       "redeem(uint256)": {
         "description": "redeem(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "3347050774458"
@@ -3604,7 +3604,7 @@
     "functions": {
       "approve(address,uint256)": {
         "description": "approve(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "59": [
             "0x0634ca1D878a050eB525ed08852Cc3BaD7f5a1DC",
@@ -3622,7 +3622,7 @@
     "functions": {
       "fund()": {
         "description": "fund()",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "59": []
         }
@@ -3637,7 +3637,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "44": [
             "1000000000000000000"
@@ -3646,7 +3646,7 @@
       },
       "_reduceReserves(uint256)": {
         "description": "_reduceReserves(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "708880250"
@@ -3664,7 +3664,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "45": [
             "75000000000000000"
@@ -3685,7 +3685,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "46": [
             "250000000000000000"
@@ -3706,7 +3706,7 @@
     "functions": {
       "_become(address)": {
         "description": "_become(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "62": [
             "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B"
@@ -3723,7 +3723,7 @@
     "functions": {
       "_become(address)": {
         "description": "_become(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "63": [
             "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B"
@@ -3740,7 +3740,7 @@
     "functions": {
       "_become(address)": {
         "description": "_become(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "64": [
             "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B"
@@ -3757,7 +3757,7 @@
     "functions": {
       "_become(address)": {
         "description": "_become(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "65": [
             "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B"
@@ -3778,7 +3778,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "73": [
             "250000000000000000"
@@ -3795,7 +3795,7 @@
     "functions": {
       "approve(address,uint256)": {
         "description": "approve(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "79": [
             "0xCD18eAa163733Da39c232722cBC4E8940b1D8888",
@@ -3857,7 +3857,7 @@
       },
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "79": [
             "0x2B384212EDc04Ae8bB41738D05BA20E33277bf33",
@@ -3986,7 +3986,7 @@
     "functions": {
       "createStream(address,uint256,address,uint256,uint256)": {
         "description": "createStream(address,uint256,address,uint256,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "79": [
             "0x57C970568668087c05352456a3F59B58B0330066",
@@ -4071,7 +4071,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "83": [
             "250000000000000000"
@@ -4086,7 +4086,7 @@
       },
       "_reduceReserves(uint256)": {
         "description": "_reduceReserves(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "6324340499474616104642"
@@ -4106,7 +4106,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "86": [
             "250000000000000000"
@@ -4123,7 +4123,7 @@
     "functions": {
       "_reduceReserves(uint256)": {
         "description": "_reduceReserves(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "104": [
             "79764360000"
@@ -4132,7 +4132,7 @@
       },
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "109": [
             "37500000000000000"
@@ -4164,7 +4164,7 @@
     "functions": {
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "104": [
             "0xe8F0c9059b8Db5B863d48dB8e8C1A09f97D3B991",
@@ -4178,7 +4178,7 @@
       },
       "approve(address,uint256)": {
         "description": "approve(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "151": [
             "0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf",
@@ -4209,7 +4209,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "109": [
             "150000000000000000"
@@ -4218,7 +4218,7 @@
       },
       "_setInterestRateModel(address)": {
         "description": "_setInterestRateModel(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "122": [
             "0xF9583618169920c544Ec89795a346F487cB5a227"
@@ -4236,7 +4236,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "109": [
             "150000000000000000"
@@ -4253,7 +4253,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "109": [
             "37500000000000000"
@@ -4270,7 +4270,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "109": [
             "200000000000000000"
@@ -4279,7 +4279,7 @@
       },
       "_reduceReserves(uint256)": {
         "description": "_reduceReserves(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": [
             "555555000000000000000000"
@@ -4297,7 +4297,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "109": [
             "200000000000000000"
@@ -4306,7 +4306,7 @@
       },
       "_reduceReserves(uint256)": {
         "description": "_reduceReserves(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": [
             "1694915000000000000000000"
@@ -4324,7 +4324,7 @@
     "functions": {
       "_setReserveFactor(uint256)": {
         "description": "_setReserveFactor(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "109": [
             "200000000000000000"
@@ -4333,7 +4333,7 @@
       },
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "112": [
             "0x2B384212EDc04Ae8bB41738D05BA20E33277bf33",
@@ -4343,7 +4343,7 @@
       },
       "_setInterestRateModel(address)": {
         "description": "_setInterestRateModel(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "130": [
             "0xd956188795ca6F4A74092ddca33E0Ea4cA3a1395"
@@ -4352,7 +4352,7 @@
       },
       "redeem(uint256)": {
         "description": "redeem(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "9087425872149"
@@ -4372,7 +4372,7 @@
     "functions": {
       "_become(address)": {
         "description": "_become(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "112": [
             "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B"
@@ -4389,7 +4389,7 @@
     "functions": {
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "112": [
             "0x6918fE32bB0CCfba961C554699c1B506eD0Bd458",
@@ -4407,7 +4407,7 @@
     "functions": {
       "updateAssetSupplyCap(address,address,uint128)": {
         "description": "updateAssetSupplyCap(address,address,uint128)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "116": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -4468,7 +4468,7 @@
       },
       "setBaseTrackingBorrowSpeed(address,uint64)": {
         "description": "setBaseTrackingBorrowSpeed(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "124": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -4490,7 +4490,7 @@
       },
       "setFactory(address,address)": {
         "description": "setFactory(address,address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "132": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -4504,7 +4504,7 @@
       },
       "updateAssetLiquidationFactor(address,address,uint64)": {
         "description": "updateAssetLiquidationFactor(address,address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "140": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -4525,7 +4525,7 @@
       },
       "setConfiguration(address,tuple)": {
         "description": "setConfiguration(address,tuple)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "144": [
             "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
@@ -4535,7 +4535,7 @@
       },
       "setStoreFrontPriceFactor(address,uint64)": {
         "description": "setStoreFrontPriceFactor(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "152": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -4549,7 +4549,7 @@
       },
       "setBorrowKink(address,uint64)": {
         "description": "setBorrowKink(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "162": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -4567,7 +4567,7 @@
       },
       "setBorrowPerYearInterestRateBase(address,uint64)": {
         "description": "setBorrowPerYearInterestRateBase(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "162": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -4581,7 +4581,7 @@
       },
       "setBorrowPerYearInterestRateSlopeLow(address,uint64)": {
         "description": "setBorrowPerYearInterestRateSlopeLow(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "162": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -4599,7 +4599,7 @@
       },
       "setBorrowPerYearInterestRateSlopeHigh(address,uint64)": {
         "description": "setBorrowPerYearInterestRateSlopeHigh(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "162": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -4621,7 +4621,7 @@
       },
       "setSupplyKink(address,uint64)": {
         "description": "setSupplyKink(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "162": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -4635,7 +4635,7 @@
       },
       "setSupplyPerYearInterestRateSlopeLow(address,uint64)": {
         "description": "setSupplyPerYearInterestRateSlopeLow(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "162": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -4649,7 +4649,7 @@
       },
       "setSupplyPerYearInterestRateSlopeHigh(address,uint64)": {
         "description": "setSupplyPerYearInterestRateSlopeHigh(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "162": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -4667,7 +4667,7 @@
       },
       "setBaseTrackingSupplySpeed(address,uint64)": {
         "description": "setBaseTrackingSupplySpeed(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "168": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
@@ -4685,7 +4685,7 @@
       },
       "addAsset(address,tuple)": {
         "description": "addAsset(address,tuple)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "192": [
             "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
@@ -4724,7 +4724,7 @@
     "functions": {
       "deployAndUpgradeTo(address,address)": {
         "description": "deployAndUpgradeTo(address,address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "116": [
             "0x316f9708bB98af7dA9c68C1C3b5e79039cD336E3",
@@ -4847,7 +4847,7 @@
     "functions": {
       "_setInterestRateModel(address)": {
         "description": "_setInterestRateModel(address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "130": [
             "0xd88B94128Ff2B8Cf2d7886cd1C1E46757418cA2A"
@@ -4864,7 +4864,7 @@
     "functions": {
       "_reduceReserves(uint256)": {
         "description": "_reduceReserves(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "515499155166335008592"
@@ -4881,7 +4881,7 @@
     "functions": {
       "_reduceReserves(uint256)": {
         "description": "_reduceReserves(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "26684572352947457780274"
@@ -4898,7 +4898,7 @@
     "functions": {
       "approve(address,uint256)": {
         "description": "approve(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "0xBda109309f9FafA6Dd6A9CB9f1Df4085B27Ee8eF",
@@ -4916,7 +4916,7 @@
     "functions": {
       "cash(uint256)": {
         "description": "cash(uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "26855744800384711915777"
@@ -4933,7 +4933,7 @@
     "functions": {
       "approve(address,uint256)": {
         "description": "approve(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": [
             "0x221657776846890989a759BA2973e427DfF5C9bB",
@@ -4951,7 +4951,7 @@
     "functions": {
       "migrateFromLegacyReputationToken()": {
         "description": "migrateFromLegacyReputationToken()",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "138": []
         }
@@ -4966,7 +4966,7 @@
     "functions": {
       "setRewardConfig(address,address)": {
         "description": "setRewardConfig(address,address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "144": [
             "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
@@ -4984,14 +4984,14 @@
     "functions": {
       "deposit()": {
         "description": "deposit()",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "144": []
         }
       },
       "transfer(address,uint256)": {
         "description": "transfer(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "144": [
             "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
@@ -5009,7 +5009,7 @@
     "functions": {
       "setSubnodeRecord(bytes32,bytes32,address,address,uint64)": {
         "description": "setSubnodeRecord(bytes32,bytes32,address,address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "148": [
             "0x835063cb5d9be2abff6e5960d1b21dc40959f6203b301bee8366afa131b7367a",
@@ -5038,7 +5038,7 @@
     "functions": {
       "setText(bytes32,string,string)": {
         "description": "setText(bytes32,string,string)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "148": [
             "0x7dcf87198fd673716e5a32b206d9379c4fcbad8875073f52bfd0656759bf89ed",
@@ -5087,7 +5087,7 @@
     "functions": {
       "sendMessageToChild(address,bytes)": {
         "description": "sendMessageToChild(address,bytes)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "151": [
             "0x18281dfC4d00905DA1aaA6731414EABa843c468A",
@@ -5130,7 +5130,7 @@
     "functions": {
       "depositFor(address,address,bytes)": {
         "description": "depositFor(address,address,bytes)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "151": [
             "0x45939657d1CA34A8FA39A924B71D28Fe8431e581",
@@ -5161,7 +5161,7 @@
     "functions": {
       "createRetryableTicket(address,uint256,uint256,address,address,uint256,uint256,bytes)": {
         "description": "createRetryableTicket(address,uint256,uint256,address,address,uint256,uint256,bytes)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "160": [
             "0x42480C37B249e33aABaf4c22B20235656bd38068",
@@ -5240,7 +5240,7 @@
     "functions": {
       "outboundTransferCustomRefund(address,address,address,uint256,uint256,uint256,bytes)": {
         "description": "outboundTransferCustomRefund(address,address,address,uint256,uint256,uint256,bytes)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "160": [
             "0xc00e94Cb662C3520282E6f5717214004A7f26888",
@@ -5263,7 +5263,7 @@
     "functions": {
       "sendMessage(address,bytes,uint32)": {
         "description": "sendMessage(address,bytes,uint32)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "171": [
             "0x18281dfC4d00905DA1aaA6731414EABa843c468A",
@@ -5294,7 +5294,7 @@
     "functions": {
       "depositForBurn(uint256,uint32,bytes32,address)": {
         "description": "depositForBurn(uint256,uint32,bytes32,address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "178": [
             "10000000000",
@@ -5314,14 +5314,14 @@
     "functions": {
       "acceptOwnership()": {
         "description": "acceptOwnership()",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": []
         }
       },
       "deposit(tuple[])": {
         "description": "deposit(tuple[])",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": [
             "0x0D8775F648430679A709E98d2b0Cb6250d2887EF,555555000000000000000000,0xE41d2489571d322189246DaFA5ebDe1F4699F498,1694915000000000000000000"
@@ -5330,7 +5330,7 @@
       },
       "resume()": {
         "description": "resume()",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": []
         }
@@ -5345,7 +5345,7 @@
     "functions": {
       "acceptOwnership()": {
         "description": "acceptOwnership()",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": []
         }
@@ -5360,7 +5360,7 @@
     "functions": {
       "acceptOwnership()": {
         "description": "acceptOwnership()",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": []
         }
@@ -5375,7 +5375,7 @@
     "functions": {
       "approve(address,uint256)": {
         "description": "approve(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": [
             "0x3D6eEf6A92b15361697698695334E98C5db91D6b",
@@ -5393,7 +5393,7 @@
     "functions": {
       "approve(address,uint256)": {
         "description": "approve(address,uint256)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "187": [
             "0x3D6eEf6A92b15361697698695334E98C5db91D6b",
@@ -5411,7 +5411,7 @@
     "functions": {
       "depositERC20To(address,address,address,uint256,uint32,bytes)": {
         "description": "depositERC20To(address,address,address,uint256,uint32,bytes)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "171": [
             "0xc00e94Cb662C3520282E6f5717214004A7f26888",

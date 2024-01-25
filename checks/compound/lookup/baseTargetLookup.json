@@ -4,7 +4,7 @@
     "functions": {
       "setConfiguration(address,tuple)": {
         "description": "setConfiguration(address,tuple)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "171": [
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",
@@ -14,7 +14,7 @@
       },
       "setBorrowKink(address,uint64)": {
         "description": "setBorrowKink(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "207": [
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",
@@ -24,7 +24,7 @@
       },
       "setBorrowPerYearInterestRateSlopeLow(address,uint64)": {
         "description": "setBorrowPerYearInterestRateSlopeLow(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "207": [
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",
@@ -34,7 +34,7 @@
       },
       "setBorrowPerYearInterestRateSlopeHigh(address,uint64)": {
         "description": "setBorrowPerYearInterestRateSlopeHigh(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "207": [
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",
@@ -44,7 +44,7 @@
       },
       "setSupplyKink(address,uint64)": {
         "description": "setSupplyKink(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "207": [
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",
@@ -54,7 +54,7 @@
       },
       "setSupplyPerYearInterestRateSlopeLow(address,uint64)": {
         "description": "setSupplyPerYearInterestRateSlopeLow(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "207": [
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",
@@ -64,7 +64,7 @@
       },
       "setSupplyPerYearInterestRateSlopeHigh(address,uint64)": {
         "description": "setSupplyPerYearInterestRateSlopeHigh(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "207": [
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",
@@ -83,7 +83,7 @@
     "functions": {
       "deployAndUpgradeTo(address,address)": {
         "description": "deployAndUpgradeTo(address,address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "171": [
             "0x45939657d1CA34A8FA39A924B71D28Fe8431e581",
@@ -106,7 +106,7 @@
     "functions": {
       "setRewardConfig(address,address)": {
         "description": "setRewardConfig(address,address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "171": [
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",

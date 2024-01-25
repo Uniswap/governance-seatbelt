@@ -20,7 +20,7 @@ export interface TargetLookupData {
     functions: {
       [functionName: string]: {
         description: string
-        descriptionTemplate: string
+        transactionFormatter: string
         proposals: {
           [proposalNumber: string]: string[]
         }

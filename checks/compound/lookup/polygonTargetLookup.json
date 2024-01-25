@@ -4,7 +4,7 @@
     "functions": {
       "setBorrowPerYearInterestRateSlopeLow(address,uint64)": {
         "description": "setBorrowPerYearInterestRateSlopeLow(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "209": [
             "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
@@ -14,7 +14,7 @@
       },
       "setBorrowPerYearInterestRateSlopeHigh(address,uint64)": {
         "description": "setBorrowPerYearInterestRateSlopeHigh(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "209": [
             "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
@@ -24,7 +24,7 @@
       },
       "setSupplyPerYearInterestRateSlopeLow(address,uint64)": {
         "description": "setSupplyPerYearInterestRateSlopeLow(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "209": [
             "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
@@ -34,7 +34,7 @@
       },
       "setSupplyPerYearInterestRateSlopeHigh(address,uint64)": {
         "description": "setSupplyPerYearInterestRateSlopeHigh(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "209": [
             "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
@@ -44,7 +44,7 @@
       },
       "setConfiguration(address,tuple)": {
         "description": "setConfiguration(address,tuple)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "151": [
             "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
@@ -54,7 +54,7 @@
       },
       "updateAssetSupplyCap(address,address,uint128)": {
         "description": "updateAssetSupplyCap(address,address,uint128)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "161": [
             "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
@@ -65,7 +65,7 @@
       },
       "setBaseTrackingSupplySpeed(address,uint64)": {
         "description": "setBaseTrackingSupplySpeed(address,uint64)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "161": [
             "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
@@ -75,7 +75,7 @@
       },
       "addAsset(address,tuple)": {
         "description": "addAsset(address,tuple)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "172": [
             "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
@@ -96,7 +96,7 @@
     "functions": {
       "deployAndUpgradeTo(address,address)": {
         "description": "deployAndUpgradeTo(address,address)",
-        "descriptionTemplate": "",
+        "transactionFormatter": "",
         "proposals": {
           "151": [
             "0x83E0F742cAcBE66349E3701B171eE2487a26e738",
