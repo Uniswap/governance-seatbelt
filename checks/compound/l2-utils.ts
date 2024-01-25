@@ -61,7 +61,7 @@ function extractTransactionsFromBridgedData(parsedDataToBridge: any) {
   return {
     targets: (decoded.at(0) as string[]).map((target) => target.toLowerCase()),
     values: (decoded.at(1) as BigNumber[]).map((value) => value),
-    signatures: (decoded.at(2) as string[]).map((signature) => signature.toLowerCase()),
+    signatures: (decoded.at(2) as string[]).map((signature) => signature),
     calldatas: (decoded.at(3) as string[]).map((calldata) => calldata),
   }
 }

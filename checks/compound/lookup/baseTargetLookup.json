@@ -1,1 +1,56 @@
-{}
+{
+  "0x45939657d1ca34a8fa39a924b71d28fe8431e581": {
+    "contractName": "Configurator",
+    "functions": {
+      "setConfiguration(address,tuple)": {
+        "description": "setConfiguration(address,tuple)",
+        "descriptionTemplate": "",
+        "proposals": {
+          "171": [
+            "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",
+            "0xCC3E7c85Bb0EE4f09380e041fee95a0caeDD4a02,0x3cb4653F3B45F448D9100b118B75a1503281d2ee,0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA,0x7e860098F58bBFC8648a4311b374B1D669a2bc6B,0x2F9E3953b2Ef89fA265f2a32ed9F80D00229125B,800000000000000000,32500000000000000,400000000000000000,0,800000000000000000,35000000000000004,250000000000000000,15000000000000000,600000000000000000,1000000000000000,347222222222,173611111111,1000000000,1,5000000000000,0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22,0x4687670f5f01716fAA382E2356C103BaD776752C,18,750000000000000000,800000000000000000,930000000000000000,7500000000000000000000,0x4200000000000000000000000000000000000006,0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70,18,790000000000000000,840000000000000000,950000000000000000,11000000000000000000000"
+          ]
+        }
+      }
+    },
+    "proposals": [
+      171
+    ]
+  },
+  "0xbde8f31d2ddda895264e27dd990fab3dc87b372d": {
+    "contractName": "CometProxyAdmin",
+    "functions": {
+      "deployAndUpgradeTo(address,address)": {
+        "description": "deployAndUpgradeTo(address,address)",
+        "descriptionTemplate": "",
+        "proposals": {
+          "171": [
+            "0x45939657d1CA34A8FA39A924B71D28Fe8431e581",
+            "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf"
+          ]
+        }
+      }
+    },
+    "proposals": [
+      171
+    ]
+  },
+  "0x123964802e6ababbe1bc9547d72ef1b69b00a6b1": {
+    "contractName": "CometRewards",
+    "functions": {
+      "setRewardConfig(address,address)": {
+        "description": "setRewardConfig(address,address)",
+        "descriptionTemplate": "",
+        "proposals": {
+          "171": [
+            "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",
+            "0x9e1028F5F1D5eDE59748FFceE5532509976840E0"
+          ]
+        }
+      }
+    },
+    "proposals": [
+      171
+    ]
+  }
+}
