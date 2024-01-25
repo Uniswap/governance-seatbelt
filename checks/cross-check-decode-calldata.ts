@@ -27,7 +27,7 @@ interface TargetLookupData {
 export const crossCheckDecodeCalldata: ProposalCheck = {
   name: 'Decodes target calldata into a human-readable format',
   async checkProposal(proposal, sim, deps: ProposalData) {
-    const { targets: targets, signatures: signatures, calldatas: calldatas } = proposal
+    const { targets: targets, signatures: signatures, calldatas: calldatas, values } = proposal
 
     const targetLookupFilePath = './lookup/verifyLookup.json'
     let lookupData: TargetLookupData = {}
@@ -40,7 +40,11 @@ export const crossCheckDecodeCalldata: ProposalCheck = {
     for (const [i, target] of targets.entries()) {
       const functionName = signatures[i]
       const calldata = calldatas[i]
-
+      const value = values?.[i]
+      if (value?.toString() && value?.toString() !== '0') {
+        console.error('Error Error Error Error', value)
+        continue
+      }
       await storeTargetInfo(proposal, lookupData, target, functionName, calldata)
     }
 
@@ -60,13 +64,13 @@ async function storeTargetInfo(
   const proposalId = proposal.id?.toNumber() || 0
   try {
     // Debugging logs
-    const abi = await getContractAbiFromFile(target)
+    const contractNameAndAbi = await getContractNameAndAbiFromFile(target)
 
-    if (!abi) {
+    if (!contractNameAndAbi.abi) {
       console.log('No ABI found for address:', target)
       throw new Error('No ABI found for address ' + target)
     }
-    const iface = new Interface(abi)
+    const iface = new Interface(contractNameAndAbi.abi)
 
     let decodedCalldata
 
@@ -84,7 +88,7 @@ async function storeTargetInfo(
     const functionSignature = `${fun.name}(${fun.inputs.map((input) => input.type).join(',')})`
 
     targetLookupData[target] ||= {
-      contractName: '',
+      contractName: contractNameAndAbi.contractName,
       functions: {},
       proposals: [],
     }
@@ -124,17 +128,17 @@ async function storeTargetInfo(
   }
 }
 
-async function getContractAbiFromFile(addr: string) {
+async function getContractNameAndAbiFromFile(addr: string) {
   const address = addr.toLowerCase()
   // read abi from file in contracts folder
   const abiFilePath = `./contracts/${address}.json`
   if (fs.existsSync(abiFilePath)) {
     const fileContent = fs.readFileSync(abiFilePath, 'utf-8')
     const abiFile = JSON.parse(fileContent)
-    return abiFile.abi
+    return { abi: abiFile.abi, contractName: abiFile.contractName }
   } else {
     await storeContractNameAndAbi(address)
-    return getContractAbiFromFile(address)
+    return getContractNameAndAbiFromFile(address)
   }
 }
 async function storeContractNameAndAbi(addr: string) {
