@@ -1,5 +1,6 @@
 import { ProposalCheck, ProposalData, ProposalEvent, TenderlyContract } from '@/types'
 import { Interface, AbiCoder, FunctionFragment } from '@ethersproject/abi'
+import { BigNumber } from '@ethersproject/bignumber'
 import fs from 'fs'
 import mftch, { FETCH_OPT } from 'micro-ftch'
 // @ts-ignore
@@ -24,12 +25,12 @@ interface TargetLookupData {
 /**
  * Decodes proposal target calldata into a human-readable format
  */
-export const crossCheckDecodeCalldata: ProposalCheck = {
-  name: 'Decodes target calldata into a human-readable format',
+export const checkCompoundProposalDetails: ProposalCheck = {
+  name: 'Checks Compound Proposal Details',
   async checkProposal(proposal, sim, deps: ProposalData) {
     const { targets: targets, signatures: signatures, calldatas: calldatas, values } = proposal
 
-    const targetLookupFilePath = './lookup/verifyLookup.json'
+    const targetLookupFilePath = './checks/compound/lookup/mainnetTargetLookup.json'
     let lookupData: TargetLookupData = {}
 
     if (fs.existsSync(targetLookupFilePath)) {
@@ -38,14 +39,13 @@ export const crossCheckDecodeCalldata: ProposalCheck = {
     }
 
     for (const [i, target] of targets.entries()) {
-      const functionName = signatures[i]
+      const signature = signatures[i]
       const calldata = calldatas[i]
       const value = values?.[i]
-      if (value?.toString() && value?.toString() !== '0') {
-        console.error('Error Error Error Error', value)
-        continue
-      }
-      await storeTargetInfo(proposal, lookupData, target, functionName, calldata)
+
+      const proposalId = proposal.id?.toNumber() || 0
+      const transactionInfo = { target, value, signature, calldata }
+      await storeTargetInfo(proposalId, lookupData, 'mainnet', transactionInfo)
     }
 
     fs.writeFileSync(targetLookupFilePath, JSON.stringify(lookupData, null, 2), 'utf-8')
@@ -55,16 +55,24 @@ export const crossCheckDecodeCalldata: ProposalCheck = {
 }
 
 async function storeTargetInfo(
-  proposal: ProposalEvent,
+  proposalId: number,
   targetLookupData: TargetLookupData,
-  target: string,
-  signature: string, // can be empty string
-  calldata: string,
+  chain: string,
+  transactionInfo: {
+    target: string
+    value: BigNumber
+    signature: string // can be empty string
+    calldata: string
+  },
 ) {
-  const proposalId = proposal.id?.toNumber() || 0
+  const { target, value, signature, calldata } = transactionInfo
+  if (value?.toString() && value?.toString() !== '0') {
+    console.error('Error Error Error Error', value)
+    return
+  }
   try {
     // Debugging logs
-    const contractNameAndAbi = await getContractNameAndAbiFromFile(target)
+    const contractNameAndAbi = await getContractNameAndAbiFromFile(chain, target)
 
     if (!contractNameAndAbi.abi) {
       console.log('No ABI found for address:', target)
@@ -128,23 +136,23 @@ async function storeTargetInfo(
   }
 }
 
-async function getContractNameAndAbiFromFile(addr: string) {
+async function getContractNameAndAbiFromFile(chain: string, addr: string) {
   const address = addr.toLowerCase()
   // read abi from file in contracts folder
-  const abiFilePath = `./contracts/${address}.json`
+  const abiFilePath = getContractInfoFilePath(chain, address)
   if (fs.existsSync(abiFilePath)) {
     const fileContent = fs.readFileSync(abiFilePath, 'utf-8')
     const abiFile = JSON.parse(fileContent)
     return { abi: abiFile.abi, contractName: abiFile.contractName }
   } else {
-    await storeContractNameAndAbi(address)
-    return getContractNameAndAbiFromFile(address)
+    await storeContractNameAndAbi(chain, address)
+    return getContractNameAndAbiFromFile(chain, address)
   }
 }
-async function storeContractNameAndAbi(addr: string) {
+async function storeContractNameAndAbi(chain: string, addr: string) {
   const address = addr.toLowerCase()
   const { contractName, abi } = await getContractNameAndAbi(address)
-  const abiFilePath = `./contracts/${address}.json`
+  const abiFilePath = getContractInfoFilePath(chain, address)
   const abiFileContent = JSON.stringify({ abi, contractName, address }, null, 2)
   fs.writeFileSync(abiFilePath, abiFileContent, 'utf-8')
 }
@@ -188,4 +196,8 @@ async function getContractNameAndAbi(address: string) {
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function getContractInfoFilePath(chain: string, address: string) {
+  return `./checks/compound/contracts/${chain}/${address}.json`
 }
