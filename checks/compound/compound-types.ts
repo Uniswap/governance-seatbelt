@@ -30,6 +30,12 @@ export interface TargetLookupData {
   }
 }
 
+export interface TransactionMessage {
+  info?: string
+  warning?: string
+  error?: string
+}
+
 export enum CometChains {
   arbitrum = 'arbitrum',
   polygon = 'polygon',

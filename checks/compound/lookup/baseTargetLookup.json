@@ -9,6 +9,10 @@
           "171": [
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",
             "0xCC3E7c85Bb0EE4f09380e041fee95a0caeDD4a02,0x3cb4653F3B45F448D9100b118B75a1503281d2ee,0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA,0x7e860098F58bBFC8648a4311b374B1D669a2bc6B,0x2F9E3953b2Ef89fA265f2a32ed9F80D00229125B,800000000000000000,32500000000000000,400000000000000000,0,800000000000000000,35000000000000004,250000000000000000,15000000000000000,600000000000000000,1000000000000000,347222222222,173611111111,1000000000,1,5000000000000,0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22,0x4687670f5f01716fAA382E2356C103BaD776752C,18,750000000000000000,800000000000000000,930000000000000000,7500000000000000000000,0x4200000000000000000000000000000000000006,0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70,18,790000000000000000,840000000000000000,950000000000000000,11000000000000000000000"
+          ],
+          "174": [
+            "0x46e6b214b524310239732D51387075E0e70970bf",
+            "0xCC3E7c85Bb0EE4f09380e041fee95a0caeDD4a02,0x3cb4653F3B45F448D9100b118B75a1503281d2ee,0x4200000000000000000000000000000000000006,0x9f485610E26B9c0140439f88Dc0C7742903Bd1CF,0x88bB8C109640778D3fB1074bB10a66e31F2c9c17,900000000000000000,28382400000000000,606656770600000000,0,900000000000000000,37000000000000000,517150033900000000,9945209674000000,1000000000000000000,1000000000000000,231481481481,0,100000000000000000000,1,5000000000000000000000,0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22,0x59e242D352ae13166B4987aE5c990C232f7f7CD6,18,900000000000000000,930000000000000000,975000000000000000,7500000000000000000000"
           ]
         }
       },
@@ -26,6 +30,10 @@
         "description": "setBorrowPerYearInterestRateSlopeLow(address,uint64)",
         "transactionFormatter": "",
         "proposals": {
+          "195": [
+            "0x46e6b214b524310239732D51387075E0e70970bf",
+            "35000000000000000"
+          ],
           "207": [
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",
             "53000000000000000"
@@ -36,6 +44,10 @@
         "description": "setBorrowPerYearInterestRateSlopeHigh(address,uint64)",
         "transactionFormatter": "",
         "proposals": {
+          "195": [
+            "0x46e6b214b524310239732D51387075E0e70970bf",
+            "1000000000000000000"
+          ],
           "207": [
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",
             "1800000000000000000"
@@ -56,6 +68,10 @@
         "description": "setSupplyPerYearInterestRateSlopeLow(address,uint64)",
         "transactionFormatter": "",
         "proposals": {
+          "195": [
+            "0x46e6b214b524310239732D51387075E0e70970bf",
+            "25000000000000000"
+          ],
           "207": [
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",
             "48000000000000000"
@@ -66,16 +82,52 @@
         "description": "setSupplyPerYearInterestRateSlopeHigh(address,uint64)",
         "transactionFormatter": "",
         "proposals": {
+          "195": [
+            "0x46e6b214b524310239732D51387075E0e70970bf",
+            "1000000000000000000"
+          ],
           "207": [
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",
             "1600000000000000000"
+          ]
+        }
+      },
+      "setFactory(address,address)": {
+        "description": "setFactory(address,address)",
+        "transactionFormatter": "",
+        "proposals": {
+          "174": [
+            "0x46e6b214b524310239732D51387075E0e70970bf",
+            "0x27C348936400791b7350d80Fb81Bc61Ad68dF4AE"
+          ]
+        }
+      },
+      "setBaseBorrowMin(address,uint104)": {
+        "description": "setBaseBorrowMin(address,uint104)",
+        "transactionFormatter": "",
+        "proposals": {
+          "195": [
+            "0x46e6b214b524310239732D51387075E0e70970bf",
+            "1000000000000"
+          ]
+        }
+      },
+      "setBorrowPerYearInterestRateBase(address,uint64)": {
+        "description": "setBorrowPerYearInterestRateBase(address,uint64)",
+        "transactionFormatter": "",
+        "proposals": {
+          "195": [
+            "0x46e6b214b524310239732D51387075E0e70970bf",
+            "5000000000000000"
           ]
         }
       }
     },
     "proposals": [
       171,
-      207
+      207,
+      174,
+      195
     ]
   },
   "0xbde8f31d2ddda895264e27dd990fab3dc87b372d": {
@@ -89,6 +141,14 @@
             "0x45939657d1CA34A8FA39A924B71D28Fe8431e581",
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf"
           ],
+          "174": [
+            "0x45939657d1CA34A8FA39A924B71D28Fe8431e581",
+            "0x46e6b214b524310239732D51387075E0e70970bf"
+          ],
+          "195": [
+            "0x45939657d1CA34A8FA39A924B71D28Fe8431e581",
+            "0x46e6b214b524310239732D51387075E0e70970bf"
+          ],
           "207": [
             "0x45939657d1CA34A8FA39A924B71D28Fe8431e581",
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf"
@@ -98,7 +158,9 @@
     },
     "proposals": [
       171,
-      207
+      207,
+      174,
+      195
     ]
   },
   "0x123964802e6ababbe1bc9547d72ef1b69b00a6b1": {
@@ -111,12 +173,35 @@
           "171": [
             "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",
             "0x9e1028F5F1D5eDE59748FFceE5532509976840E0"
+          ],
+          "174": [
+            "0x46e6b214b524310239732D51387075E0e70970bf",
+            "0x9e1028F5F1D5eDE59748FFceE5532509976840E0"
           ]
         }
       }
     },
     "proposals": [
-      171
+      171,
+      174
+    ]
+  },
+  "0x4200000000000000000000000000000000000006": {
+    "contractName": "WETH9",
+    "functions": {
+      "transfer(address,uint256)": {
+        "description": "transfer(address,uint256)",
+        "transactionFormatter": "",
+        "proposals": {
+          "174": [
+            "0x46e6b214b524310239732D51387075E0e70970bf",
+            "10000000000000000000"
+          ]
+        }
+      }
+    },
+    "proposals": [
+      174
     ]
   }
 }

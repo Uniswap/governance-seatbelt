@@ -3,6 +3,28 @@ import { BigNumber } from '@ethersproject/bignumber'
 import { getFunctionFragmentAndDecodedCalldata, getFunctionSignature } from './abi-utils'
 import { CometChains, ExecuteTransactionInfo, ExecuteTransactionsInfo } from './compound-types'
 
+export const l2Bridges: { [address: string]: CometChains } = {
+  '0x4dbd4fc535ac27206064b68ffcf827b0a60bab3f': CometChains.arbitrum,
+  '0xfe5e5d361b2ad62c541bab87c45a0b9b018389a2': CometChains.polygon,
+  '0x866e82a600a1414e583f7f13623f1ac5d58b0afa': CometChains.base,
+}
+
+export async function getDecodedBytesForChain(
+  chain: CometChains,
+  proposalId: number,
+  transactionInfo: ExecuteTransactionInfo,
+): Promise<ExecuteTransactionsInfo> {
+  switch (chain) {
+    case CometChains.arbitrum:
+      return getDecodedBytesForArbitrum(proposalId, transactionInfo)
+    case CometChains.base:
+      return getDecodedBytesForBase(proposalId, transactionInfo)
+    case CometChains.polygon:
+      return getDecodedBytesForPolygon(proposalId, transactionInfo)
+    default:
+      throw new Error(`Chain ${chain} is not supported`)
+  }
+}
 export async function getDecodedBytesForArbitrum(
   proposalId: number,
   transactionInfo: ExecuteTransactionInfo,

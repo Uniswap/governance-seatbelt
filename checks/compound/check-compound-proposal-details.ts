@@ -1,55 +1,18 @@
 import fs from 'fs'
 import mftch from 'micro-ftch'
-import { ProposalCheck, ProposalData } from './../../types'
+import { CheckResult, ProposalCheck, ProposalData } from './../../types'
 import { getContractNameAndAbiFromFile, getFunctionFragmentAndDecodedCalldata, getFunctionSignature } from './abi-utils'
-import { CometChains, ExecuteTransactionInfo, ExecuteTransactionsInfo, TargetLookupData } from './compound-types'
-import { getDecodedBytesForArbitrum, getDecodedBytesForBase, getDecodedBytesForPolygon } from './l2-utils'
+import {
+  CometChains,
+  ExecuteTransactionInfo,
+  ExecuteTransactionsInfo,
+  TargetLookupData,
+  TransactionMessage,
+} from './compound-types'
+import { getDecodedBytesForChain, l2Bridges } from './l2-utils'
+import { formattersLookup } from './transaction-formatter'
 // @ts-ignore
 const fetchUrl = mftch.default
-
-async function updateLookupFile(chain: CometChains, proposalId: number, transactions: ExecuteTransactionsInfo) {
-  const { targets, signatures, calldatas, values } = transactions
-
-  const targetLookupFilePath = `./checks/compound/lookup/${chain}TargetLookup.json`
-  let lookupData: TargetLookupData = {}
-
-  if (fs.existsSync(targetLookupFilePath)) {
-    const fileContent = fs.readFileSync(targetLookupFilePath, 'utf-8')
-    lookupData = JSON.parse(fileContent || '{}')
-  }
-
-  for (const [i, targetNoCase] of targets.entries()) {
-    const target = targetNoCase.toLowerCase()
-    const transactionInfo: ExecuteTransactionInfo = {
-      target,
-      signature: signatures[i],
-      calldata: calldatas[i],
-      value: values?.[i],
-    }
-    if (target === '0x4dbd4fc535ac27206064b68ffcf827b0a60bab3f') {
-      const arbitrumTransactionsInfo = await getDecodedBytesForArbitrum(proposalId, transactionInfo)
-      console.log('arbitrumTransactionsInfo:', arbitrumTransactionsInfo)
-      await updateLookupFile(CometChains.arbitrum, proposalId, arbitrumTransactionsInfo)
-      continue
-    }
-    if (target === '0x866e82a600a1414e583f7f13623f1ac5d58b0afa') {
-      const baseTransactionsInfo = await getDecodedBytesForBase(proposalId, transactionInfo)
-      console.log('baseTransactionsInfo:', baseTransactionsInfo)
-      await updateLookupFile(CometChains.base, proposalId, baseTransactionsInfo)
-      continue
-    }
-    if (target === '0xfe5e5d361b2ad62c541bab87c45a0b9b018389a2') {
-      const polygonTransactionsInfo = await getDecodedBytesForPolygon(proposalId, transactionInfo)
-      console.log('polygonTransactionsInfo:', polygonTransactionsInfo)
-      await updateLookupFile(CometChains.polygon, proposalId, polygonTransactionsInfo)
-      continue
-    }
-
-    await storeTargetInfo(chain, proposalId, lookupData, transactionInfo)
-  }
-
-  fs.writeFileSync(targetLookupFilePath, JSON.stringify(lookupData, null, 2), 'utf-8')
-}
 
 /**
  * Decodes proposal target calldata into a human-readable format
@@ -62,10 +25,74 @@ export const checkCompoundProposalDetails: ProposalCheck = {
     const chain = CometChains.mainnet
     const proposalId = proposal.id?.toNumber() || 0
 
-    await updateLookupFile(chain, proposalId, { targets, signatures, calldatas, values })
+    const checkResults = await updateLookupFile(chain, proposalId, { targets, signatures, calldatas, values })
 
-    return { info: [], warnings: [], errors: [] }
+    return checkResults
   },
+}
+
+async function updateLookupFile(
+  chain: CometChains,
+  proposalId: number,
+  transactions: ExecuteTransactionsInfo,
+): Promise<CheckResult> {
+  const { targets, signatures, calldatas, values } = transactions
+
+  const targetLookupFilePath = `./checks/compound/lookup/${chain}TargetLookup.json`
+  let lookupData: TargetLookupData = {}
+
+  if (fs.existsSync(targetLookupFilePath)) {
+    const fileContent = fs.readFileSync(targetLookupFilePath, 'utf-8')
+    lookupData = JSON.parse(fileContent || '{}')
+  }
+
+  const checkResults: CheckResult = { info: [], warnings: [], errors: [] }
+
+  for (const [i, targetNoCase] of targets.entries()) {
+    const target = targetNoCase.toLowerCase()
+    const transactionInfo: ExecuteTransactionInfo = {
+      target,
+      signature: signatures[i],
+      calldata: calldatas[i],
+      value: values?.[i],
+    }
+    if (Object.keys(l2Bridges).includes(target)) {
+      const cometChain = l2Bridges[target]
+      const l2TransactionsInfo = await getDecodedBytesForChain(cometChain, proposalId, transactionInfo)
+      const l2CheckResults = await updateLookupFile(cometChain, proposalId, l2TransactionsInfo)
+      const l2Messages = nestCheckResultsForChain(cometChain, l2CheckResults)
+      console.log('l2Messages:', l2Messages)
+      pushMessageToCheckResults(checkResults, { info: l2Messages })
+      continue
+    }
+
+    await storeTargetInfo(chain, proposalId, lookupData, transactionInfo)
+    const message = await getTransactionMessages(chain, proposalId, lookupData, transactionInfo)
+    console.log('message:', message)
+    pushMessageToCheckResults(checkResults, message)
+  }
+
+  fs.writeFileSync(targetLookupFilePath, JSON.stringify(lookupData, null, 2), 'utf-8')
+
+  return checkResults
+}
+
+function pushMessageToCheckResults(checkResults: CheckResult, message: TransactionMessage) {
+  if (message.info) {
+    checkResults.info.push(message.info)
+  } else if (message.warning) {
+    checkResults.warnings.push(message.warning)
+  } else if (message.error) {
+    checkResults.errors.push(message.error)
+  }
+}
+
+function nestCheckResultsForChain(chain: CometChains, checkResult: CheckResult): string {
+  return `
+### ${chain} Updates
+  
+${checkResult.info.join('\n')}
+`
 }
 
 async function storeTargetInfo(
@@ -121,6 +148,40 @@ async function storeTargetInfo(
   } catch (e) {
     console.error(e)
     console.log(`Error decoding proposal: ${proposalId} target: ${target} signature: ${signature} calldata:${calldata}`)
+  }
+}
+
+async function getTransactionMessages(
+  chain: CometChains,
+  proposalId: number,
+  targetLookupData: TargetLookupData,
+  transactionInfo: ExecuteTransactionInfo,
+): Promise<TransactionMessage> {
+  const { target, value, signature, calldata } = transactionInfo
+  if (value?.toString() && value?.toString() !== '0') {
+    console.error('Error Error Error Error', value)
+    return { error: 'Error Error Error Error' }
+  }
+  if (isRemovedFunction(target, signature)) {
+    console.log(`Function ${signature} is removed from ${target} contract`)
+    return { error: `Function ${signature} is removed from ${target} contract` }
+  }
+
+  const { fun, decodedCalldata } = await getFunctionFragmentAndDecodedCalldata(proposalId, chain, transactionInfo)
+
+  const functionSignature = getFunctionSignature(fun)
+
+  const transactionFormatter = targetLookupData[target].functions[functionSignature].transactionFormatter
+
+  if (!transactionFormatter) {
+    return { info: `**${target} - ${functionSignature} called with :** (${decodedCalldata.join(',')})` }
+  } else {
+    const [contractName, formatterName] = transactionFormatter.split('.')
+    const message = await formattersLookup[contractName][formatterName](
+      transactionInfo,
+      decodedCalldata.map((data) => data.toString()),
+    )
+    return { info: message }
   }
 }
 
