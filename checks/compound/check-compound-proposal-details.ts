@@ -22,6 +22,38 @@ interface TargetLookupData {
   }
 }
 
+async function updateLookupFile(
+  chain: string,
+  proposalId: number,
+  transactions: {
+    targets: string[]
+    signatures: string[]
+    calldatas: string[]
+    values: BigNumber[]
+  },
+) {
+  const { targets, signatures, calldatas, values } = transactions
+
+  const targetLookupFilePath = `./checks/compound/lookup/${chain}TargetLookup.json`
+  let lookupData: TargetLookupData = {}
+
+  if (fs.existsSync(targetLookupFilePath)) {
+    const fileContent = fs.readFileSync(targetLookupFilePath, 'utf-8')
+    lookupData = JSON.parse(fileContent || '{}')
+  }
+
+  for (const [i, target] of targets.entries()) {
+    const signature = signatures[i]
+    const calldata = calldatas[i]
+    const value = values?.[i]
+
+    const transactionInfo = { target, value, signature, calldata }
+    await storeTargetInfo(proposalId, lookupData, 'mainnet', transactionInfo)
+  }
+
+  fs.writeFileSync(targetLookupFilePath, JSON.stringify(lookupData, null, 2), 'utf-8')
+}
+
 /**
  * Decodes proposal target calldata into a human-readable format
  */
@@ -30,25 +62,10 @@ export const checkCompoundProposalDetails: ProposalCheck = {
   async checkProposal(proposal, sim, deps: ProposalData) {
     const { targets: targets, signatures: signatures, calldatas: calldatas, values } = proposal
 
-    const targetLookupFilePath = './checks/compound/lookup/mainnetTargetLookup.json'
-    let lookupData: TargetLookupData = {}
+    const chain = 'mainnet'
+    const proposalId = proposal.id?.toNumber() || 0
 
-    if (fs.existsSync(targetLookupFilePath)) {
-      const fileContent = fs.readFileSync(targetLookupFilePath, 'utf-8')
-      lookupData = JSON.parse(fileContent)
-    }
-
-    for (const [i, target] of targets.entries()) {
-      const signature = signatures[i]
-      const calldata = calldatas[i]
-      const value = values?.[i]
-
-      const proposalId = proposal.id?.toNumber() || 0
-      const transactionInfo = { target, value, signature, calldata }
-      await storeTargetInfo(proposalId, lookupData, 'mainnet', transactionInfo)
-    }
-
-    fs.writeFileSync(targetLookupFilePath, JSON.stringify(lookupData, null, 2), 'utf-8')
+    await updateLookupFile(chain, proposalId, { targets, signatures, calldatas, values })
 
     return { info: [], warnings: [], errors: [] }
   },
@@ -181,16 +198,16 @@ async function getContractNameAndAbi(address: string) {
       contractName: implResult.ContractName,
       abi: abi,
     }
-  }
-
-  const abi = contractResult.ABI
-  if (!abi) {
-    console.log('No ABI found for address:', address, contractResponse)
-    throw new Error('No ABI found for address ' + address)
-  }
-  return {
-    contractName: contractResult.ContractName,
-    abi: abi,
+  } else {
+    const abi = contractResult.ABI
+    if (!abi) {
+      console.log('No ABI found for address:', address, contractResponse)
+      throw new Error('No ABI found for address ' + address)
+    }
+    return {
+      contractName: contractResult.ContractName,
+      abi: abi,
+    }
   }
 }
 
