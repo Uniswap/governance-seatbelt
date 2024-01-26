@@ -58,6 +58,12 @@ TENDERLY_PROJECT_SLUG=projectName
 # Define the DAO name and the address of its governor.
 DAO_NAME=Uniswap
 GOVERNOR_ADDRESS=0x408ED6354d4973f66138C91495F2f2FCbd8724C3
+
+
+BASESCAN_API_KEY=yourBasescanApiKey
+POLYGONSCAN_API_KEY=yourPolygonscanApiKey
+ARBITRUMSCAN_API_KEY=yourArbitrumscanApiKey
+
 ```
 
 ### Running Simulations
@@ -70,3 +76,9 @@ There are two modes of operation:
 When running either of those two modes locally, reports will be saved into a `reports/` folder in the root of the repository.
 The specific path will be `./reports/${daoName}/${governorAddress}/${proposalId}.${extension}`.
 The `reports/` folder is gitignored, so when searching for reports in this directory your editor may hide the files by default.
+
+### Running specific checks
+
+`CHECKS_ENABLED=checkCompoundProposalDetails`
+
+You can run specific checks by setting the `CHECKS_ENABLED` environment variable to a comma-separated list of checks to run.
