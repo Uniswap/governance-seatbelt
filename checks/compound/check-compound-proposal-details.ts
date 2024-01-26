@@ -11,6 +11,8 @@ import {
 } from './compound-types'
 import { getDecodedBytesForChain, l2Bridges } from './l2-utils'
 import { formattersLookup } from './transaction-formatter'
+import { BigNumber, Contract, constants } from 'ethers'
+import { provider } from '../../utils/clients/ethers'
 // @ts-ignore
 const fetchUrl = mftch.default
 
@@ -34,7 +36,7 @@ export const checkCompoundProposalDetails: ProposalCheck = {
 async function updateLookupFile(
   chain: CometChains,
   proposalId: number,
-  transactions: ExecuteTransactionsInfo,
+  transactions: ExecuteTransactionsInfo
 ): Promise<CheckResult> {
   const { targets, signatures, calldatas, values } = transactions
 
@@ -99,7 +101,7 @@ async function storeTargetInfo(
   chain: CometChains,
   proposalId: number,
   targetLookupData: TargetLookupData,
-  transactionInfo: ExecuteTransactionInfo,
+  transactionInfo: ExecuteTransactionInfo
 ) {
   const { target, value, signature, calldata } = transactionInfo
   if (value?.toString() && value?.toString() !== '0') {
@@ -143,8 +145,49 @@ async function storeTargetInfo(
 
     console.log(`Decoded target: ${target} signature: ${functionSignature} calldata:${decodedCalldata}`)
     targetLookupData[target].functions[functionSignature].proposals[proposalId.toString()] = decodedCalldata.map(
-      (data) => data.toString(),
+      (data) => data.toString()
     )
+
+    const secondsPerYear = 60 * 60 * 24 * 365 //seconds * minutes * hours * days
+    const divisor = constants.WeiPerEther
+    if (functionSignature.startsWith('setBorrowPerYearInterestRateBase')) {
+      console.log('Sig', functionSignature)
+      const modifiedString = functionSignature.replace(/^set(.)/, (match, p1) => p1.toLowerCase()).split('(')[0]
+      console.log('Extracted function name', modifiedString)
+      const { abi } = await getContractNameAndAbiFromFile(chain, decodedCalldata[0])
+      const governance = new Contract(decodedCalldata[0], abi, provider)
+
+      const prevBorrowPerSecondInterestRateBase = BigNumber.from(
+        await governance.callStatic.borrowPerSecondInterestRateBase()
+      )
+
+      const prevBorrowPerYearInterestRateBase: BigNumber = prevBorrowPerSecondInterestRateBase.mul(secondsPerYear)
+      console.log(`Previous BorrowPerYearInterestRateBase ${prevBorrowPerYearInterestRateBase}`)
+
+      const newBorrowPerYearInterestRateBase: BigNumber = BigNumber.from(decodedCalldata[1])
+      console.log(`New BorrowPerYearInterestRateBase: ${newBorrowPerYearInterestRateBase}`)
+
+      const subtraction = newBorrowPerYearInterestRateBase.sub(prevBorrowPerYearInterestRateBase)
+      const changeIntegerPart = subtraction.div(divisor)
+      const changeRemainderPart = subtraction.mod(divisor)
+      const changeFractionalPart = changeRemainderPart.toString().padStart(18, '0')
+      const changeFinalResult = `${changeIntegerPart}.${changeFractionalPart}`
+      // console.log(
+      //   `${changeFinalResult.startsWith('-') ? 'Decrease' : 'Increase'} in Interest Rate Base: ${changeFinalResult}`
+      // )
+      console.log(
+        `${
+          subtraction.toString().startsWith('-') ? 'Decrease' : 'Increase'
+        } in Interest Rate Base: ${subtraction.toString()}`
+      )
+
+      const percentage = subtraction.mul(100)
+      const percentageIntegralPart = percentage.div(prevBorrowPerYearInterestRateBase)
+      const percentageRemainderPart = percentage.mod(prevBorrowPerYearInterestRateBase)
+      const percentageFractionalPart = percentageRemainderPart.toString().padStart(18, '0')
+      const percentageResult = `${percentageIntegralPart}.${percentageFractionalPart}`
+      console.log(`Percentage change in Interest Rate Base: ${percentageResult} %`)
+    }
   } catch (e) {
     console.error(e)
     console.log(`Error decoding proposal: ${proposalId} target: ${target} signature: ${signature} calldata:${calldata}`)
@@ -155,7 +198,7 @@ async function getTransactionMessages(
   chain: CometChains,
   proposalId: number,
   targetLookupData: TargetLookupData,
-  transactionInfo: ExecuteTransactionInfo,
+  transactionInfo: ExecuteTransactionInfo
 ): Promise<TransactionMessage> {
   const { target, value, signature, calldata } = transactionInfo
   if (value?.toString() && value?.toString() !== '0') {
@@ -179,7 +222,7 @@ async function getTransactionMessages(
     const [contractName, formatterName] = transactionFormatter.split('.')
     const message = await formattersLookup[contractName][formatterName](
       transactionInfo,
-      decodedCalldata.map((data) => data.toString()),
+      decodedCalldata.map((data) => data.toString())
     )
     return { info: message }
   }
