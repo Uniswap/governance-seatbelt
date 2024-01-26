@@ -1820,7 +1820,7 @@
       },
       "setBorrowPerYearInterestRateBase(address,uint64)": {
         "description": "setBorrowPerYearInterestRateBase(address,uint64)",
-        "transactionFormatter": "",
+        "transactionFormatter": "Configurator.setBorrowPerYearInterestRateBase(address,uint64)",
         "proposals": {
           "162": [
             "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
