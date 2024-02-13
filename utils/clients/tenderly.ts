@@ -8,8 +8,7 @@ import { toUtf8Bytes } from '@ethersproject/strings'
 import { parseEther } from '@ethersproject/units'
 import { provider } from './ethers'
 import mftch, { FETCH_OPT } from 'micro-ftch'
-// @ts-ignore
-const fetchUrl = mftch.default
+const fetchUrl = require('micro-ftch').default
 import {
   generateProposalId,
   getGovernor,
@@ -516,7 +515,7 @@ export function getContractName(contract: TenderlyContract | undefined) {
  * Gets the latest block number known to Tenderly
  * @param chainId Chain ID to get block number for
  */
-async function getLatestBlock(chainId: BigNumberish): Promise<number> {
+export async function getLatestBlock(chainId: BigNumberish): Promise<number> {
   try {
     // Send simulation request
     const url = `${TENDERLY_BASE_URL}/network/${BigNumber.from(chainId).toString()}/block-number`
@@ -561,7 +560,7 @@ async function sendEncodeRequest(payload: any): Promise<StorageEncodingResponse>
  * @param payload Transaction simulation parameters
  * @param delay How long to wait until next simulation request after failure, in milliseconds
  */
-async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<TenderlySimulation> {
+export async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<TenderlySimulation> {
   const fetchOptions = <Partial<FETCH_OPT>>{ method: 'POST', data: payload, ...TENDERLY_FETCH_OPTIONS }
   try {
     // Send simulation request

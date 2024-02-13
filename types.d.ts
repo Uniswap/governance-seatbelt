@@ -147,7 +147,7 @@ type ContractObject = {
 }
 
 export type TenderlyPayload = {
-  network_id: '1' | '3' | '4' | '5' | '42'
+  network_id: '1' | '3' | '4' | '5' | '42' | string
   block_number?: number
   transaction_index?: number
   from: string
