@@ -67,13 +67,6 @@ export const checkStateChanges: ProposalCheck = {
       // mapping within a single `diff` element. We always JSON.stringify the values so structs
       // (i.e. tuples) don't print as [object Object]
       diffs.forEach((diff) => {
-        // Sometimes Tenderly will return state changes where the original value is null, which
-        // means the original and dirty (new) values are the same. This is currently a bug, but it
-        // only happens when the original and dirty values match (i.e. no storage was changed,
-        // because the slot went from original -> other value -> original). As a result we can
-        // safely skip these diffs.
-        if (diff.original === null) return
-
         if (!diff.soltype) {
           // In this branch, state change is not decoded, so return raw data of each storage write
           // (all other branches have decoded state changes)
@@ -91,12 +84,16 @@ export const checkStateChanges: ProposalCheck = {
           // This is a complex type like a mapping, which may have multiple changes. The diff.original
           // and diff.dirty fields can be strings or objects, and for complex types they are objects,
           // so we cast them as such
-          const keys = Object.keys(diff.original)
+
+          // The original object can be null if the key was not present in the original state
+          // Unsure if the same can happen to dirty, let's assume its possible to collect all keys
+          const keys = Object.keys(diff.original || {}).concat(Object.keys(diff.dirty || {}))
+
           const original = diff.original as Record<string, any>
           const dirty = diff.dirty as Record<string, any>
           keys.forEach((k) => {
-            const oldVal = JSON.stringify(original[k])
-            const newVal = JSON.stringify(dirty[k])
+            const oldVal = JSON.stringify((original && k in original) ? original[k] : '')
+            const newVal = JSON.stringify((dirty && k in dirty) ? dirty[k] : '')
             info.push(bullet(`\`${diff.soltype?.name}\` key \`${k}\` changed from \`${oldVal}\` to \`${newVal}\``, 1))
           })
         } else {
