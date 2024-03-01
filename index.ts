@@ -4,7 +4,7 @@
 
 import dotenv from 'dotenv'
 dotenv.config()
-import { BigNumber, BigNumberish, Contract } from 'ethers'
+import { BigNumber, BigNumberish, Contract, constants } from 'ethers'
 import { DAO_NAME, GOVERNOR_ADDRESS, SIM_NAME } from './utils/constants'
 import { arb1provider, l1provider, provider } from './utils/clients/ethers'
 import { simulate } from './utils/clients/tenderly'
@@ -55,13 +55,13 @@ async function simL2toL1(sr: SimulationResult, simname: string) {
       type: 'arbl2tol1',
       daoName: simname,
       governorType: 'arb',
-      governorAddress: '0xf07ded9dc292157749b6fd268e37df6ea38395b9',
+      governorAddress: getAddress(GOVERNOR_ADDRESS || constants.AddressZero),
       targets: [l2ToL1TxEvent.destination], // Array of targets to call.
       values: [l2ToL1TxEvent.callvalue], // Array of values with each call.
       signatures: [''], // Array of function signatures. Leave empty if generating calldata with ethers like we do here.
       calldatas: [l2ToL1TxEvent.data], // Array of encoded calldatas.
-      description: 'The is the L1 Timelock Execution of simulation ' + parentId.toHexString(),
-      parentId: parentId,
+      description: `# This is a L1 Timelock Execution of simulation ${parentId.toString()}\n .`,
+      parentId: parentId.div(10000000).add(1).mul(10000000),
       idoffset: offset,
     }
     offset += 1000000 // reserve spaces for retryable exections
@@ -114,12 +114,12 @@ async function simRetryable(sr: SimulationResult, simname: string) {
         from: bridgeMessageEvent.sender,
         daoName: simname,
         governorType: 'arb',
-        governorAddress: '0xf07ded9dc292157749b6fd268e37df6ea38395b9',
+        governorAddress: getAddress(GOVERNOR_ADDRESS || constants.AddressZero),
         targets: [parsedRetryable.destAddress], // Array of targets to call.
         values: [parsedRetryable.l2CallValue], // Array of values with each call.
         signatures: [''], // Array of function signatures. Leave empty if generating calldata with ethers like we do here.
         calldatas: [parsedRetryable.data], // Array of encoded calldatas.
-        description: 'The is the L2 Retryable Execution of simulation ' + parentId.toHexString(),
+        description: `# This is a L2 Retryable Execution of simulation ${parentId.toString()} \n.`,
         parentId: parentId,
         idoffset: offset,
       }
@@ -187,12 +187,21 @@ async function main() {
     // assume we're simulating all by default
     const states = await Promise.all(proposalIds.map((id) => governor.state(id)))
     const simProposals: { id: BigNumber; simType: SimulationConfigBase['type'] }[] = proposalIds.map((id, i) => {
+      const state = String(states[i]) as keyof typeof PROPOSAL_STATES
+      const proposalState = PROPOSAL_STATES[state]
+      return { id, proposalState}
+    }).filter(p => {
+      return !process.env.ONLY_RELEVANT ||
+              p.proposalState === 'Pending' || 
+              p.proposalState === 'Active' || 
+              p.proposalState === 'Queued' || 
+              p.proposalState === 'Succeeded'
+    }).map(p => {
       // If state is `Executed` (state 7), we use the executed sim type and effectively just
       // simulate the real transaction. For all other states, we use the `proposed` type because
       // state overrides are required to simulate the transaction
-      const state = String(states[i]) as keyof typeof PROPOSAL_STATES
-      const isExecuted = PROPOSAL_STATES[state] === 'Executed'
-      return { id, simType: isExecuted ? 'executed' : 'proposed' }
+      const isExecuted = p.proposalState === 'Executed'
+      return { id: p.id, simType: isExecuted ? 'executed' : 'proposed' }
     })
     const simProposalsIds = simProposals.map((sim) => sim.id)
 
@@ -209,7 +218,7 @@ async function main() {
     for (const simProposal of simProposals) {
       if (simProposal.simType === 'new') throw new Error('Simulation type "new" is not supported in this branch')
       // Determine if this proposal is already `executed` or currently in-progress (`proposed`)
-      console.log(`  Simulating ${DAO_NAME} proposal ${simProposal.id}...`)
+      console.log(`  Simulating ${DAO_NAME} proposal ${simProposal.id} ...`)
       const config: SimulationConfig = {
         type: simProposal.simType,
         daoName: DAO_NAME,
@@ -244,7 +253,7 @@ async function main() {
   for (const simOutput of simOutputs) {
     // Run checks
     const { sim, proposal, latestBlock, config } = simOutput
-    console.log(`  Running for proposal ID ${formatProposalId(governorType, proposal.id!)}...`)
+    console.log(`  Running for proposal ID ${formatProposalId(governorType, proposal.id!)} ...`)
     const checkResults: AllCheckResults = Object.fromEntries(
       await Promise.all(
         Object.keys(ALL_CHECKS).map(async (checkId) => [

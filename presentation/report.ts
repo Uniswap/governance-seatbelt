@@ -142,8 +142,17 @@ export async function generateAndSaveReports(
 ) {
   // Prepare the output folder and filename.
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+  const pdfdir = `${dir}/pdf`
+  if (!fs.existsSync(pdfdir)) fs.mkdirSync(pdfdir, { recursive: true })
+  const mdDir = `${dir}/md`
+  if (!fs.existsSync(mdDir)) fs.mkdirSync(mdDir, { recursive: true })
+  const htmlDir = `${dir}/html`
+  if (!fs.existsSync(htmlDir)) fs.mkdirSync(htmlDir, { recursive: true })
+
   const id = formatProposalId(governorType, proposal.id!)
-  const path = `${dir}/${id}`
+  const pdfpath = `${pdfdir}/${id}`
+  const mdpath = `${mdDir}/${id}`
+  const htmlpath = `${htmlDir}/${id}`
 
   // Generate the base markdown proposal report. This is the markdown report which is translated into other file types.
   const baseReport = await toMarkdownProposalReport(governorType, blocks, proposal, checks, simid)
@@ -166,9 +175,9 @@ export async function generateAndSaveReports(
 
   // Save off all reports. The Markdown and PDF reports use the `markdownReport`.
   await Promise.all([
-    fsp.writeFile(`${path}.html`, htmlReport),
-    fsp.writeFile(`${path}.md`, markdownReport),
-    mdToPdf({ content: markdownReport }, { dest: `${path}.pdf` }),
+    fsp.writeFile(`${htmlpath}.html`, htmlReport),
+    fsp.writeFile(`${mdpath}.md`, markdownReport),
+    mdToPdf({ content: markdownReport }, { dest: `${pdfpath}.pdf` }),
   ])
 }
 

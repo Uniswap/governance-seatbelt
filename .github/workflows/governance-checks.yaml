@@ -17,8 +17,10 @@ jobs:
         include:
           - DAO_NAME: 'ArbCore'
             GOVERNOR_ADDRESS: '0xf07DeD9dC292157749B6Fd268E37DF6EA38395B9'
+            ONLY_RELEVANT: true
           - DAO_NAME: 'ArbTreasury'
             GOVERNOR_ADDRESS: '0x789fC99093B09aD01C34DC7251D0C89ce743e5a4'
+            ONLY_RELEVANT: true
 
     name: Check all live proposals
     runs-on: ubuntu-latest
@@ -71,6 +73,7 @@ jobs:
           TENDERLY_PROJECT_SLUG: ${{ secrets.TENDERLY_PROJECT_SLUG }}
           DAO_NAME: ${{ matrix.DAO_NAME }}
           GOVERNOR_ADDRESS: ${{ matrix.GOVERNOR_ADDRESS }}
+          ONLY_RELEVANT: ${{ matrix.ONLY_RELEVANT }}
 
       - name: Upload artifacts
         # We always upload artifacts, even if certain proposal sims/checks failed. This is because

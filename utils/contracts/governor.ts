@@ -211,7 +211,7 @@ export async function getImplementation(address: string, blockTag: number) {
 }
 
 export function formatProposalId(governorType: GovernorType, id: BigNumberish) {
-  if (governorType === 'oz' || governorType === 'arb') return BigNumber.from(id).toHexString()
+  if (governorType === 'oz') return BigNumber.from(id).toHexString()
   return BigNumber.from(id).toString()
 }
 

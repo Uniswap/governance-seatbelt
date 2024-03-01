@@ -24,8 +24,8 @@ export const checkStateChanges: ProposalCheck = {
     // (2) the `proposal.executed` change of the governor, because this will be consistent across
     // all proposals and mainly add noise to the output
     if (!sim.transaction.transaction_info.state_diff) {
-      console.log('State diff is empty, printing sim response')
-      console.log(JSON.stringify(sim, null, 2))
+      const warnings = `State diff is empty`
+      return { info: [], warnings: [warnings], errors: [] }
     }
     const stateDiffs = sim.transaction.transaction_info.state_diff.reduce((diffs, diff) => {
       const addr = getAddress(diff.raw[0].address)
