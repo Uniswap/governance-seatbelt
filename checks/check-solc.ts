@@ -1,4 +1,4 @@
-import { exec as execCallback } from 'node:child_process';
+import { execFile as execFileCallback } from 'node:child_process';
 import util from 'node:util';
 import { getAddress } from 'viem';
 import { codeBlock } from '../presentation/report';
@@ -6,15 +6,21 @@ import type { ProposalCheck } from '../types';
 import { getContractNameFromTenderly } from '../utils/clients/tenderly';
 import { ETHERSCAN_API_KEY } from '../utils/constants';
 import { getImplementation } from '../utils/contracts/governor';
+import { ETH_ADDRESS_REGEX, SECURITY_TOOL_TIMEOUT_MS } from '../utils/security-constants';
 
-// Convert exec method from a callback to a promise.
-const exec = util.promisify(execCallback);
+// Convert execFile method from a callback to a promise.
+const execFile = util.promisify(execFileCallback);
 
 // Data returned from command execution.
 type ExecOutput = {
   stdout: string;
   stderr: string;
 };
+
+// Result from runCryticCompile with specific failure reason
+type CryticResult =
+  | { success: true; output: ExecOutput }
+  | { success: false; reason: 'invalid_address' | 'timeout' | 'execution_error'; message: string };
 
 /**
  * Runs crytic-compile against verified contracts to obtain solc compiler warnings. Assumes crytic-compile
@@ -64,18 +70,20 @@ export const checkSolc: ProposalCheck = {
       if (addressesToSkip.has(addr)) continue;
 
       // Compile the contracts.
-      const output = await runCryticCompile(contract.address);
-      if (!output) {
-        warnings.push(`crytic-compile failed for \`${contract.contract_name}\` at \`${addr}\``);
+      const result = await runCryticCompile(contract.address);
+      if (!result.success) {
+        warnings.push(
+          `crytic-compile failed for \`${contract.contract_name}\` at \`${addr}\`: ${result.message}`,
+        );
         continue;
       }
 
       // Append results to report info.
       const contractName = getContractNameFromTenderly(contract);
-      if (output.stderr === '') {
+      if (result.output.stderr === '') {
         info.push(`No compiler warnings for ${contractName}`);
       } else {
-        info.push(`Compiler warnings for ${contractName}${codeBlock(output.stderr.trim())}`);
+        info.push(`Compiler warnings for ${contractName}${codeBlock(result.output.stderr.trim())}`);
       }
     }
 
@@ -91,15 +99,41 @@ export const checkSolc: ProposalCheck = {
  * This may require editing your $PATH variable prior to running this check. If you don't do this,
  * the nix version of solc will take precedence over the solc-select version, and compilation will fail.
  */
-async function runCryticCompile(address: string): Promise<ExecOutput | null> {
+async function runCryticCompile(address: string): Promise<CryticResult> {
+  // Validate address format before execution (defense in depth)
+  if (!ETH_ADDRESS_REGEX.test(address)) {
+    return {
+      success: false,
+      reason: 'invalid_address',
+      message: `Invalid address format: ${address}`,
+    };
+  }
+
   try {
-    return await exec(`crytic-compile ${address} --etherscan-apikey ${ETHERSCAN_API_KEY}`);
-  } catch (e) {
-    const error = e as unknown;
-    if (error && typeof error === 'object' && 'stderr' in error) {
-      return error as ExecOutput; // Output is in stderr, but slither reports results as an exception.
+    // Use execFile with argument array to prevent shell injection
+    const output = await execFile(
+      'crytic-compile',
+      [address, '--etherscan-apikey', ETHERSCAN_API_KEY],
+      { timeout: SECURITY_TOOL_TIMEOUT_MS },
+    );
+    return { success: true, output };
+  } catch (e: unknown) {
+    // Handle timeout errors
+    if (e && typeof e === 'object' && 'killed' in e && (e as { killed: boolean }).killed) {
+      return {
+        success: false,
+        reason: 'timeout',
+        message: `Timed out after ${SECURITY_TOOL_TIMEOUT_MS / 1000}s`,
+      };
     }
-    console.warn(`Error: Could not run crytic-compile via Python: ${JSON.stringify(e)}`);
-    return null;
+    // crytic-compile reports via stderr and non-zero exit, which throws
+    if (e && typeof e === 'object' && 'stderr' in e) {
+      return { success: true, output: e as ExecOutput };
+    }
+    return {
+      success: false,
+      reason: 'execution_error',
+      message: `Execution failed: ${e instanceof Error ? e.message : String(e)}`,
+    };
   }
 }

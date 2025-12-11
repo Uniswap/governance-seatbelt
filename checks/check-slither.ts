@@ -1,4 +1,4 @@
-import { exec as execCallback } from 'node:child_process';
+import { execFile as execFileCallback } from 'node:child_process';
 import util from 'node:util';
 import { getAddress } from 'viem';
 import { codeBlock } from '../presentation/report';
@@ -6,15 +6,21 @@ import type { ProposalCheck } from '../types';
 import { getContractName } from '../utils/clients/tenderly';
 import { ETHERSCAN_API_KEY } from '../utils/constants';
 import { getImplementation } from '../utils/contracts/governor';
+import { ETH_ADDRESS_REGEX, SECURITY_TOOL_TIMEOUT_MS } from '../utils/security-constants';
 
-// Convert exec method from a callback to a promise.
-const exec = util.promisify(execCallback);
+// Convert execFile method from a callback to a promise.
+const execFile = util.promisify(execFileCallback);
 
 // Data returned from command execution.
 type ExecOutput = {
   stdout: string;
   stderr: string;
 };
+
+// Result from runSlither with specific failure reason
+type SlitherResult =
+  | { success: true; output: ExecOutput }
+  | { success: false; reason: 'invalid_address' | 'timeout' | 'execution_error'; message: string };
 
 /**
  * Runs slither against the verified contracts and reports the outputs. Assumes slither is already installed.
@@ -63,9 +69,11 @@ export const checkSlither: ProposalCheck = {
       if (addressesToSkip.has(addr)) continue;
 
       // Run slither.
-      const slitherOutput = await runSlither(contract.address);
-      if (!slitherOutput) {
-        warnings.push(`Slither execution failed for \`${contract.contract_name}\` at \`${addr}\``);
+      const slitherResult = await runSlither(contract.address);
+      if (!slitherResult.success) {
+        warnings.push(
+          `Slither failed for \`${contract.contract_name}\` at \`${addr}\`: ${slitherResult.message}`,
+        );
         continue;
       }
 
@@ -73,7 +81,9 @@ export const checkSlither: ProposalCheck = {
       // Note that slither supports a `--json` flag  we could use, but directly printing the formatted
       // results in a code block is simpler and sufficient for now.
       const contractName = await getContractName(contract);
-      info.push(`Slither report for ${contractName}${codeBlock(slitherOutput.stderr.trim())}`);
+      info.push(
+        `Slither report for ${contractName}${codeBlock(slitherResult.output.stderr.trim())}`,
+      );
     }
 
     return { info, warnings, errors: [] };
@@ -87,12 +97,39 @@ export const checkSlither: ProposalCheck = {
  * This may require editing your $PATH variable prior to running this check. If you don't do this,
  * the nix version of solc will take precedence over the solc-select version, and slither will fail.
  */
-async function runSlither(address: string): Promise<ExecOutput | null> {
+async function runSlither(address: string): Promise<SlitherResult> {
+  // Validate address format before execution (defense in depth)
+  if (!ETH_ADDRESS_REGEX.test(address)) {
+    return {
+      success: false,
+      reason: 'invalid_address',
+      message: `Invalid address format: ${address}`,
+    };
+  }
+
   try {
-    return await exec(`slither ${address} --etherscan-apikey ${ETHERSCAN_API_KEY}`);
+    // Use execFile with argument array to prevent shell injection
+    const output = await execFile('slither', [address, '--etherscan-apikey', ETHERSCAN_API_KEY], {
+      timeout: SECURITY_TOOL_TIMEOUT_MS,
+    });
+    return { success: true, output };
   } catch (e: unknown) {
-    if (e && typeof e === 'object' && 'stderr' in e) return e as ExecOutput;
-    console.warn(`Error: Could not run slither via Python: ${JSON.stringify(e)}`);
-    return null;
+    // Handle timeout errors
+    if (e && typeof e === 'object' && 'killed' in e && (e as { killed: boolean }).killed) {
+      return {
+        success: false,
+        reason: 'timeout',
+        message: `Timed out after ${SECURITY_TOOL_TIMEOUT_MS / 1000}s`,
+      };
+    }
+    // Slither reports findings via stderr and non-zero exit, which throws
+    if (e && typeof e === 'object' && 'stderr' in e) {
+      return { success: true, output: e as ExecOutput };
+    }
+    return {
+      success: false,
+      reason: 'execution_error',
+      message: `Execution failed: ${e instanceof Error ? e.message : String(e)}`,
+    };
   }
 }

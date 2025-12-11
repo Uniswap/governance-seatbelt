@@ -30,3 +30,6 @@ export const GOVERNOR_ADDRESS = process.env.GOVERNOR_ADDRESS
   ? getAddress(process.env.GOVERNOR_ADDRESS)
   : null;
 export const REPORTS_OUTPUT_DIRECTORY = 'reports';
+
+// Re-export security constants (these can be imported without env validation)
+export { ETH_ADDRESS_REGEX, SECURITY_TOOL_TIMEOUT_MS } from './security-constants';
