@@ -202,3 +202,13 @@ To verify your setup works:
 # Test with existing simulation
 SIM_NAME=compound-43 bun start
 ```
+
+## Security
+
+### Pre-commit Hooks
+
+This repository uses Husky to run secretlint before each commit, preventing accidental secret leaks. Hooks install automatically when you run `bun install`.
+
+### Reporting Vulnerabilities
+
+See [SECURITY.md](SECURITY.md) for our security policy and vulnerability reporting process.

@@ -1,8 +1,16 @@
 node_modules
 .idea
 reports/
+# secrets
 .env
 .env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+credentials.json
 .DS_Store
 
 # hardhat

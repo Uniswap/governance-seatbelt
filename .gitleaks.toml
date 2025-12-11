@@ -1,0 +1,69 @@
+title = "Gitleaks Configuration for Governance Seatbelt"
+
+[extend]
+useDefault = true
+
+# Custom rules for blockchain/crypto patterns
+[[rules]]
+id = "ethereum-private-key"
+description = "Ethereum Private Key (64 hex chars)"
+regex = '''(?i)(private[_-]?key|pk|secret[_-]?key)\s*[:=]\s*['"]?[0-9a-fA-F]{64}['"]?'''
+tags = ["ethereum", "key", "secret"]
+
+[[rules]]
+id = "ethereum-mnemonic"
+description = "Ethereum Mnemonic/Seed Phrase"
+regex = '''(?i)(mnemonic|seed[_-]?phrase|recovery[_-]?phrase)\s*[:=]\s*['"]?(\w+\s+){11,23}\w+['"]?'''
+tags = ["ethereum", "mnemonic", "secret"]
+
+[[rules]]
+id = "tenderly-access-token"
+description = "Tenderly Access Token"
+regex = '''(?i)tenderly[_-]?access[_-]?token\s*[:=]\s*['"]?[a-zA-Z0-9_-]{20,}['"]?'''
+tags = ["tenderly", "token", "secret"]
+
+[[rules]]
+id = "etherscan-api-key"
+description = "Etherscan API Key"
+regex = '''(?i)etherscan[_-]?api[_-]?key\s*[:=]\s*['"]?[a-zA-Z0-9]{34}['"]?'''
+tags = ["etherscan", "api", "secret"]
+
+[[rules]]
+id = "infura-api-key"
+description = "Infura Project ID/Secret"
+regex = '''(?i)(infura[_-]?(project[_-]?id|api[_-]?key|secret))\s*[:=]\s*['"]?[a-zA-Z0-9]{32}['"]?'''
+tags = ["infura", "api", "secret"]
+
+[[rules]]
+id = "alchemy-api-key"
+description = "Alchemy API Key"
+regex = '''(?i)alchemy[_-]?(api[_-]?key|key)\s*[:=]\s*['"]?[a-zA-Z0-9_-]{32}['"]?'''
+tags = ["alchemy", "api", "secret"]
+
+[[rules]]
+id = "rpc-url-with-key"
+description = "RPC URL with embedded API key"
+regex = '''https?://[^/]+\.(infura\.io|alchemy\.com|quiknode\.pro)/v[0-9]/[a-zA-Z0-9_-]{20,}'''
+tags = ["rpc", "url", "secret"]
+
+# Allowlist for known false positives
+[allowlist]
+description = "Global allowlist"
+paths = [
+  '''node_modules/''',
+  '''\.env\.example''',
+  '''\.env\.local\.example''',
+  '''frontend/\.env\.local\.example''',
+  '''package-lock\.json''',
+  '''bun\.lockb''',
+  '''\.git/''',
+]
+
+# Allowlist specific patterns that are known safe
+[[allowlist.regexes]]
+description = "Example placeholder values"
+regex = '''(yourEtherscanApiKey|yourMainnetRpcUrl|yourTenderlyAccessToken|yourTenderlyOrgOrMeIfPersonal|yourTenderlyProjectSlug|yourArbitrumRpcUrl)'''
+
+[[allowlist.regexes]]
+description = "Governor and known contract addresses"
+regex = '''0x408ED6354d4973f66138C91495F2f2FCbd8724C3'''

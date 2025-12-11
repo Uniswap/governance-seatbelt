@@ -16,7 +16,8 @@
     "test": "bun test",
     "check-proposal": "bun run-checks.ts",
     "sim": "bun start",
-    "propose": "bun run sim && cd frontend && bun dev"
+    "propose": "bun run sim && cd frontend && bun dev",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -48,7 +49,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@types/bun": "latest"
+    "@secretlint/secretlint-rule-preset-recommend": "11.2.5",
+    "@types/bun": "latest",
+    "husky": "9.1.7",
+    "secretlint": "11.2.5"
   },
   "module": "index.ts",
   "peerDependencies": {
