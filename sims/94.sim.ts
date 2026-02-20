@@ -9,11 +9,14 @@
 import { encodeFunctionData, getAddress, parseAbi, parseEther, parseGwei } from 'viem';
 
 import type { SimulationConfigNew } from '../types';
-import ArbitrumDelayedInboxAbi from '../utils/abis/ArbitrumDelayedInboxAbi.json' assert {
-  type: 'json',
-};
-import L2CrossChainAccount from '../utils/abis/L2CrossChainAccount.json' assert { type: 'json' };
-import v3FactoryAbi from '../utils/abis/v3FactoryAbi.json' assert { type: 'json' };
+
+// ─── ABI fragments ───
+const FORWARD_ABI = parseAbi(['function forward(address target, bytes data)']);
+const SET_OWNER_ABI = parseAbi(['function setOwner(address _owner)']);
+const CREATE_RETRYABLE_TICKET_ABI = parseAbi([
+  'function createRetryableTicket(address to, uint256 l2CallValue, uint256 maxSubmissionCost, address excessFeeRefundAddress, address callValueRefundAddress, uint256 gasLimit, uint256 maxFeePerGas, bytes data) payable returns (uint256)',
+]);
+const EMPTY_SIG = '' as `0x${string}`;
 
 // ─── Gas limits (match Solidity script) ───
 const XDM_GAS_LIMIT = 200_000;
@@ -72,12 +75,12 @@ const WORMHOLE_SENDER_ABI = parseAbi([
 
 // Action 0: OP Mainnet V3 factory → V3OpenFeeAdapter (XDM → CrossChainAccount.forward)
 const opV3Forward = encodeFunctionData({
-  abi: L2CrossChainAccount as unknown as readonly unknown[],
+  abi: FORWARD_ABI,
   functionName: 'forward',
   args: [
     OP_V3_FACTORY,
     encodeFunctionData({
-      abi: v3FactoryAbi as unknown as readonly unknown[],
+      abi: SET_OWNER_ABI,
       functionName: 'setOwner',
       args: [OP_FEE_ADAPTER],
     }),
@@ -91,17 +94,17 @@ const call0 = {
     args: [OP_CROSS_CHAIN_ACCOUNT, opV3Forward, XDM_GAS_LIMIT],
   }),
   value: 0n,
-  signature: '',
+  signature: EMPTY_SIG,
 };
 
 // Action 1: Base V3 factory → V3OpenFeeAdapter
 const baseV3Forward = encodeFunctionData({
-  abi: L2CrossChainAccount as unknown as readonly unknown[],
+  abi: FORWARD_ABI,
   functionName: 'forward',
   args: [
     BASE_V3_FACTORY,
     encodeFunctionData({
-      abi: v3FactoryAbi as unknown as readonly unknown[],
+      abi: SET_OWNER_ABI,
       functionName: 'setOwner',
       args: [BASE_FEE_ADAPTER],
     }),
@@ -115,14 +118,14 @@ const call1 = {
     args: [BASE_CROSS_CHAIN_ACCOUNT, baseV3Forward, XDM_GAS_LIMIT],
   }),
   value: 0n,
-  signature: '',
+  signature: EMPTY_SIG,
 };
 
 // Action 2: Arbitrum V3 factory → V3OpenFeeAdapter (retryable ticket)
 const call2 = {
   target: ARB_INBOX,
   calldata: encodeFunctionData({
-    abi: ArbitrumDelayedInboxAbi as unknown as readonly unknown[],
+    abi: CREATE_RETRYABLE_TICKET_ABI,
     functionName: 'createRetryableTicket',
     args: [
       ARB_V3_FACTORY,
@@ -133,14 +136,14 @@ const call2 = {
       ARB_GAS_LIMIT,
       ARB_MAX_FEE_PER_GAS,
       encodeFunctionData({
-        abi: v3FactoryAbi as unknown as readonly unknown[],
+        abi: SET_OWNER_ABI,
         functionName: 'setOwner',
         args: [ARB_FEE_ADAPTER],
       }),
     ],
   }),
   value: ARB_VALUE,
-  signature: '',
+  signature: EMPTY_SIG,
 };
 
 // Action 3: Mainnet V3FeeAdapter → V3OpenFeeAdapter
@@ -152,12 +155,12 @@ const call3 = {
     args: [MAINNET_V3_OPEN_FEE_ADAPTER],
   }),
   value: 0n,
-  signature: '',
+  signature: EMPTY_SIG,
 };
 
 // Action 4: OP Mainnet V2 factory feeTo → TokenJar
 const opV2Forward = encodeFunctionData({
-  abi: L2CrossChainAccount as unknown as readonly unknown[],
+  abi: FORWARD_ABI,
   functionName: 'forward',
   args: [
     OP_V2_FACTORY,
@@ -176,12 +179,12 @@ const call4 = {
     args: [OP_CROSS_CHAIN_ACCOUNT, opV2Forward, XDM_GAS_LIMIT],
   }),
   value: 0n,
-  signature: '',
+  signature: EMPTY_SIG,
 };
 
 // Action 5: Base V2 factory feeTo → TokenJar
 const baseV2Forward = encodeFunctionData({
-  abi: L2CrossChainAccount as unknown as readonly unknown[],
+  abi: FORWARD_ABI,
   functionName: 'forward',
   args: [
     BASE_V2_FACTORY,
@@ -200,14 +203,14 @@ const call5 = {
     args: [BASE_CROSS_CHAIN_ACCOUNT, baseV2Forward, XDM_GAS_LIMIT],
   }),
   value: 0n,
-  signature: '',
+  signature: EMPTY_SIG,
 };
 
 // Action 6: Arbitrum V2 factory feeTo → TokenJar (retryable ticket)
 const call6 = {
   target: ARB_INBOX,
   calldata: encodeFunctionData({
-    abi: ArbitrumDelayedInboxAbi as unknown as readonly unknown[],
+    abi: CREATE_RETRYABLE_TICKET_ABI,
     functionName: 'createRetryableTicket',
     args: [
       ARB_V2_FACTORY,
@@ -225,7 +228,7 @@ const call6 = {
     ],
   }),
   value: ARB_VALUE,
-  signature: '',
+  signature: EMPTY_SIG,
 };
 
 // Action 7: Celo Wormhole handoff — V3 setOwner, V2 setFeeToSetter, V4 PoolManager transferOwnership
@@ -233,7 +236,7 @@ const celoTargets = [CELO_V3_FACTORY, CELO_V2_FACTORY, CELO_V4_POOL_MANAGER] as 
 const celoValues = [0n, 0n, 0n] as const;
 const celoDatas = [
   encodeFunctionData({
-    abi: v3FactoryAbi as unknown as readonly unknown[],
+    abi: SET_OWNER_ABI,
     functionName: 'setOwner',
     args: [CELO_CROSS_CHAIN_ACCOUNT],
   }),
@@ -262,7 +265,7 @@ const call7 = {
     ],
   }),
   value: 0n,
-  signature: '',
+  signature: EMPTY_SIG,
 };
 
 const calls = [call0, call1, call2, call3, call4, call5, call6, call7];
@@ -274,7 +277,7 @@ export const config: SimulationConfigNew = {
   governorType: 'bravo',
   targets: calls.map((c) => c.target),
   values: calls.map((c) => c.value),
-  signatures: calls.map((c) => c.signature as `0x${string}`),
+  signatures: calls.map((c) => c.signature),
   calldatas: calls.map((c) => c.calldata),
   description: `# Activate Protocol Fees on OP Mainnet, Base, Arbitrum, and Ethereum + Celo Governance Handoff
 

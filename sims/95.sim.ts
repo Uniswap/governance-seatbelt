@@ -9,8 +9,11 @@
 import { encodeFunctionData, getAddress, parseAbi } from 'viem';
 
 import type { SimulationConfigNew } from '../types';
-import L2CrossChainAccount from '../utils/abis/L2CrossChainAccount.json' assert { type: 'json' };
-import v3FactoryAbi from '../utils/abis/v3FactoryAbi.json' assert { type: 'json' };
+
+// ─── ABI fragments ───
+const FORWARD_ABI = parseAbi(['function forward(address target, bytes data)']);
+const SET_OWNER_ABI = parseAbi(['function setOwner(address _owner)']);
+const EMPTY_SIG = '' as `0x${string}`;
 
 // ─── Gas limits (match Solidity script) ───
 const XDM_GAS_LIMIT = 200_000;
@@ -68,14 +71,14 @@ const call0 = {
       DEPOSIT_GAS_LIMIT,
       false,
       encodeFunctionData({
-        abi: v3FactoryAbi as unknown as readonly unknown[],
+        abi: SET_OWNER_ABI,
         functionName: 'setOwner',
         args: [SONEIUM_FEE_ADAPTER],
       }),
     ],
   }),
   value: 0n,
-  signature: '',
+  signature: EMPTY_SIG,
 };
 
 // Action 1: XLayer — depositTransaction to transfer factory to fee adapter
@@ -90,24 +93,24 @@ const call1 = {
       DEPOSIT_GAS_LIMIT,
       false,
       encodeFunctionData({
-        abi: v3FactoryAbi as unknown as readonly unknown[],
+        abi: SET_OWNER_ABI,
         functionName: 'setOwner',
         args: [XLAYER_FEE_ADAPTER],
       }),
     ],
   }),
   value: 0n,
-  signature: '',
+  signature: EMPTY_SIG,
 };
 
 // Action 2: Celo — XDM to transfer V3 factory to fee adapter
 const celoV3Forward = encodeFunctionData({
-  abi: L2CrossChainAccount as unknown as readonly unknown[],
+  abi: FORWARD_ABI,
   functionName: 'forward',
   args: [
     CELO_V3_FACTORY,
     encodeFunctionData({
-      abi: v3FactoryAbi as unknown as readonly unknown[],
+      abi: SET_OWNER_ABI,
       functionName: 'setOwner',
       args: [CELO_FEE_ADAPTER],
     }),
@@ -121,12 +124,12 @@ const call2 = {
     args: [CELO_CROSS_CHAIN_ACCOUNT, celoV3Forward, XDM_GAS_LIMIT],
   }),
   value: 0n,
-  signature: '',
+  signature: EMPTY_SIG,
 };
 
 // Action 3: Celo — set V2 factory feeTo to TokenJar
 const celoV2Forward = encodeFunctionData({
-  abi: L2CrossChainAccount as unknown as readonly unknown[],
+  abi: FORWARD_ABI,
   functionName: 'forward',
   args: [
     CELO_V2_FACTORY,
@@ -145,17 +148,17 @@ const call3 = {
     args: [CELO_CROSS_CHAIN_ACCOUNT, celoV2Forward, XDM_GAS_LIMIT],
   }),
   value: 0n,
-  signature: '',
+  signature: EMPTY_SIG,
 };
 
 // Action 4: Worldchain — XDM to transfer factory to fee adapter
 const worldchainForward = encodeFunctionData({
-  abi: L2CrossChainAccount as unknown as readonly unknown[],
+  abi: FORWARD_ABI,
   functionName: 'forward',
   args: [
     WORLDCHAIN_V3_FACTORY,
     encodeFunctionData({
-      abi: v3FactoryAbi as unknown as readonly unknown[],
+      abi: SET_OWNER_ABI,
       functionName: 'setOwner',
       args: [WORLDCHAIN_FEE_ADAPTER],
     }),
@@ -169,17 +172,17 @@ const call4 = {
     args: [WORLDCHAIN_CROSS_CHAIN_ACCOUNT, worldchainForward, XDM_GAS_LIMIT],
   }),
   value: 0n,
-  signature: '',
+  signature: EMPTY_SIG,
 };
 
 // Action 5: Zora — XDM to transfer factory to fee adapter
 const zoraForward = encodeFunctionData({
-  abi: L2CrossChainAccount as unknown as readonly unknown[],
+  abi: FORWARD_ABI,
   functionName: 'forward',
   args: [
     ZORA_V3_FACTORY,
     encodeFunctionData({
-      abi: v3FactoryAbi as unknown as readonly unknown[],
+      abi: SET_OWNER_ABI,
       functionName: 'setOwner',
       args: [ZORA_FEE_ADAPTER],
     }),
@@ -193,7 +196,7 @@ const call5 = {
     args: [ZORA_CROSS_CHAIN_ACCOUNT, zoraForward, XDM_GAS_LIMIT],
   }),
   value: 0n,
-  signature: '',
+  signature: EMPTY_SIG,
 };
 
 const calls = [call0, call1, call2, call3, call4, call5];
@@ -205,7 +208,7 @@ export const config: SimulationConfigNew = {
   governorType: 'bravo',
   targets: calls.map((c) => c.target),
   values: calls.map((c) => c.value),
-  signatures: calls.map((c) => c.signature as `0x${string}`),
+  signatures: calls.map((c) => c.signature),
   calldatas: calls.map((c) => c.calldata),
   description: `# Activate V3 Protocol Fees on Celo, Soneium, Worldchain, XLayer, and Zora
 
