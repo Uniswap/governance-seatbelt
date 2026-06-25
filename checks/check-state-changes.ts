@@ -29,18 +29,8 @@ export const checkStateChanges: ProposalCheck = {
     // (2) the `proposal.executed` change of the governor, because this will be consistent across
     // all proposals and mainly add noise to the output
     if (!sim.transaction.transaction_info.state_diff) {
-      const chainId = deps.chainConfig?.chainId ?? 1;
-      if (chainId !== 1) {
-        return {
-          info: [
-            'No state diff captured for this L2 simulation (this is common); rely on emitted logs + decoded calldata instead.',
-          ],
-          warnings: [],
-          errors: [],
-        };
-      }
-
-      return { info: [], warnings: ['State diff is empty'], errors: [] };
+      const warnings = `State diff is empty`
+      return { info: [], warnings: [warnings], errors: [] }
     }
 
     const stateDiffs = sim.transaction.transaction_info.state_diff.reduce(
@@ -98,7 +88,7 @@ export const checkStateChanges: ProposalCheck = {
       // executes three transactions will show three state changes to the `queuedTransactions`
       // mapping within a single `diff` element. We always JSON.stringify the values so structs
       // (i.e. tuples) don't print as [object Object]
-      for (const diff of diffs) {
+      diffs.forEach((diff) => {
         if (!diff.soltype) {
           // In this branch, state change is not decoded, so return raw data of each storage write
           // (all other branches have decoded state changes)
@@ -127,21 +117,15 @@ export const checkStateChanges: ProposalCheck = {
 
           // The original object can be null if the key was not present in the original state
           // Unsure if the same can happen to dirty, let's assume its possible to collect all keys
-          const keys = Object.keys(diff.original || {}).concat(Object.keys(diff.dirty || {}));
+          const keys = Object.keys(diff.original || {}).concat(Object.keys(diff.dirty || {}))
 
-          const original = diff.original as Record<string, string>;
-          const dirty = diff.dirty as Record<string, string>;
-          for (const k of keys) {
-            const oldVal = formatRawValue(original && k in original ? original[k] : '');
-            const newVal = formatRawValue(dirty && k in dirty ? dirty[k] : '');
-            const changeKey = `${diff.soltype?.name}:${k}:${oldVal}:${newVal}`;
-            if (!processedChanges.has(changeKey)) {
-              info.push(
-                `    \`${diff.soltype?.name}\` key \`${k}\` changed from \`${oldVal}\` to \`${newVal}\``,
-              );
-              processedChanges.add(changeKey);
-            }
-          }
+          const original = diff.original as Record<string, any>
+          const dirty = diff.dirty as Record<string, any>
+          keys.forEach((k) => {
+            const oldVal = JSON.stringify((original && k in original) ? original[k] : '')
+            const newVal = JSON.stringify((dirty && k in dirty) ? dirty[k] : '')
+            info.push(bullet(`\`${diff.soltype?.name}\` key \`${k}\` changed from \`${oldVal}\` to \`${newVal}\``, 1))
+          })
         } else {
           // TODO arrays and nested mapping are currently not well supported -- find a transaction
           // that changes state of these types to inspect the Tenderly simulation response and
