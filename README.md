@@ -20,6 +20,25 @@ Some notes on the outputs of reports:
 - State changes and events around the proposal execution process, such as the `ExecuteTransaction` event and `queuedTransactions` state changes, are omitted from reports to reduce noise
 - Slither analysis for the timelock, governor proxy, and governor implementation is skipped to reduce noise in the output. Note that skipping analysis for the implementation on historical proposals requires an archive node, and a warning will be shown if archive data is required not available
 
+## Proposal checks
+
+Each simulated proposal runs the checks below. Reports group findings as **info**, **warnings**, and **errors**. Treat errors as blockers for a yes vote until understood; investigate warnings before voting; use info to understand what the proposal does.
+
+| Check | What it does | If it warns / errors |
+| --- | --- | --- |
+| **State changes** | Lists storage diffs from the simulation (timelock queue / governor `executed` noise filtered). | **Error** if the simulated execution reverts — do not vote yes until the revert reason is understood. **Warning** if the state diff is empty. Review every remaining diff for unexpected balances, roles, or parameters. |
+| **Decode calldata** | Turns each proposal action's calldata into a human-readable description (including common ERC-20 shapes). | **Warning** if a matching call cannot be found (often means the action reverted or was not executed as expected). Manually decode the raw calldata before voting. |
+| **Events** | Lists events emitted during simulation (governor/timelock execute noise filtered). | Informational. Cross-check events against the intended actions; missing expected events or unexpected ones deserve investigation. |
+| **Targets verified (Etherscan)** | Whether each proposal target is verified, an EOA, or unverified. | Unverified contracts with code are reported as info but are high risk — confirm the bytecode matches what voters expect before approving. |
+| **Touched contracts verified** | Same verification check for every address touched by the simulation. | Same as targets: unverified touched contracts may be proxies, peripherals, or surprise callees — verify intent. |
+| **Targets no selfdestruct** | Bytecode scan of targets for `SELFDESTRUCT` / concerning `DELEGATECALL`. | **Error** on `SELFDESTRUCT` in a target — treat as unsafe unless you fully trust the contract. **Warning** on empty accounts (code may appear later) or `DELEGATECALL`-bearing bytecode. |
+| **Touched contracts no selfdestruct** | Same bytecode scan for all touched addresses. | Same guidance as the targets selfdestruct check; touched contracts include callees not listed as formal targets. |
+| **Value required** | Whether the account that `execute`s must send ETH, given governor balance vs proposal value. | **Warning** if ETH must be sent with `execute`. Confirm the executor will supply it and that the amount matches the proposal. |
+| **solc (crytic-compile)** | Compiler warnings from verified touched contracts (skips existing timelock/governor to reduce noise). | **Warning** on compile failure or when an archive node is needed to resolve the governor implementation. New solc warnings on touched code should be understood before voting. |
+| **Slither** | Runs Slither on verified touched contracts (after solc; skips timelock/governor). | **Warning** if Slither fails for a contract. Findings are printed as info — triage high/medium severity before voting; known false positives on governance glue are common. |
+
+Checks are registered in [`checks/index.ts`](./checks/index.ts). Solc must run before Slither because compilation exports an artifact Slither consumes.
+
 ## Usage
 
 ### Adding DAOs to CI
