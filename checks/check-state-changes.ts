@@ -1,7 +1,7 @@
 import { getAddress } from '@ethersproject/address'
 import { getContractName } from '../utils/clients/tenderly'
 import { bullet } from '../presentation/report'
-import { ProposalCheck, StateDiff } from '../types'
+import { AssetChange, ProposalCheck, StateDiff } from '../types'
 
 /**
  * Reports all state changes from the proposal
@@ -52,11 +52,11 @@ export const checkStateChanges: ProposalCheck = {
       return diffs
     }, {} as Record<string, StateDiff[]>)
 
-    // Return if no state diffs to show
-    if (!Object.keys(stateDiffs).length) return { info: ['No state changes'], warnings: [], errors: [] }
+    // Parse storage state changes at each address (may be empty; ETH is separate below)
+    if (!Object.keys(stateDiffs).length) {
+      info.push('No storage state changes')
+    }
 
-    // Parse state changes at each address
-    // TODO support ETH state changes once tenderly adds support for that in the simulation response
     for (const [address, diffs] of Object.entries(stateDiffs)) {
       // Use contracts array to get contract name of address
       const contract = sim.contracts.find((c) => c.address === address)
@@ -113,6 +113,53 @@ export const checkStateChanges: ProposalCheck = {
       })
     }
 
+
+    // Native ETH balance changes (Tenderly Asset Changes API). Storage diffs never
+    // include the ETH balance, so surface native movements here once Tenderly provides them.
+    // See https://blog.tenderly.co/changelog/asset-changes-added-to-tenderly-apis/
+    const ethChanges = collectNativeEthChanges(sim.transaction.transaction_info.asset_changes)
+    if (ethChanges.length > 0) {
+      info.push(bullet('ETH balance changes'))
+      for (const line of ethChanges) {
+        info.push(bullet(line, 1))
+      }
+    } else if (!sim.transaction.transaction_info.asset_changes) {
+      // Older Tenderly responses omit asset_changes entirely.
+      info.push(bullet('ETH balance changes: not available in this simulation response'))
+    }
+
     return { info, warnings: [], errors: [] }
   },
+}
+
+function collectNativeEthChanges(assetChanges: AssetChange[] | null | undefined): string[] {
+  if (!assetChanges || assetChanges.length === 0) return []
+  const lines: string[] = []
+  for (const change of assetChanges) {
+    const standard = (change.token_info?.standard || change.token_info?.type || '').toLowerCase()
+    const hasContract = Boolean(change.token_info?.contract_address)
+    const isNative =
+      !hasContract ||
+      standard.includes('native') ||
+      (change.token_info?.symbol || '').toUpperCase() === 'ETH'
+    if (!isNative) continue
+    const kind = change.type || 'Transfer'
+    const amount = change.amount ?? change.raw_amount ?? '?'
+    const symbol = change.token_info?.symbol || 'ETH'
+    const from = change.from ? shortenAddr(change.from) : '(mint)'
+    const to = change.to ? shortenAddr(change.to) : '(burn)'
+    const usd =
+      change.dollar_value && change.dollar_value !== '0' ? ` (~$${change.dollar_value})` : ''
+    lines.push(`\`${kind}\` ${amount} ${symbol}${usd}: \`${from}\` → \`${to}\``)
+  }
+  return lines
+}
+
+function shortenAddr(addr: string): string {
+  try {
+    const a = getAddress(addr)
+    return `${a.slice(0, 6)}…${a.slice(-4)}`
+  } catch {
+    return addr
+  }
 }
