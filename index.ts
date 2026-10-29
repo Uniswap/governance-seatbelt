@@ -20,6 +20,13 @@ import {
   inferGovernorType,
 } from './utils/contracts/governor'
 import { getAddress } from '@ethersproject/address'
+import {
+  TERMINAL_PROPOSAL_STATES,
+  cachedState,
+  loadProposalStates,
+  saveProposalStates,
+  setCachedState,
+} from './utils/proposal-states'
 
 /**
  * @notice Simulate governance proposals and run proposal checks against them
@@ -54,37 +61,54 @@ async function main() {
     const proposalIds = await getProposalIds(governorType, GOVERNOR_ADDRESS, latestBlock.number)
     governor = getGovernor(governorType, GOVERNOR_ADDRESS)
 
-    // If we aren't simulating all proposals, filter down to just the active ones. For now we
-    // assume we're simulating all by default
-    const states = await Promise.all(proposalIds.map((id) => governor.state(id)))
-    const simProposals: { id: BigNumber; simType: SimulationConfigBase['type'] }[] = proposalIds.map((id, i) => {
-      // If state is `Executed` (state 7), we use the executed sim type and effectively just
-      // simulate the real transaction. For all other states, we use the `proposed` type because
-      // state overrides are required to simulate the transaction
-      const state = String(states[i]) as keyof typeof PROPOSAL_STATES
-      const isExecuted = PROPOSAL_STATES[state] === 'Executed'
-      return { id, simType: isExecuted ? 'executed' : 'proposed' }
-    })
-    const simProposalsIds = simProposals.map((sim) => sim.id)
+    // Skip proposals that are already in a terminal state (Canceled / Defeated / Expired /
+    // Executed). Re-simulating them every CI run is slow and burns Tenderly quota; see #117.
+    // Cache shape is governorAddress -> proposalId -> numeric state so multi-governor workflows
+    // share one proposal-states.json without colliding on IDs.
+    const proposalStates = loadProposalStates()
+    const governorAddress = getAddress(GOVERNOR_ADDRESS)
+    const simProposals: { id: BigNumber; simType: SimulationConfigBase['type']; state: number }[] = []
+    let skippedTerminal = 0
 
-    // Simulate them
-    // We intentionally do not run these in parallel to avoid hitting Tenderly API rate limits or flooding
-    // them with requests if we e.g. simulate all proposals for a governor (instead of just active ones)
+    for (const id of proposalIds) {
+      const cached = cachedState(proposalStates, governorAddress, id)
+      let stateNum: number
+      if (cached !== undefined && TERMINAL_PROPOSAL_STATES.has(PROPOSAL_STATES[String(cached) as keyof typeof PROPOSAL_STATES])) {
+        // Already known terminal — skip without another RPC / Tenderly call.
+        skippedTerminal++
+        continue
+      }
+
+      stateNum = Number(await governor.state(id))
+      setCachedState(proposalStates, governorAddress, id, stateNum)
+      const stateName = PROPOSAL_STATES[String(stateNum) as keyof typeof PROPOSAL_STATES]
+      if (TERMINAL_PROPOSAL_STATES.has(stateName)) {
+        skippedTerminal++
+        continue
+      }
+
+      // Non-terminal proposals still need simulation. Executed is terminal (handled above);
+      // everything else uses the `proposed` path with state overrides.
+      simProposals.push({ id, simType: 'proposed', state: stateNum })
+    }
+
+    saveProposalStates(proposalStates)
+
+    const simProposalsIds = simProposals.map((sim) => sim.id)
     const numProposals = simProposals.length
     console.log(
-      `Simulating ${numProposals} ${DAO_NAME} proposals: IDs of ${simProposalsIds
-        .map((id) => formatProposalId(governorType, id))
-        .join(', ')}`
+      `Simulating ${numProposals} ${DAO_NAME} proposals` +
+        (skippedTerminal ? ` (skipped ${skippedTerminal} terminal)` : '') +
+        `: IDs of ${simProposalsIds.map((id) => formatProposalId(governorType, id)).join(', ')}`
     )
 
+    // We intentionally do not run these in parallel to avoid hitting Tenderly API rate limits.
     for (const simProposal of simProposals) {
-      if (simProposal.simType === 'new') throw new Error('Simulation type "new" is not supported in this branch')
-      // Determine if this proposal is already `executed` or currently in-progress (`proposed`)
-      console.log(`  Simulating ${DAO_NAME} proposal ${simProposal.id}...`)
+      console.log(`  Simulating ${DAO_NAME} proposal ${simProposal.id} (${PROPOSAL_STATES[String(simProposal.state) as keyof typeof PROPOSAL_STATES]})...`)
       const config: SimulationConfig = {
         type: simProposal.simType,
         daoName: DAO_NAME,
-        governorAddress: getAddress(GOVERNOR_ADDRESS),
+        governorAddress,
         governorType,
         proposalId: simProposal.id,
       }
