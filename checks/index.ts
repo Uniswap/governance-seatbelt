@@ -8,6 +8,7 @@ import { checkLogs } from './check-logs'
 import { checkSlither } from './check-slither'
 import { checkSolc } from './check-solc'
 import { checkStateChanges } from './check-state-changes'
+import { checkAssetChanges } from './check-asset-changes'
 import { checkValueRequired } from './check-value-required'
 import { ProposalCheck } from '../types'
 
@@ -15,6 +16,7 @@ const ALL_CHECKS: {
   [checkId: string]: ProposalCheck
 } = {
   checkStateChanges,
+  checkAssetChanges,
   checkDecodeCalldata,
   checkLogs,
   checkTargetsVerifiedEtherscan,
