@@ -60,6 +60,10 @@ DAO_NAME=Uniswap
 GOVERNOR_ADDRESS=0x408ED6354d4973f66138C91495F2f2FCbd8724C3
 ```
 
+### Skipping completed proposals
+
+CI and `yarn start` (without `SIM_NAME`) skip proposals whose governor state is terminal (`Canceled`, `Defeated`, `Expired`, or `Executed`). States are cached in [`proposal-states.json`](./proposal-states.json) keyed by governor address then proposal ID, so later runs do not re-simulate finalized proposals. Delete or edit that file to force a re-simulation.
+
 ### Running Simulations
 
 There are two modes of operation:
