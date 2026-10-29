@@ -133,8 +133,10 @@ export async function generateAndSaveReports(
   // to fix this, and use this updated version when generating the Markdown and PDF reports.
   const markdownReport = String(await remark().use(remarkFixEmojiLinks).process(baseReport))
 
-  // Generate the HTML report string using the `baseReport`.
-  const htmlReport = String(
+  // Generate the HTML report string using the `baseReport`, then wrap it in a
+  // styled document so browsers do not render the default unstyled markup
+  // (Fixes #71).
+  const htmlBody = String(
     await unified()
       .use(remarkParse)
       .use(remarkRehype)
@@ -143,6 +145,12 @@ export async function generateAndSaveReports(
       .use(rehypeSlug)
       .process(baseReport)
   )
+  const title = getProposalTitle(proposal.description.trim())
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+  const htmlReport = wrapHtmlReport(title, htmlBody)
 
   // Save off all reports. The Markdown and PDF reports use the `markdownReport`.
   await Promise.all([
@@ -150,6 +158,98 @@ export async function generateAndSaveReports(
     fsp.writeFile(`${path}.md`, markdownReport),
     mdToPdf({ content: markdownReport }, { dest: `${path}.pdf` }),
   ])
+}
+
+
+/**
+ * Wrap proposal-check HTML in a complete document with readable default styles.
+ * The markdown→HTML pipeline only emits a body fragment; without this shell,
+ * browsers show an unstyled wall of text (see #71).
+ */
+function wrapHtmlReport(title: string, body: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${title}</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1b1f23;
+    --muted: #57606a;
+    --border: #d0d7de;
+    --code-bg: #f6f8fa;
+    --link: #0969da;
+    --quote-border: #d0d7de;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117;
+      --fg: #e6edf3;
+      --muted: #8b949e;
+      --border: #30363d;
+      --code-bg: #161b22;
+      --link: #2f81f7;
+      --quote-border: #3d444d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0 auto;
+    max-width: 52rem;
+    padding: 2rem 1.25rem 4rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--fg);
+    background: var(--bg);
+  }
+  h1, h2, h3, h4 {
+    line-height: 1.25;
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+  }
+  h1 { font-size: 1.75rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+  h2 { font-size: 1.35rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25em; }
+  h3 { font-size: 1.15rem; }
+  p, ul, ol { margin: 0.75em 0; }
+  ul, ol { padding-left: 1.5em; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, kbd {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    background: var(--code-bg);
+    padding: 0.15em 0.35em;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.85em 1em;
+    overflow-x: auto;
+  }
+  pre code { background: transparent; padding: 0; }
+  blockquote {
+    margin: 1em 0;
+    padding: 0.25em 1em;
+    color: var(--muted);
+    border-left: 0.25em solid var(--quote-border);
+  }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+  th, td { border: 1px solid var(--border); padding: 0.4em 0.65em; text-align: left; }
+  th { background: var(--code-bg); }
+</style>
+</head>
+<body>
+${body}
+</body>
+</html>
+`
 }
 
 /**
