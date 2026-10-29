@@ -380,6 +380,37 @@ interface TransactionInfo {
   raw_state_diff: null
   console_logs: null
   created_at: Date
+  asset_changes?: AssetChange[] | null
+  balance_changes?: BalanceChange[] | null
+}
+
+/** Token / native asset movement from Tenderly simulation (ERC20, ERC721, native). */
+export interface AssetChange {
+  token_info?: AssetTokenInfo
+  type: string // Transfer | Mint | Burn
+  from?: string | null
+  to?: string | null
+  amount?: string | null
+  raw_amount?: string | null
+  dollar_value?: string | null
+}
+
+export interface AssetTokenInfo {
+  standard?: string
+  type?: string
+  contract_address?: string
+  symbol?: string
+  name?: string
+  logo?: string
+  decimals?: number
+  dollar_value?: string
+}
+
+/** Net dollar balance change for an address, referencing asset_changes by index. */
+export interface BalanceChange {
+  address: string
+  dollar_value?: string | null
+  transfers?: number[]
 }
 
 interface StackTrace {
