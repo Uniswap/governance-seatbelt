@@ -488,6 +488,38 @@ async function simulateExecuted(config: SimulationConfigExecuted): Promise<Simul
   return { sim, proposal: formattedProposal, latestBlock }
 }
 
+
+/**
+ * @notice Build a readable description of an HTTP/fetch failure.
+ * @dev `JSON.stringify(err)` often yields `{}` for Error-like objects (non-enumerable
+ * `message`) and drops response bodies that micro-ftch attaches. Prefer explicit fields
+ * so Tenderly API error payloads surface in logs and thrown messages.
+ */
+function describeHttpError(err: unknown): string {
+  if (err == null) return String(err)
+  if (typeof err !== 'object') return String(err)
+  const e = err as Record<string, unknown>
+  const bits: string[] = []
+  if (typeof e.message === 'string' && e.message) bits.push(e.message)
+  if (e.statusCode != null) bits.push(`statusCode=${e.statusCode}`)
+  if (e.status != null) bits.push(`status=${e.status}`)
+  for (const key of ['body', 'data', 'response', 'error'] as const) {
+    const v = e[key]
+    if (v == null) continue
+    bits.push(`${key}=${typeof v === 'string' ? v : JSON.stringify(v)}`)
+  }
+  if (bits.length === 0) {
+    try {
+      const json = JSON.stringify(err)
+      if (json && json !== '{}') return json
+    } catch {
+      // fall through
+    }
+    return String(err)
+  }
+  return bits.join(' | ')
+}
+
 // --- Helper methods ---
 
 // Sleep for the specified number of milliseconds
@@ -524,9 +556,10 @@ async function getLatestBlock(chainId: BigNumberish): Promise<number> {
     const res = await fetchUrl(url, fetchOptions)
     return res.block_number as number
   } catch (err) {
+    const detail = describeHttpError(err)
     console.log('logging getLatestBlock error')
-    console.log(JSON.stringify(err, null, 2))
-    throw err
+    console.log(detail)
+    throw new Error(`Tenderly getLatestBlock failed: ${detail}`)
   }
 }
 
@@ -545,10 +578,11 @@ async function sendEncodeRequest(payload: any): Promise<StorageEncodingResponse>
 
     return response as StorageEncodingResponse
   } catch (err) {
+    const detail = describeHttpError(err)
     console.log('logging sendEncodeRequest error')
-    console.log(JSON.stringify(err, null, 2))
+    console.log(detail)
     console.log(JSON.stringify(payload))
-    throw err
+    throw new Error(`Tenderly encode request failed: ${detail}`)
   }
 }
 
@@ -572,14 +606,15 @@ async function sendSimulation(payload: TenderlyPayload, delay = 1000): Promise<T
     sim.contracts.forEach((contract) => (contract.address = getAddress(contract.address)))
     return sim
   } catch (err: any) {
-    console.log('err in sendSimulation: ', JSON.stringify(err))
+    const detail = describeHttpError(err)
+    console.log('err in sendSimulation: ', detail)
     const is429 = typeof err === 'object' && err?.statusCode === 429
     if (delay > 8000 || !is429) {
       console.warn(`Simulation request failed with the below request payload and error`)
       console.log(JSON.stringify(fetchOptions))
-      throw err
+      throw new Error(`Tenderly simulation request failed: ${detail}`)
     }
-    console.warn(err)
+    console.warn(detail)
     console.warn(
       `Simulation request failed with the above error, retrying in ~${delay} milliseconds. See request payload below`
     )
